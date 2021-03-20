@@ -1,4 +1,5 @@
-import Base:IteratorSize, iterate, eltype, setindex!
+import Base:IteratorSize, iterate, eltype,
+            *, transpose
 using Base:HasShape, HasLength
 
 """
@@ -9,17 +10,21 @@ elements of type `V` and time of type `T`".
 """
 abstract type AbstractRecord{V<:Number, T<:Real, N} end
 
-IteratorSize(::Type{<:AbstractRecord{V,T,N}}) where {V,T,N} =
+function IteratorSize(::Type{<:AbstractRecord{V,T,N}}) where {V,T,N} 
     HasShape{N}()
-
+end
 function iterate(r::AbstractRecord, state = 1)
     if state <= length(r)
-        return r[state], state + 1
+        return getrecord(r, state), state + 1
     else
         return nothing
     end
 end
 
+transpose(r::AbstractRecord) = transpose(state(r))
+*(x::AbstractRecord, y) = state(x) * y
+*(x, y::AbstractRecord) = x * state(y)
+*(x::AbstractRecord, y::AbstractRecord) = state(x) * state(y)
 
 """
     DynamicRecord{V,T,N} <: AbstractRecord{V,T,N}
@@ -55,39 +60,19 @@ struct StaticView{V,T} <: RecordView{V,T}
     s::T
     e::T
 end
-tspan(v::StaticView) = v.e -v.s
+tspan(v::StaticView) = v.e - v.s
 xs(v::StaticView) = [v.x, v.x]
 ts(v::StaticView) = [v.s, v.e]
 
-
-"""
-    AbstractChange{V,I}
-"""
-abstract type AbstractChange{V<:Number,I} end
-
-struct EleChange{V,I} <: AbstractChange{V,I}
-    x::V
-    i::I
+mutable struct TypeBox{V}
+    v::V
 end
 
-struct DelChange{I} <: AbstractChange{Number,I}
-    i::I
+mutable struct Clock{T<:Real}
+    t::T
+    max::T
 end
 
-struct PushChange{V} <: AbstractChange{V,Int}
-    x::V
-end
-
-function record!(r::AbstractRecord, t::Real, cs::AbstractChange...)
-    for c in cs
-        record!(r, t, c)
-    end
-    return r
-end
-
-mutable struct TypeBox{T}
-    x::T
-end
-
-Base.setindex
-
+current(c::Clock) = c.t
+last(c::Clock) = c.max
+increase!(c::Clock, t::Real) = c.t += t

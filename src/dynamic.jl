@@ -1,27 +1,37 @@
-import Base: length, size, getindex
+import Base: length, size, getindex, setindex!,
+             push!, deleteat!
 
 """
     ScaleDynamicRecord
 """
 struct ScaleDynamicRecord{V,T} <: DynamicRecord{V,T,0}
-    xs::Vector{V}
+    v::TypeBox{V}
+    t::Clock{T}
+    vs::Vector{V}
     ts::Vector{T}
 end
 
+state(r::ScaleDynamicRecord) = r.v.v
 length(::ScaleDynamicRecord) = 1
 size(::ScaleDynamicRecord) = (1,)
 function getindex(r::ScaleDynamicRecord, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
-    return DynamicView(r.rs, r.xs)
+    return r.v.v
+end
+function setindex!(r::ScaleDynamicRecord, v, i::Integer)
+    @boundscheck i == 1 || throw(BoundsError(r, i))
+    r.v = v
+    push!(r.vs, v)
+    push!(r.ts, current(r.t))
+    return r
 end
 
-function DynamicRecord(t::Real, x::Number)
-    return ScaleDynamicRecord([x], [t])
+function DynamicRecord(t::Clock, x::Number)
+    return ScaleDynamicRecord(x, t, [x], [current(t)])
 end
-function record!(r::ScaleDynamicRecord, t::Real, c::EleChange)
-    push!(r.xs, c.x)
-    push!(r.ts, t)
-    return r
+function getrecord(r::ScaleDynamicRecord, i::Integer)
+    @boundscheck i == 1 || throw(BoundsError(r, i))
+    return DynamicView(r.ts, r.vs)
 end
 
 
@@ -29,43 +39,56 @@ end
     VectorDynamicRecord
 """
 struct VectorDynamicRecord{V,T,I} <: DynamicRecord{V,T,1}
-    xs_list::Vector{Vector{V}}
-    ts_list::Vector{Vector{T}}
+    v::Vector{V}
+    t::Clock{T}
+    vs::Vector{Vector{V}}
+    ts::Vector{Vector{T}}
     indmax::TypeBox{I}
     indmap::Vector{I}
 end
 
-length(r::VectorDynamicRecord) = r.indmax.x
+state(r::VectorDynamicRecord) = r.v
+length(r::VectorDynamicRecord) = r.indmax.v
 size(r::VectorDynamicRecord) = (length(r),)
+
 function getindex(r::VectorDynamicRecord, i::Integer)
-    @boundscheck i <= r.indmax.x || throw(BoundsError(r, i))
-    return DynamicView(r.xs_list[i], r.ts_list[i])
+    @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
+    return r.v[i] 
 end
 
-function DynamicRecord(t::Real, x::AbstractVector)
-    n = length(x)
-    xs = map(i -> [i], x)
-    ts = fill([t], n)
-    indmap = collect(1:n)
-    return VectorDynamicRecord(xs, ts, TypeBox(n), indmap)
-end
-
-function record!(r::VectorDynamicRecord, t::Real, c::EleChange)
-    ind = r.indmap[c.i]
-    push!(r.xs_list[ind], c.x)
-    push!(r.ts_list[ind], t)
+function setindex!(r::VectorDynamicRecord, v, i::Integer)
+    r.v[i] = v
+    ind = r.indmap[i]
+    push!(r.vs[ind], v)
+    push!(r.ts[ind], current(r.t))
     return r
 end
 
-function record!(r::VectorDynamicRecord, ::Real, c::DelChange)
-    deleteat!(r.indmap, c.i)
+function deleteat!(r::VectorDynamicRecord, i::Integer)
+    deleteat!(r.v, i)
+    deleteat!(r.indmap, i)
     return r
 end
 
-function record!(r::VectorDynamicRecord, t::Real, c::PushChange)
+function push!(r::VectorDynamicRecord, v)
+    push!(r.v, v)
     ind = r.indmax.x += true
     push!(r.indmap, ind)
-    push!(r.xs_list, [c.x])
-    push!(r.ts_list, [t])
+    push!(r.vs, [v])
+    push!(r.ts, [current(r.t)])
     return r
+end
+
+function DynamicRecord(t::Clock, x::AbstractVector)
+    n = length(x)
+    vs = map(i -> [i], x)
+    ts = fill([t], n)
+    indmap = collect(1:n)
+    return VectorDynamicRecord(copy(x), t, vs, ts,
+                               TypeBox(n), indmap)
+end
+
+function getrecord(r::ScaleDynamicRecord, i::Integer)
+    @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
+    return DynamicView(r.ts[i], r.vs[i])
 end

@@ -1,19 +1,37 @@
-import Base: length, size, getindex
+import Base: length, size, getindex,
+             push!, deleteat!
 
 struct VectorStaticReocrd{V,T,I} <: StaticRecord{V,T,1}
-    x::Vector{V}
+    v::Vector{V}
+    v_all::Vector{V}
+    t::Clock{T}
     s::Vector{T}
     e::Vector{T}
-    maxe::T
     indmax::TypeBox{I}
     indmap::Vector{I}
 end
 
+state(r::VectorStaticReocrd) = r.v
 length(r::VectorStaticReocrd) = r.indmax.x
 size(r::VectorStaticReocrd) = (length(r),)
-function getindex(r::VectorStaticReocrd, i::Integer)
-    @boundscheck i <= r.indmax.x || throw(BoundsError(r, i))
-    return StaticView(r.x[i], r.s[i], r.e[i])
+
+function push!(r::VectorStaticReocrd, v)
+    push!(r.v, v)
+    push!(r.v_all, v)
+    ind = r.indmax.x += true
+    push!(r.indmap, ind)
+    push!(r.x, v)
+    push!(r.s, current(r.t))
+    push!(r.e, last(r.t))
+    return r
+end
+
+function deleteat!(r::VectorStaticReocrd, i::Integer)
+    deleteat!(r.x, i)
+    ind = r.indmap[i]
+    r.e[ind] = current(r.t)
+    deleteat!(r.indmap, i)
+    return r
 end
 
 function StaticRecord(t::Real, maxe::Real, x::AbstractVector)
@@ -22,21 +40,11 @@ function StaticRecord(t::Real, maxe::Real, x::AbstractVector)
     t, maxe = promote(t, maxe)
     s = fill(t, n)
     e = fill(maxe, n)
-    return VectorStaticReocrd(x, s, e, maxe, TypeBox(n), collect(1:n))
+    return VectorStaticReocrd(copy(x), copy(x), s, e,
+                              TypeBox(n), collect(1:n))
 end
 
-function record!(r::VectorStaticReocrd, t::Real, c::DelChange)
-    ind = r.indmap[c.i]
-    r.e[ind] = t
-    deleteat!(r.indmap, c.i)
-    return r
-end
-
-function record!(r::VectorStaticReocrd, t::Real, c::PushChange)
-    ind = r.indmax.x += true
-    push!(r.indmap, ind)
-    push!(r.x, c.x)
-    push!(r.s, t)
-    push!(r.e, r.maxe)
-    return r
+function getrecord(r::VectorStaticReocrd, i::Integer)
+    @boundscheck i <= r.indmax.x || throw(BoundsError(r, i))
+    return StaticView(r.x[i], r.s[i], r.e[i])
 end
