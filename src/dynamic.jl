@@ -88,7 +88,7 @@ function DynamicRecord(t::Clock, x::AbstractVector)
                                TypeBox(n), indmap)
 end
 
-function getrecord(r::ScaleDynamicRecord, i::Integer)
+function getrecord(r::VectorDynamicRecord, i::Integer)
     @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
     return DynamicView(r.ts[i], r.vs[i])
 end
