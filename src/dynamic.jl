@@ -10,6 +10,9 @@ struct ScaleDynamicRecord{V,T} <: DynamicRecord{V,T,0}
     vs::Vector{V}
     ts::Vector{T}
 end
+function DynamicRecord(t::Clock, x::Number)
+    return ScaleDynamicRecord(x, t, [x], [current(t)])
+end
 
 state(r::ScaleDynamicRecord) = r.v.v
 length(::ScaleDynamicRecord) = 1
@@ -26,9 +29,6 @@ function setindex!(r::ScaleDynamicRecord, v, i::Integer)
     return r
 end
 
-function DynamicRecord(t::Clock, x::Number)
-    return ScaleDynamicRecord(x, t, [x], [current(t)])
-end
 function getrecord(r::ScaleDynamicRecord, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     return DynamicView(r.ts, r.vs)
@@ -46,6 +46,15 @@ struct VectorDynamicRecord{V,T,I} <: DynamicRecord{V,T,1}
     indmax::TypeBox{I}
     indmap::Vector{I}
 end
+function DynamicRecord(t::Clock, x::AbstractVector)
+    n = length(x)
+    vs = map(i -> [i], x)
+    ts = fill([current(t)], n)
+    indmap = collect(1:n)
+    return VectorDynamicRecord(copy(x), t, vs, ts,
+                               TypeBox(n), indmap)
+end
+
 
 state(r::VectorDynamicRecord) = r.v
 length(r::VectorDynamicRecord) = r.indmax.v
@@ -77,15 +86,6 @@ function push!(r::VectorDynamicRecord, v)
     push!(r.vs, [v])
     push!(r.ts, [current(r.t)])
     return r
-end
-
-function DynamicRecord(t::Clock, x::AbstractVector)
-    n = length(x)
-    vs = map(i -> [i], x)
-    ts = fill([t], n)
-    indmap = collect(1:n)
-    return VectorDynamicRecord(copy(x), t, vs, ts,
-                               TypeBox(n), indmap)
 end
 
 function getrecord(r::VectorDynamicRecord, i::Integer)

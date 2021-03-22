@@ -1,7 +1,7 @@
 module Record
 
-export DynamicRecord, StaticRecord, record!,
-       EleChange, PushChange, DelChange,
+export DynamicRecord, StaticRecord,
+       Clock, current, limit, isend, notend, increase!,
        tspan, ts, xs
 
 include("abstract.jl")

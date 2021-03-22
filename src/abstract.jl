@@ -1,5 +1,5 @@
 import Base:IteratorSize, iterate, eltype,
-            *, transpose
+            *, transpose, broadcastable
 using Base:HasShape, HasLength
 
 """
@@ -25,6 +25,8 @@ transpose(r::AbstractRecord) = transpose(state(r))
 *(x::AbstractRecord, y) = state(x) * y
 *(x, y::AbstractRecord) = x * state(y)
 *(x::AbstractRecord, y::AbstractRecord) = state(x) * state(y)
+broadcastable(r::AbstractRecord) = state(r) 
+
 
 """
     DynamicRecord{V,T,N} <: AbstractRecord{V,T,N}
@@ -32,6 +34,8 @@ transpose(r::AbstractRecord) = transpose(state(r))
 Record type to record changes of arrays whose elements change overtime.
 """
 abstract type DynamicRecord{V,T,N} <: AbstractRecord{V,T,N} end
+DynamicRecord(t::Clock, xs...) = map(x -> DynamicRecord(t, x), xs)
+
 
 """
     StaticRecord{V,T,N} <: AbstractRecord{V,T,N}
@@ -40,6 +44,7 @@ Record type to record changes arrays whose elements never change but
 insert or delete.
 """
 abstract type StaticRecord{V,T,N} <: AbstractRecord{V,T,N} end
+StaticRecord(t::Clock, xs...) = map(x -> StaticRecord(t, x), xs)
 
 
 """
@@ -72,7 +77,10 @@ mutable struct Clock{T<:Real}
     t::T
     max::T
 end
+Clock(t, max) = Clock(promote(t, max)...)
 
 current(c::Clock) = c.t
-last(c::Clock) = c.max
+limit(c::Clock) = c.max
+isend(c::Clock) = current(c) > limit(c)
+notend(c::Clock) = current(c) <= limit(c)
 increase!(c::Clock, t::Real) = c.t += t
