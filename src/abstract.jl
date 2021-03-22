@@ -47,8 +47,10 @@ broadcastable(r::AbstractRecord) = state(r)
 Record type to record changes of arrays whose elements change overtime.
 """
 abstract type DynamicRecord{V,T,N} <: AbstractRecord{V,T,N} end
-DynamicRecord(t::Clock, x, xs...) =
-    (DynamicRecord(t, x), DynamicRecord(t, xs)...)
+function DynamicRecord(t::Clock, x1, x2, xs...)
+     return (DynamicRecord(t, x1), DynamicRecord(t, x2),
+             DynamicRecord(t, xs...)...)
+end
 
 """
     StaticRecord{V,T,N} <: AbstractRecord{V,T,N}
@@ -57,8 +59,10 @@ Record type to record changes arrays whose elements never change but
 insert or delete.
 """
 abstract type StaticRecord{V,T,N} <: AbstractRecord{V,T,N} end
-StaticRecord(t::Clock, x, xs...) =
-    (StaticRecord(t, x), StaticRecord(t, xs)...)
+function StaticRecord(t::Clock, x1, x2, xs...)
+    return (StaticRecord(t, x1), StaticRecord(t, x2),
+            StaticRecord(t, xs...)...)
+end
 
 """
     RecordView{V,T}
