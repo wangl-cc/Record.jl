@@ -10,6 +10,15 @@ struct VectorStaticReocrd{V,T,I} <: StaticRecord{V,T,1}
     indmax::TypeBox{I}
     indmap::Vector{I}
 end
+function StaticRecord(t::Clock, x::AbstractVector)
+    x = collect(x)
+    n = length(x)
+    s = fill(current(t), n)
+    e = fill(limit(t), n)
+    return VectorStaticReocrd(copy(x), copy(x), t, s, e,
+                              TypeBox(n), collect(1:n))
+end
+
 
 state(r::VectorStaticReocrd) = r.v
 length(r::VectorStaticReocrd) = r.indmax.x
@@ -32,16 +41,6 @@ function deleteat!(r::VectorStaticReocrd, i::Integer)
     r.e[ind] = current(r.t)
     deleteat!(r.indmap, i)
     return r
-end
-
-function StaticRecord(t::Real, maxe::Real, x::AbstractVector)
-    x = collect(x)
-    n = length(x)
-    t, maxe = promote(t, maxe)
-    s = fill(t, n)
-    e = fill(maxe, n)
-    return VectorStaticReocrd(copy(x), copy(x), s, e,
-                              TypeBox(n), collect(1:n))
 end
 
 function getrecord(r::VectorStaticReocrd, i::Integer)
