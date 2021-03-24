@@ -11,8 +11,8 @@ Clock(t::Real, max::Real) = Clock(promote(t, max)...)
 
 current(c::Clock) = c.t
 limit(c::Clock) = c.max
-isend(c::Clock) = current(c) > limit(c)
-notend(c::Clock) = current(c) <= limit(c)
+isend(c::Clock) = current(c) >= limit(c)
+notend(c::Clock) = current(c) < limit(c)
 increase!(c::Clock, t::Real) = c.t += t
 
 """
@@ -47,9 +47,11 @@ broadcastable(r::AbstractRecord) = state(r)
 Record type to record changes of arrays whose elements change overtime.
 """
 abstract type DynamicRecord{V,T,N} <: AbstractRecord{V,T,N} end
+function DynamicRecord(t::Clock, x1, x2)
+    DynamicRecord(t, x1), DynamicRecord(t, x2)
+end
 function DynamicRecord(t::Clock, x1, x2, xs...)
-     return (DynamicRecord(t, x1), DynamicRecord(t, x2),
-             DynamicRecord(t, xs...)...)
+     DynamicRecord(t, x1), DynamicRecord(t, x2, xs...)::Tuple...
 end
 
 """
@@ -59,9 +61,11 @@ Record type to record changes arrays whose elements never change but
 insert or delete.
 """
 abstract type StaticRecord{V,T,N} <: AbstractRecord{V,T,N} end
+function StaticRecord(t::Clock, x1, x2)
+    StaticRecord(t, x1), StaticRecord(t, x2)
+end
 function StaticRecord(t::Clock, x1, x2, xs...)
-    return (StaticRecord(t, x1), StaticRecord(t, x2),
-            StaticRecord(t, xs...)...)
+    StaticRecord(t, x1), StaticRecord(t, x2, xs...)::Tuple...
 end
 
 """
@@ -70,20 +74,20 @@ end
 abstract type RecordView{V,T} end
 
 struct DynamicView{V,T} <: RecordView{V,T}
-    xs::Vector{V}
     ts::Vector{T}
+    vs::Vector{V}
 end
 tspan(v::DynamicView) = v.ts[end] - v.ts[1]
-xs(v::DynamicView) = v.xs
+vs(v::DynamicView) = v.vs
 ts(v::DynamicView) = v.ts
 
 struct StaticView{V,T} <: RecordView{V,T}
-    x::V
+    v::V
     s::T
     e::T
 end
 tspan(v::StaticView) = v.e - v.s
-xs(v::StaticView) = [v.x, v.x]
+vs(v::StaticView) = [v.v, v.v]
 ts(v::StaticView) = [v.s, v.e]
 
 mutable struct TypeBox{V}

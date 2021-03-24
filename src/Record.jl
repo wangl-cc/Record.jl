@@ -1,8 +1,8 @@
 module Record
 
-export DynamicRecord, StaticRecord,
+export DynamicRecord, StaticRecord, state,
        Clock, current, limit, isend, notend, increase!,
-       tspan, ts, xs
+       getrecord, tspan, ts, vs
 
 include("abstract.jl")
 

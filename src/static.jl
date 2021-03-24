@@ -21,22 +21,21 @@ end
 
 
 state(r::VectorStaticReocrd) = r.v
-length(r::VectorStaticReocrd) = r.indmax.x
+length(r::VectorStaticReocrd) = r.indmax.v
 size(r::VectorStaticReocrd) = (length(r),)
 
 function push!(r::VectorStaticReocrd, v)
     push!(r.v, v)
     push!(r.v_all, v)
-    ind = r.indmax.x += true
+    ind = r.indmax.v += true
     push!(r.indmap, ind)
-    push!(r.x, v)
     push!(r.s, current(r.t))
-    push!(r.e, last(r.t))
+    push!(r.e, limit(r.t))
     return r
 end
 
 function deleteat!(r::VectorStaticReocrd, i::Integer)
-    deleteat!(r.x, i)
+    deleteat!(r.v, i)
     ind = r.indmap[i]
     r.e[ind] = current(r.t)
     deleteat!(r.indmap, i)
@@ -44,6 +43,6 @@ function deleteat!(r::VectorStaticReocrd, i::Integer)
 end
 
 function getrecord(r::VectorStaticReocrd, i::Integer)
-    @boundscheck i <= r.indmax.x || throw(BoundsError(r, i))
-    return StaticView(r.x[i], r.s[i], r.e[i])
+    @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
+    return StaticView(r.v[i], r.s[i], r.e[i])
 end
