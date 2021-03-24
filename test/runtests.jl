@@ -51,7 +51,7 @@ for (i, y) in enumerate(Y)
     @test i == 1
     @test tspan(y) == T
     @test ts(y) == collect(0:0.1:T)
-    @test s(y) == collect(1:3)
+    @test vs(y) == collect(1:3)
 end
 
 for (z, t_) in zip(Z, 0:0.1:T)
