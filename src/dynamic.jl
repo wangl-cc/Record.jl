@@ -2,7 +2,24 @@ import Base: length, size, getindex, setindex!,
              push!, deleteat!
 
 """
-    ScaleDynamicRecord
+    DynamicRecord{V,T,N} <: AbstractRecord{V,T,N}
+
+Record type to record changes of arrays whose elements change overtime.
+"""
+abstract type DynamicRecord{V,T,N} <: AbstractRecord{V,T,N} end
+function DynamicRecord(t::Clock, x1, x2)
+    DynamicRecord(t, x1), DynamicRecord(t, x2)
+end
+function DynamicRecord(t::Clock, x1, x2, xs...)
+     DynamicRecord(t, x1), DynamicRecord(t, x2, xs...)::Tuple...
+end
+
+
+"""
+    ScalerDynamicRecord{V, T}
+
+Record changes of a scaler. Use `r[1] = v` to change its value instead of
+`r = v`.
 """
 struct ScaleDynamicRecord{V,T} <: DynamicRecord{V,T,0}
     v::TypeBox{V}
@@ -15,13 +32,14 @@ function DynamicRecord(t::Clock, x::Number)
 end
 
 state(r::ScaleDynamicRecord) = r.v.v
+
 length(::ScaleDynamicRecord) = 1
 size(::ScaleDynamicRecord) = (1,)
 function getindex(r::ScaleDynamicRecord, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     return r.v.v
 end
-function setindex!(r::ScaleDynamicRecord, v, i::Integer)
+function setindex!(r::ScaleDynamicRecord, v, i::Integer=1)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     r.v.v = v
     push!(r.vs, v)
@@ -36,7 +54,9 @@ end
 
 
 """
-    VectorDynamicRecord
+    VectorDynamicRecord{V,T,I}
+
+Record changes of a vector with indices of type `I`.
 """
 struct VectorDynamicRecord{V,T,I} <: DynamicRecord{V,T,1}
     v::Vector{V}
@@ -56,6 +76,7 @@ function DynamicRecord(t::Clock, x::AbstractVector)
 end
 
 state(r::VectorDynamicRecord) = r.v
+
 length(r::VectorDynamicRecord) = r.indmax.v
 size(r::VectorDynamicRecord) = (length(r),)
 

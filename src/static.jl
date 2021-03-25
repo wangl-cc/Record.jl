@@ -1,6 +1,26 @@
 import Base: length, size, getindex,
              push!, deleteat!
 
+"""
+    StaticRecord{V,T,N} <: AbstractRecord{V,T,N}
+
+Record type to record changes of arrays whose elements never change but insert
+or delete.
+"""
+abstract type StaticRecord{V,T,N} <: AbstractRecord{V,T,N} end
+function StaticRecord(t::Clock, x1, x2)
+    StaticRecord(t, x1), StaticRecord(t, x2)
+end
+function StaticRecord(t::Clock, x1, x2, xs...)
+    StaticRecord(t, x1), StaticRecord(t, x2, xs...)::Tuple...
+end
+
+
+"""
+    VectorStaticRecord{V,T,N} <: AbstractRecord{V,T,N}
+
+Record changes vector.
+"""
 struct VectorStaticReocrd{V,T,I} <: StaticRecord{V,T,1}
     v::Vector{V}
     v_all::Vector{V}
@@ -18,7 +38,6 @@ function StaticRecord(t::Clock, x::AbstractVector)
     return VectorStaticReocrd(copy(x), copy(x), t, s, e,
                               TypeBox(n), collect(1:n))
 end
-
 
 state(r::VectorStaticReocrd) = r.v
 length(r::VectorStaticReocrd) = r.indmax.v
