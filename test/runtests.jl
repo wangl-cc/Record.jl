@@ -11,11 +11,39 @@ c = Clock(0, T)
 X, Y, _ = DynamicRecord(c, V, S, [1])
 Z, _, _ = StaticRecord(c, C, [1], [1])
 
-@test X * Y  == state(X) * state(Y) == X * S == V * Y == V * S
-@test X .* X == state(X) .* state(X) == V .* X == V .* V
-@test transpose(X) == transpose(state(X)) == transpose(V)
+# test math op
+for op in (:+, :-)
+    @eval begin
+        @test $op(X, X) == $op(X, V) == $op(V, X) == $op(V, V)
+    end
+end
+
+for op in (:*, :/)
+    @eval begin
+        @test $op(X, Y) == $op(X, S) == $op(V, Y) == $op(V, S)
+        @test $op(Y, X) == $op(S, X) == $op(Y, V) == $op(S, V)
+    end
+end
+
+for op in (:+, :-, :*, :/, :div, :\, :^, :rem)
+    @eval begin
+        @test $op(Y, Y) == $op(Y, S) == $op(S, Y) == $op(S, S)
+    end
+end
+
+for op in (:+, :-, :*, :/, :div, :\, :^, :rem)
+    @eval begin
+        @test $op.(X, X) == $op.(X, V) == $op.(V, X) == $op.(V, V)
+    end
+end
+
+for op in (transpose, adjoint)
+    @eval @test $op(X) == $op(state(X)) == $op(V)
+end
+
 @test limit(c) ≈ T
 
+# test record
 while notend(c)
     global t, V, S, C,T
     increase!(c, 0.1)

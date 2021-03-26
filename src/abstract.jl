@@ -1,6 +1,7 @@
-import Base:IteratorSize, iterate, eltype,
-            +, -, *, /, ÷, \, ^, %,
-            transpose,
+import Base:IteratorSize, iterate, eltype
+
+import Base:+, -, *, /, \, ^,
+            adjoint, transpose,
             broadcastable
 
 using Base:HasShape, HasLength
@@ -31,16 +32,22 @@ Get current state of recorded variable `r`.
 """
 function state end
 
-# mathematical Operations
-## +, -, *, /, ÷, \, ^, %
-## WIP
-
-*(x::AbstractRecord, y) = state(x) * y
-*(x, y::AbstractRecord) = x * state(y)
-*(x::AbstractRecord, y::AbstractRecord) = state(x) * state(y)
-
-## Linear Algebra
-transpose(r::AbstractRecord) = transpose(state(r))
+# mathematical Operations (WIP)
+## unary operators
+## +, -, transpose, adjoint
+for op in (:+, :-, :transpose, :adjoint)
+    @eval ($op)(r::AbstractRecord) = ($op)(state(r))
+end
+## binary operators
+## +, -, *, /, \, ^
+for op in (:+, :-, :*, :/, :\, :^)
+    @eval begin
+        ($op)(x::AbstractRecord, y) = ($op)(state(x), y)
+        ($op)(x, y::AbstractRecord) = ($op)(x, state(y))
+        ($op)(x::AbstractRecord, y::AbstractRecord) =
+            ($op)(state(x), state(y))
+    end
+end
 
 ## broadcast
 broadcastable(r::AbstractRecord) = state(r) 
