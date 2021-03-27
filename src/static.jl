@@ -2,17 +2,17 @@ import Base: length, size, getindex,
              push!, deleteat!
 
 """
-    StaticRecord{V,T,N} <: AbstractRecord{V,T,N}
+    StaticRArray{V,T,N} <: AbstractRecord{V,T,N}
 
 Record type to record changes of arrays whose elements never change but insert
 or delete.
 """
-abstract type StaticRecord{V,T,N} <: AbstractRecord{V,T,N} end
-function StaticRecord(t::Clock, x1, x2)
-    StaticRecord(t, x1), StaticRecord(t, x2)
+abstract type StaticRArray{V,T,N} <: AbstractRArray{V,T,N} end
+function StaticRArray(t::Clock, x1, x2)
+    StaticRArray(t, x1), StaticRArray(t, x2)
 end
-function StaticRecord(t::Clock, x1, x2, xs...)
-    StaticRecord(t, x1), StaticRecord(t, x2, xs...)::Tuple...
+function StaticRArray(t::Clock, x1, x2, xs...)
+    StaticRArray(t, x1), StaticRArray(t, x2, xs...)::Tuple...
 end
 
 
@@ -21,7 +21,7 @@ end
 
 Record changes vector.
 """
-struct VectorStaticReocrd{V,T,I} <: StaticRecord{V,T,1}
+struct StaticRVector{V,T,I} <: StaticRArray{V,T,1}
     v::Vector{V}
     v_all::Vector{V}
     t::Clock{T}
@@ -30,20 +30,20 @@ struct VectorStaticReocrd{V,T,I} <: StaticRecord{V,T,1}
     indmax::TypeBox{I}
     indmap::Vector{I}
 end
-function StaticRecord(t::Clock, x::AbstractVector)
+function StaticRArray(t::Clock, x::AbstractVector)
     x = collect(x)
     n = length(x)
     s = fill(current(t), n)
     e = fill(limit(t), n)
-    return VectorStaticReocrd(copy(x), copy(x), t, s, e,
+    return StaticRVector(copy(x), copy(x), t, s, e,
                               TypeBox(n), collect(1:n))
 end
 
-state(r::VectorStaticReocrd) = r.v
-length(r::VectorStaticReocrd) = r.indmax.v
-size(r::VectorStaticReocrd) = (length(r),)
+state(r::StaticRVector) = r.v
+length(r::StaticRVector) = r.indmax.v
+size(r::StaticRVector) = (length(r),)
 
-function push!(r::VectorStaticReocrd, v)
+function push!(r::StaticRVector, v)
     push!(r.v, v)
     push!(r.v_all, v)
     ind = r.indmax.v += true
@@ -53,7 +53,7 @@ function push!(r::VectorStaticReocrd, v)
     return r
 end
 
-function deleteat!(r::VectorStaticReocrd, i::Integer)
+function deleteat!(r::StaticRVector, i::Integer)
     deleteat!(r.v, i)
     ind = r.indmap[i]
     r.e[ind] = current(r.t)
@@ -61,7 +61,7 @@ function deleteat!(r::VectorStaticReocrd, i::Integer)
     return r
 end
 
-function getrecord(r::VectorStaticReocrd, i::Integer)
+function getrecord(r::StaticRVector, i::Integer)
     @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
-    return StaticView(r.v[i], r.s[i], r.e[i])
+    return RecordView([r.s[i], r.e[i]], [r.v[i], r.v[i]])
 end
