@@ -1,4 +1,4 @@
-name: test
+name: CI
 
 on:
   push:
@@ -12,12 +12,21 @@ jobs:
     
     strategy:
       matrix:
-        julia-version: ['1.0', '1.5', '1.6']
-        julia-arch: [x64, x86]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        version:
+          - "1.0"
+          - "1" # automatically expands to the latest stable 1.x release of Julia
+          - nightly
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+        arch:
+          - x64
+          - x86
+        # 32-bit Julia binaries are not available on macOS
         exclude:
           - os: macOS-latest
-            julia-arch: x86
+            arch: x86
 
     steps:
       - uses: actions/checkout@v2
