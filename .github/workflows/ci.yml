@@ -1,4 +1,4 @@
-name: Run CI on master
+name: Test
 
 on:
   push:
