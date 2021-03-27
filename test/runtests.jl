@@ -25,13 +25,13 @@ for op in (:*, :/)
     end
 end
 
-for op in (:+, :-, :*, :/, :div, :\, :^, :rem)
+for op in (:+, :-, :*, :/, :\, :^)
     @eval begin
         @test $op(Y, Y) == $op(Y, S) == $op(S, Y) == $op(S, S)
     end
 end
 
-for op in (:+, :-, :*, :/, :div, :\, :^, :rem)
+for op in (:+, :-, :*, :/, :\, :^)
     @eval begin
         @test $op.(X, X) == $op.(X, V) == $op.(V, X) == $op.(V, V)
     end
