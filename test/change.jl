@@ -71,3 +71,6 @@ increase!(c, 0.1)
 deleteat!(Z, 1)
 @test state(Z) == deleteat!(C, 1)
 @test tspan(getrecord(Z, 1)) ≈ T + 0.1
+
+show(stdout,  MIME("text/plain"), X)
+show(stdout,  MIME("text/plain"), r)

@@ -4,7 +4,7 @@
 [![Build Status](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/wangl-cc/RecordedArray.jl/branch/master/graph/badge.svg?token=PB3THCTNJ9)](https://codecov.io/gh/wangl-cc/RecordedArray.jl)
 
-A Pkg for reocrd changes automatically.
+A Pkg for reocrd changes of array (and scalar) automatically.
 
 ## Example
 
@@ -18,6 +18,11 @@ julia> v = DynamicRArray(c, [0, 1])
 recorded 2-element Vector{Int64}:
  0
  1
+
+julia> v + v
+2-element Vector{Int64}:
+ 0
+ 2
 
 julia> increase!(c, 1)
 1.0
@@ -33,13 +38,8 @@ recorded 2-element Vector{Int64}:
 julia> r = getrecord(v, 1)
 RecordedArray.RecordView{Int64, Float64}([0.0, 1.0], [0, 1])
 
-julia> ts(r)
-2-element Vector{Float64}:
- 0.0
- 1.0
-
-julia> vs(r)
-2-element Vector{Int64}:
- 0
- 1
+julia> getrecord(v, 1)
+t	v
+0.0	0
+1.0	1
 ```
