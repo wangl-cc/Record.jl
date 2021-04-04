@@ -25,12 +25,12 @@ for op in (:+, :-, :*, :/, :\, :^)
 end
 
 # fix for Adjoint or Transpose (copy from LinearAlgebra adjtrans.jl)
+const AbstractRVector{V, T} = AbstractRArray{V, T, 1}
 # Adjoint/Transpose-vector * vector
-*(u::AdjointAbsVec{<:Number}, v::AbstractRArray{<:Number,<:Real,1}) = *(u, state(v))
-*(u::TransposeAbsVec{T}, v::AbstractRArray{T,<:Real,1}) where {T<:Real} = *(u, state(v))
-*(u::AdjOrTransAbsVec, v::AbstractRArray{<:Any,<:Real,1}) = *(u, state(v))
+*(u::AdjointAbsVec{<:Number}, v::AbstractRVector{<:Number,<:Real}) = *(u, state(v))
+*(u::TransposeAbsVec{T}, v::AbstractRVector{T,<:Real}) where {T<:Real} = *(u, state(v))
 # vector * Adjoint/Transpose-vector
-*(u::AbstractRArray{<:Any,<:Real,1}, v::AdjOrTransAbsVec) = *(state(u), v)
+*(u::AbstractRVector, v::AdjOrTransAbsVec) = *(state(u), v)
 
 ## broadcast
 broadcastable(r::AbstractRArray) = state(r) 
