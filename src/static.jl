@@ -33,7 +33,7 @@ end
 function StaticRArray(t::Clock, x::AbstractVector)
     x = collect(x)
     n = length(x)
-    s = fill(current(t), n)
+    s = fill(now(t), n)
     e = fill(limit(t), n)
     return StaticRVector(copy(x), copy(x), t, s, e,
                               TypeBox(n), collect(1:n))
@@ -48,7 +48,7 @@ function push!(r::StaticRVector, v)
     push!(r.v_all, v)
     ind = r.indmax.v += true
     push!(r.indmap, ind)
-    push!(r.s, current(r.t))
+    push!(r.s, now(r.t))
     push!(r.e, limit(r.t))
     return r
 end
@@ -56,7 +56,7 @@ end
 function deleteat!(r::StaticRVector, i::Integer)
     deleteat!(r.v, i)
     ind = r.indmap[i]
-    r.e[ind] = current(r.t)
+    r.e[ind] = now(r.t)
     deleteat!(r.indmap, i)
     return r
 end

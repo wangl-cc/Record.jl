@@ -23,14 +23,14 @@ while notend(c)
     S += 1
     push!(Z, 0.1)
     push!(C, 0.1)
-    @test current(c) == t
+    @test now(c) == t
     @test state(X) == V
     @test state(Y) == S
     @test state(Z) ≈ C
 end
 
 @test isend(c)
-@test current(c) ≈ T
+@test now(c) ≈ T
 
 @test size(records(X)) == size(X)
 @test length(records(X)) == length(X)

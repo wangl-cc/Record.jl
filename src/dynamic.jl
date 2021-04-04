@@ -27,7 +27,7 @@ struct DynamicRScalar{V,T} <: DynamicRArray{V,T,0}
     ts::Vector{T}
 end
 function DynamicRArray(t::Clock, x::Number)
-    return DynamicRScalar(TypeBox(x), t, [x], [current(t)])
+    return DynamicRScalar(TypeBox(x), t, [x], [now(t)])
 end
 
 state(r::DynamicRScalar) = r.v.v
@@ -42,7 +42,7 @@ function setindex!(r::DynamicRScalar, v, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     r.v.v = v
     push!(r.vs, v)
-    push!(r.ts, current(r.t))
+    push!(r.ts, now(r.t))
     return r
 end
 
@@ -68,7 +68,7 @@ end
 function DynamicRArray(t::Clock, x::AbstractVector)
     n = length(x)
     vs = map(i -> [i], x)
-    ts = map(_ -> [current(t)], 1:n)
+    ts = map(_ -> [now(t)], 1:n)
     indmap = collect(1:n)
     return DynamicRVector(copy(x), t, vs, ts,
                               TypeBox(n), indmap)
@@ -88,7 +88,7 @@ function setindex!(r::DynamicRVector, v, i::Integer)
     r.v[i] = v
     ind = r.indmap[i]
     push!(r.vs[ind], v)
-    push!(r.ts[ind], current(r.t))
+    push!(r.ts[ind], now(r.t))
     return r
 end
 
@@ -103,7 +103,7 @@ function push!(r::DynamicRVector, v)
     ind = r.indmax.v += true
     push!(r.indmap, ind)
     push!(r.vs, [v])
-    push!(r.ts, [current(r.t)])
+    push!(r.ts, [now(r.t)])
     return r
 end
 

@@ -2,7 +2,7 @@ module RecordedArray
 
 export DynamicRArray, StaticRArray,
        state,
-       Clock, current, limit, isend, notend, increase!,
+       Clock, now, limit, isend, notend, increase!,
        getrecord,
        records, tspan, ts, vs, toplot
 
