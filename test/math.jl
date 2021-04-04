@@ -1,6 +1,5 @@
 V = [1] # vector
-S = 1   # scalar
-
+S = 1   # scalar 
 c = Clock(0.1)
 X, Y = DynamicRArray(c, V, S)
 
@@ -44,4 +43,11 @@ end
 # linear algebra ops
 for op in (transpose, adjoint)
     @eval @test $op(X) == $op(state(X)) == $op(V)
+    for bop in (:+, :-)
+        @eval @test $bop($op(X), $op(X)) == $bop($op(V), $op(V))
+    end
+    for bop in (:*,)
+        @eval @test $bop($op(X), X) == $bop($op(V), V)
+        @eval @test $bop(X, $op(X)) == $bop(V, $op(V))
+    end
 end
