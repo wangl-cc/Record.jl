@@ -35,9 +35,6 @@ recorded 2-element Vector{Int64}:
  1
  1
 
-julia> r = getrecord(v, 1)
-RecordedArray.RecordView{Int64, Float64}([0.0, 1.0], [0, 1])
-
 julia> getrecord(v, 1)
 t	v
 0.0	0
