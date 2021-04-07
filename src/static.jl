@@ -1,5 +1,4 @@
-import Base: length, size, getindex,
-             push!, deleteat!
+import Base: length, size, getindex, push!, deleteat!
 
 """
     StaticRArray{V,T,N} <: AbstractRecord{V,T,N}
@@ -9,12 +8,11 @@ or delete.
 """
 abstract type StaticRArray{V,T,N} <: AbstractRArray{V,T,N} end
 function StaticRArray(t::Clock, x1, x2)
-    StaticRArray(t, x1), StaticRArray(t, x2)
+    return StaticRArray(t, x1), StaticRArray(t, x2)
 end
 function StaticRArray(t::Clock, x1, x2, xs...)
-    StaticRArray(t, x1), StaticRArray(t, x2, xs...)::Tuple...
+    return StaticRArray(t, x1), StaticRArray(t, x2, xs...)::Tuple...
 end
-
 
 """
     VectorStaticRecord{V,T,N} <: AbstractRecord{V,T,N}
@@ -35,8 +33,7 @@ function StaticRArray(t::Clock, x::AbstractVector)
     n = length(x)
     s = fill(now(t), n)
     e = fill(limit(t), n)
-    return StaticRVector(copy(x), copy(x), t, s, e,
-                              TypeBox(n), collect(1:n))
+    return StaticRVector(copy(x), copy(x), t, s, e, TypeBox(n), collect(1:n))
 end
 
 state(r::StaticRVector) = r.v
@@ -65,3 +62,4 @@ function getrecord(r::StaticRVector, i::Integer)
     @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
     return RecordView([r.s[i], r.e[i]], [r.v[i], r.v[i]])
 end
+# vim:tw=92:ts=4:sw=4:et

@@ -1,10 +1,8 @@
 module RecordedArray
 
-export DynamicRArray, StaticRArray,
-       state,
-       Clock, now, limit, isend, notend, increase!,
-       getrecord,
-       records, tspan, ts, vs, toplot
+export Clock, now, limit, isend, notend, increase!
+export DynamicRArray, StaticRArray, state
+export getrecord, records, tspan, ts, vs, toplot
 
 include("tools.jl")
 
@@ -19,3 +17,4 @@ include("dynamic.jl")
 include("static.jl")
 
 end
+# vim:tw=92:ts=4:sw=4:et

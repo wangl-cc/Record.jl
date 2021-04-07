@@ -12,7 +12,7 @@ Z, _, _ = StaticRArray(c, C, [1], [1])
 
 # test record
 while notend(c)
-    global t, V, S, C,T
+    global t, V, S, C, T
     increase!(c, 0.1)
     t += 0.1
     X[1] += 1
@@ -72,5 +72,6 @@ deleteat!(Z, 1)
 @test state(Z) == deleteat!(C, 1)
 @test tspan(getrecord(Z, 1)) ≈ T + 0.1
 
-show(stdout,  MIME("text/plain"), X)
-show(stdout,  MIME("text/plain"), r)
+show(stdout, MIME("text/plain"), X)
+show(stdout, MIME("text/plain"), r)
+# vim:tw=92:ts=4:sw=4:et

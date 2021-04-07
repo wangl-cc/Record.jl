@@ -1,5 +1,4 @@
-import Base: length, size, getindex, setindex!,
-             push!, deleteat!
+import Base: length, size, getindex, setindex!, push!, deleteat!
 
 """
     DynamicRArray{V,T,N} <: AbstractRecord{V,T,N}
@@ -8,10 +7,10 @@ Recorded arrays whose elements change overtime.
 """
 abstract type DynamicRArray{V,T,N} <: AbstractRArray{V,T,N} end
 function DynamicRArray(t::Clock, x1, x2)
-    DynamicRArray(t, x1), DynamicRArray(t, x2)
+    return DynamicRArray(t, x1), DynamicRArray(t, x2)
 end
 function DynamicRArray(t::Clock, x1, x2, xs...)
-     DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
+    return DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
 end
 
 """
@@ -51,7 +50,6 @@ function getrecord(r::DynamicRScalar, i::Integer)
     return RecordView(r.ts, r.vs)
 end
 
-
 """
     DynamicRVector{V,T,I}
 
@@ -70,8 +68,7 @@ function DynamicRArray(t::Clock, x::AbstractVector)
     vs = map(i -> [i], x)
     ts = map(_ -> [now(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(copy(x), t, vs, ts,
-                              TypeBox(n), indmap)
+    return DynamicRVector(copy(x), t, vs, ts, TypeBox(n), indmap)
 end
 
 state(r::DynamicRVector) = r.v
@@ -81,7 +78,7 @@ size(r::DynamicRVector) = (length(r),)
 
 function getindex(r::DynamicRVector, i::Integer)
     @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
-    return r.v[i] 
+    return r.v[i]
 end
 
 function setindex!(r::DynamicRVector, v, i::Integer)
@@ -111,3 +108,4 @@ function getrecord(r::DynamicRVector, i::Integer)
     @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
     return RecordView(r.ts[i], r.vs[i])
 end
+# vim:tw=92:ts=4:sw=4:et

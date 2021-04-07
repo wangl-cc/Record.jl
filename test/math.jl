@@ -51,3 +51,4 @@ for op in (transpose, adjoint)
         @eval @test $bop(X, $op(X)) == $bop(V, $op(V))
     end
 end
+# vim:tw=92:ts=4:sw=4:et
