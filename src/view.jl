@@ -47,7 +47,7 @@ vs(v::RecordView) = v.vs
 ts(v::RecordView) = v.ts
 toplot(v::RecordView) = ts(v), vs(v)
 
-function show(io::IO, ::MIME"text/plain", v::RecordView)   
+function show(io::IO, ::MIME"text/plain", v::RecordView)
     println(io, "t", "\tv")
     for (t, x) in v
         println(io, t, "\t", x)
