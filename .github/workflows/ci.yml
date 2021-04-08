@@ -70,7 +70,6 @@ jobs:
         run: |
           julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
       - name: Format Code
-        id: format
         run: |
           julia -e '
           using JuliaFormatter
@@ -82,7 +81,7 @@ jobs:
           '
       - name: Create pull request
         id: cpr
-        if: ${{ steps.format.outcome == 'failure' }}
+        if: ${{ failure() }}
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +91,7 @@ jobs:
           delete-branch: true
           labels: formatting, automated pr, no changelog
       - name: Chech outputs
-        if: ${{ steps.format.outcome == 'failure' }}
+        if: ${{ failure() }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
