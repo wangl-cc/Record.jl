@@ -92,6 +92,7 @@ jobs:
           delete-branch: true
           labels: formatting, automated pr, no changelog
       - name: Chech outputs
+        if: ${{ steps.format.outcome == 'failure' }}
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
