@@ -3,22 +3,31 @@ name: CI
 on:
   push:
     branches:
-        - master
+      - master
+    paths-ignore:
+      - "**README*"
+      - "**LICENSE*"
+      - "**.gitignore"
   pull_request:
     types:
-        - opened
-        - synchronize
-        - reopened
+      - opened
+      - synchronize
+      - reopened
+    paths-ignore:
+      - "**README*"
+      - "**LICENSE*"
+      - "**.gitignore"
 
 jobs:
   build:
+    name: Build and Test
     runs-on: ${{ matrix.os }}
     
     strategy:
       matrix:
         version:
           - "1.0"
-          - "1" # automatically expands to the latest stable 1.x release of Julia
+          - "1" # latest stable 1.x release of Julia
           - nightly
         os:
           - ubuntu-latest
@@ -52,3 +61,39 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+  format:
+    name: Format Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install JuliaFormatter
+        run: |
+          julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
+      - name: Format Code
+        id: format
+        run: |
+          julia -e '
+          using JuliaFormatter
+          if format(".")
+              exit(0)
+          else
+              exit(1)
+          end
+          '
+      - name: Create pull request
+        id: cpr
+        if: ${{ steps.format.outcome == 'failure' }}
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'style: format *.jl files'
+          title: 'JuliaFormatter.jl format'
+          branch: auto-juliaformatter-pr
+          delete-branch: true
+          labels: formatting, automated pr, no changelog
+      - name: Chech outputs
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+
+# vim:ts=2:sw=2
