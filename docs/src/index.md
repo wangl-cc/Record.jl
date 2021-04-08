@@ -1,0 +1,5 @@
+# RecordedArray.jl
+
+```@docs
+DynamicRArray
+```
