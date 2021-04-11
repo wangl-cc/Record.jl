@@ -67,8 +67,8 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'style: format *.jl files'
-          title: 'Formated by JuliaFormatter.jl'
+          commit-message: 'style: format **.jl files by JuliaFormatter'
+          title: 'Format by JuliaFormatter'
           branch: juliaformatter-pr/patch
           branch-suffix: timestamp
           delete-branch: true
