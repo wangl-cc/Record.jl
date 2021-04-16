@@ -49,6 +49,11 @@ t: 2-element Vector{Float64}:
 v: 2-element Vector{Int64}:
  0
  1
+
+julia> Dict(r[1]) # view as a dict
+Dict{Float64, Int64} with 2 entries:
+  0.0 => 0
+  1.0 => 1
 ```
 
 ## Example
