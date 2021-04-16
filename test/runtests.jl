@@ -2,18 +2,19 @@ using Test
 using RecordedArray
 using Documenter
 
-const doctestfilters = [
-    # Array{X,1} -> Vector{X} and Array{X,2} -> Matrix{X}
-    r"Int32|Int64",
-    r"{([a-zA-Z0-9]+,\s?)+[a-zA-Z0-9]+}",
-    r"(Array{[a-zA-Z0-9]+,\s?1}|Vector{[a-zA-Z0-9]+})",
-    r"(Array{[a-zA-Z0-9]+,\s?2}|Matrix{[a-zA-Z0-9]+})",
+# don't work now
+filters = Regex[
+    r"Int32|Int64",                 # Int64 <-> Int32
+    r"Array{\w+,\s?1}|Vector{\w+}", # Array{X,1} <-> Vector{X} 
+    r"Array{\w+,\s?2}|Matrix{\w+}", # Array{X,2} <-> Matrix{X}
 ]
 
 DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArray); recursive = true)
 
 @testset "RecordedArray" begin
-    doctest(RecordedArray; testset = "Doctests", doctestfilters=doctestfilters)
+    if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
+        doctest(RecordedArray;testset="Doctests", doctestfilters=filters)
+    end
 
     @testset "Math" begin
         include("math.jl")
