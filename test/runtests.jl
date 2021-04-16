@@ -2,15 +2,13 @@ using Test
 using RecordedArray
 using Documenter
 
-const setup_expr = :(begin
-    using RecordedArray
-    DocTestFilters = [
-        r"Int\d+",
-        r"Vector{\w+}",
-        r"Matrix{\w+}",
-        r"Array{\w+,[12]}"
-    ]
-end)
+const setup_expr = :(
+    begin
+        using RecordedArray
+        DocTestFilters =
+            [r"Int\d+", r"Vector{\w+}", r"Matrix{\w+}", r"Array{\w+,[12]}"]
+    end
+)
 
 DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, setup_expr; recursive = true)
 
