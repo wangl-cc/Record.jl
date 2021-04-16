@@ -1,14 +1,16 @@
 module RecordedArray
 
-export Clock, now, limit, isend, notend, increase!
+export DiscreteClock, ContinuousClock, now, limit, increase!
 export DynamicRArray, StaticRArray, state
-export getrecord, records, tspan, ts, vs, toplot
+export records, tspan, ts, vs, toplot
 
-include("tools.jl")
+include("utilities.jl")
+
+include("clock.jl")
 
 include("abstract.jl")
 
-include("view.jl")
+include("records.jl")
 
 include("math.jl")
 

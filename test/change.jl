@@ -1,19 +1,22 @@
+# init vars
 V = [1, 3]
 S = 1
 C = [0.1]
 t = 0.0
 T = 0.2
+n = 0
 
-c = Clock(0, T)
+c = ContinuousClock(T)
 X, Y, _ = DynamicRArray(c, V, S, [1])
 Z, _, _ = StaticRArray(c, C, [1], [1])
 
 @test limit(c) ≈ T
 
 # test record
-while notend(c)
-    global t, V, S, C, T
+for epoch in c
+    global t, V, S, C, T, n
     increase!(c, 0.1)
+    n += 1
     t += 0.1
     X[1] += 1
     V[1] += 1
@@ -23,14 +26,14 @@ while notend(c)
     S += 1
     push!(Z, 0.1)
     push!(C, 0.1)
+    @test n == epoch
     @test now(c) == t
     @test state(X) == V
     @test state(Y) == S
     @test state(Z) ≈ C
 end
 
-@test isend(c)
-@test now(c) ≈ T
+@test now(c) ≈ 0.0
 
 @test size(records(X)) == size(X)
 @test length(records(X)) == length(X)
@@ -59,19 +62,14 @@ for (z, t_) in zip(records(Z), 0:0.1:T)
 end
 
 push!(X, 1)
-r = getrecord(X, length(X))
+rX = records(X)
 @test state(X) == push!(V, 1)
-@test ts(r) == [T]
-@test vs(r) == [1]
+@test ts(rX[length(rX)]) == [0.0]
+@test vs(rX[length(rX)]) == [1]
 
 deleteat!(X, 1)
 @test state(X) == deleteat!(V, 1)
 
-increase!(c, 0.1)
 deleteat!(Z, 1)
 @test state(Z) == deleteat!(C, 1)
-@test tspan(getrecord(Z, 1)) ≈ T + 0.1
-
-show(stdout, MIME("text/plain"), X)
-show(stdout, MIME("text/plain"), r)
 # vim:tw=92:ts=4:sw=4:et

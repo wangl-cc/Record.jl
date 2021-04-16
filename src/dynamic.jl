@@ -1,111 +1,175 @@
-import Base: length, size, getindex, setindex!, push!, deleteat!
-
 """
     DynamicRArray{V,T,N} <: AbstractRecord{V,T,N}
 
 Recorded arrays whose elements change overtime.
 """
 abstract type DynamicRArray{V,T,N} <: AbstractRArray{V,T,N} end
-function DynamicRArray(t::Clock, x1, x2)
+function DynamicRArray(t::AbstractClock, x1, x2)
     return DynamicRArray(t, x1), DynamicRArray(t, x2)
 end
-function DynamicRArray(t::Clock, x1, x2, xs...)
+function DynamicRArray(t::AbstractClock, x1, x2, xs...)
     return DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
 end
 
 """
-    ScalerDynamicRecord{V, T}
+    DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRScalar{V,T,0}
 
-Record scaler. Use `S[1] = v` to change its value instead of
-`S[1] = v`.
+Implementation of recorded scaler, created by `DynamicRArray(t::AbstractClock, v::Number)`.
+Use `S[1] = v` to change its value instead of `S = v`.
+
+Examples
+≡≡≡≡≡≡≡≡≡≡
+```jldoctest
+julia> c = DiscreteClock(3);
+
+julia> s = DynamicRArray(c, 0)
+recorded 0
+
+julia> for epoch in c
+           s[1] += 1
+       end
+
+julia> s
+recorded 3
+
+julia> records(s)[1]
+Record Entries
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+```
 """
-struct DynamicRScalar{V,T} <: DynamicRArray{V,T,0}
-    v::TypeBox{V}
-    t::Clock{T}
+struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
+    v::State{V}
+    t::C
     vs::Vector{V}
     ts::Vector{T}
 end
-function DynamicRArray(t::Clock, x::Number)
-    return DynamicRScalar(TypeBox(x), t, [x], [now(t)])
+function DynamicRArray(t::AbstractClock, v::Number)
+    return DynamicRScalar(State(v), t, [v], [now(t)])
 end
 
-state(r::DynamicRScalar) = r.v.v
+state(A::DynamicRScalar) = value(A.v)
 
-length(::DynamicRScalar) = 1
-size(::DynamicRScalar) = (1,)
-function getindex(r::DynamicRScalar, i::Integer)
-    @boundscheck i == 1 || throw(BoundsError(r, i))
-    return r.v.v
+Base.length(::DynamicRScalar) = 1
+Base.size(::DynamicRScalar) = (1,)
+function Base.getindex(A::DynamicRScalar, i::Integer)
+    @boundscheck i == 1 || throw(BoundsError(A, i))
+    return value(A.v)
 end
-function setindex!(r::DynamicRScalar, v, i::Integer)
-    @boundscheck i == 1 || throw(BoundsError(r, i))
-    r.v.v = v
-    push!(r.vs, v)
-    push!(r.ts, now(r.t))
-    return r
+function Base.setindex!(A::DynamicRScalar, v, i::Integer)
+    @boundscheck i == 1 || throw(BoundsError(A, i))
+    update!(A.v, v)
+    push!(A.vs, v)
+    push!(A.ts, now(A.t))
+    return A
 end
 
-function getrecord(r::DynamicRScalar, i::Integer)
+function Base.getindex(r::Records{<:DynamicRScalar}, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
-    return RecordView(r.ts, r.vs)
+    A = r.array
+    return Entries(A.ts, A.vs)
 end
 
 """
-    DynamicRVector{V,T,I}
+    DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
 
-Record changes of a vector with indices of type `I`.
+Implementation of recorded dynamics vector, created by
+`DynamicRArray(c::AbstractClock, v::AbstractVector)`
+
+
+Examples
+≡≡≡≡≡≡≡≡≡≡
+```jldoctest
+julia> c = DiscreteClock(3);
+
+julia> v = DynamicRArray(c, [0, 1])
+recorded 2-element Vector{Int64}:
+ 0
+ 1
+
+julia> for epoch in c
+           v[1] += 1
+       end
+
+julia> v
+recorded 2-element Vector{Int64}:
+ 3
+ 1
+
+julia> records(v)[1]
+Record Entries
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+```
 """
-struct DynamicRVector{V,T,I} <: DynamicRArray{V,T,1}
+struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
     v::Vector{V}
-    t::Clock{T}
+    t::C
     vs::Vector{Vector{V}}
     ts::Vector{Vector{T}}
-    indmax::TypeBox{I}
+    indmax::State{I}
     indmap::Vector{I}
 end
-function DynamicRArray(t::Clock, x::AbstractVector)
-    n = length(x)
-    vs = map(i -> [i], x)
+function DynamicRArray(t::AbstractClock, v::AbstractVector)
+    n = length(v)
+    vs = map(i -> [i], v)
     ts = map(_ -> [now(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(copy(x), t, vs, ts, TypeBox(n), indmap)
+    return DynamicRVector(copy(v), t, vs, ts, State(n), indmap)
 end
 
-state(r::DynamicRVector) = r.v
+state(A::DynamicRVector) = A.v
 
-length(r::DynamicRVector) = r.indmax.v
-size(r::DynamicRVector) = (length(r),)
+Base.length(A::DynamicRVector) = value(A.indmax)
+Base.size(A::DynamicRVector) = (length(A),)
 
-function getindex(r::DynamicRVector, i::Integer)
-    @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
-    return r.v[i]
+function Base.getindex(A::DynamicRVector, i::Integer)
+    @boundscheck i <= length(A) || throw(BoundsError(A, i))
+    return A.v[i]
 end
 
-function setindex!(r::DynamicRVector, v, i::Integer)
-    r.v[i] = v
-    ind = r.indmap[i]
-    push!(r.vs[ind], v)
-    push!(r.ts[ind], now(r.t))
-    return r
+function Base.setindex!(A::DynamicRVector, v, i::Integer)
+    A.v[i] = v
+    ind = A.indmap[i]
+    push!(A.vs[ind], v)
+    push!(A.ts[ind], now(A.t))
+    return A
 end
 
-function deleteat!(r::DynamicRVector, i::Integer)
-    deleteat!(r.v, i)
-    deleteat!(r.indmap, i)
-    return r
+function Base.deleteat!(A::DynamicRVector, i::Integer)
+    deleteat!(A.v, i)
+    deleteat!(A.indmap, i)
+    return A
 end
 
-function push!(r::DynamicRVector, v)
-    push!(r.v, v)
-    ind = r.indmax.v += true
-    push!(r.indmap, ind)
-    push!(r.vs, [v])
-    push!(r.ts, [now(r.t)])
-    return r
+function Base.push!(A::DynamicRVector, v)
+    push!(A.v, v)
+    ind = plus!(A.indmax, true)
+    push!(A.indmap, ind)
+    push!(A.vs, [v])
+    push!(A.ts, [now(A.t)])
+    return A
 end
 
-function getrecord(r::DynamicRVector, i::Integer)
-    @boundscheck i <= r.indmax.v || throw(BoundsError(r, i))
-    return RecordView(r.ts[i], r.vs[i])
+function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
+    @boundscheck i <= length(r) || throw(BoundsError(r, i))
+    A = r.array
+    return Entries(A.ts[i], A.vs[i])
 end
 # vim:tw=92:ts=4:sw=4:et
