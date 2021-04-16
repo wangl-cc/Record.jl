@@ -2,20 +2,18 @@ using Test
 using RecordedArray
 using Documenter
 
-const setup_expr = :(begin
-    using RecordedArray
-    DocTestFilters = [
-        r"Int\d+",      # base on arch
-        r"Vector{\w+}", # output for higher version of julia
-        r"Matrix{\w+}", # output for higher version of julia
-        r"Array{\w+}"   # output for lower version of julia
-    ]
-end)
+const doctestfilters = [
+    # Array{X,1} -> Vector{X} and Array{X,2} -> Matrix{X}
+    r"Int32|Int64",
+    r"{([a-zA-Z0-9]+,\s?)+[a-zA-Z0-9]+}",
+    r"(Array{[a-zA-Z0-9]+,\s?1}|Vector{[a-zA-Z0-9]+})",
+    r"(Array{[a-zA-Z0-9]+,\s?2}|Matrix{[a-zA-Z0-9]+})",
+]
 
-DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, setup_expr; recursive = true)
+DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArray); recursive = true)
 
 @testset "RecordedArray" begin
-    doctest(RecordedArray; testset = "Doctests")
+    doctest(RecordedArray; testset = "Doctests", doctestfilters=doctestfilters)
 
     @testset "Math" begin
         include("math.jl")
