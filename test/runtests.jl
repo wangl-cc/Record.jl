@@ -13,7 +13,7 @@ const doctestfilters = [
 DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArray); recursive = true)
 
 @testset "RecordedArray" begin
-    doctest(RecordedArray; testset = "Doctests", doctestfilters=doctestfilters)
+    doctest(RecordedArray; testset = "Doctests", doctestfilters = doctestfilters)
 
     @testset "Math" begin
         include("math.jl")
