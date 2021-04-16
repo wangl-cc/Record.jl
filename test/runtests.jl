@@ -2,15 +2,17 @@ using Test
 using RecordedArray
 using Documenter
 
-const setup_expr = :(begin
-    using RecordedArray
-    DocTestFilters = [
-        r"Int\d+",      # base on arch
-        r"Vector{\w+}", # output for higher version of julia
-        r"Matrix{\w+}", # output for higher version of julia
-        r"Array{\w+}"   # output for lower version of julia
-    ]
-end)
+const setup_expr = :(
+    begin
+        using RecordedArray
+        DocTestFilters = [
+            r"Int\d+",      # base on arch
+            r"Vector{\w+}", # output for higher version of julia
+            r"Matrix{\w+}", # output for higher version of julia
+            r"Array{\w+}",   # output for lower version of julia
+        ]
+    end
+)
 
 DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, setup_expr; recursive = true)
 
