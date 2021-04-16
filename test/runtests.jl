@@ -13,7 +13,7 @@ DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArray); recurs
 
 @testset "RecordedArray" begin
     if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
-        doctest(RecordedArray;testset="Doctests", doctestfilters=filters)
+        doctest(RecordedArray; testset = "Doctests", doctestfilters = filters)
     end
 
     @testset "Math" begin
