@@ -1,8 +1,8 @@
 module RecordedArray
 
-export DiscreteClock, ContinuousClock, now, limit, increase!
+export DiscreteClock, ContinuousClock, now, limit, init!, increase!
 export DynamicRArray, StaticRArray, state
-export records, tspan, ts, vs, toplot
+export records, tspan, ts, vs, toseries, getstate_bytime
 
 include("utilities.jl")
 
