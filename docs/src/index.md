@@ -2,8 +2,7 @@
 
 A Pkg for record changes of array (and scalar) automatically.
 
-[![Build Status](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/wangl-cc/RecordedArray.jl/branch/master/graph/badge.svg?token=PB3THCTNJ9)](https://codecov.io/gh/wangl-cc/RecordedArray.jl)
+[![Build Status](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/wangl-cc/RecordedArray.jl/branch/master/graph/badge.svg?token=PB3THCTNJ9)](https://codecov.io/gh/wangl-cc/RecordedArray.jl)
 [![GitHub](https://img.shields.io/github/license/wangl-cc/RecordedArray.jl)](https://github.com/wangl-cc/RecordedArray.jl/blob/master/LICENSE)
 
 ## Usage
@@ -60,7 +59,47 @@ Dict{Float64, Int64} with 2 entries:
 
 ### [Gaussian random walk](https://en.wikipedia.org/wiki/Random_walk) in two dimensions
 
-WIP
+```@example random_walk
+using RecordedArray
+using Plots
 
+c = DiscreteClock(10000)
+pos = DynamicRArray(c, [0.0, 0.0])
 
-<!-- vim: set ts=2 sw=2 spell spl=en: -->
+for t in c
+    pos .+= randn(2)
+end
+
+r = records(pos)
+random_walk_plt = plot(vs.(r)...; frame=:none, grid=false, legend=false)
+```
+
+### [Birth–death process](https://en.wikipedia.org/wiki/Birth–death_process) by [Gillespie algorithm](https://en.wikipedia.org/wiki/Gillespie_algorithm)
+
+```@example birth_death
+using RecordedArray
+using Plots
+
+c = ContinuousClock(100.0)
+n = DynamicRArray(c, 10)
+
+for _ in c
+    birth = 0.1 * n
+    death = 0.1 * n
+
+    sumed = birth + death
+    τ = -log(rand()) / sumed
+
+    increase!(c, τ)
+
+    if rand() * sumed > birth
+        n[1] += 1
+    else
+        n[1] -= 1
+    end
+    state(n) <= 0 && break
+end
+
+r = records(n)
+birth_death_plot = plot(toseries(r[1]); frame=:box, grid=false, legend=false)
+```
