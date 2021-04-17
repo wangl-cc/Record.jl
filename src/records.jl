@@ -73,7 +73,7 @@ during iteration.
 Examples
 ≡≡≡≡≡≡≡≡≡≡
 ```jldoctest
-julia> c = DiscreteClock(10);
+julia> c = DiscreteClock(5);
 
 julia> n = DynamicRArray(c, 0);
 
@@ -83,36 +83,32 @@ julia> for t in c
 
 julia> e = records(n)[1]
 Record Entries
-t: 11-element Vector{Int64}:
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
-v: 11-element Vector{Int64}:
-  0
-  1
-  2
-  3
-  4
-  5
-  6
-  7
-  8
-  9
- 10
+t: 6-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+ 4
+ 5
+v: 6-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+ 4
+ 5
 
-julia> v, state = getstate_bytime(e, 0.5)
-(0, (1, 11))
+julia> getstate_bytime(e, 1.0)
+(1, (2, 6))
 
-julia> v, state = getstate_bytime(e, 3.5)
-(3, (4, 11))
+julia> state = (1, length(e))
+(1, 6)
+
+julia> for t in 0:0.5:6
+           v, state = getstate_bytime(e, t, state)
+           print(v, " ")
+       end
+0 0 1 1 2 2 3 3 4 4 5 5 5
 ```
 """
 function getstate_bytime(
@@ -123,9 +119,9 @@ function getstate_bytime(
     ts_e = ts(e)
     vs_e = vs(e)
     l, h = indrange
-    l == 1 && ts_e[1] >= t && return (false, indrange)
+    l == 1 && ts_e[1] > t && return (false, indrange)
     for i = l:h
-        ts_e[i] >= t && return vs_e[i-1], (i - 1, h)
+        ts_e[i] > t && return vs_e[i-1], (i - 1, h)
     end
     return vs_e[end], (vs_e[end], nothing)
 end
