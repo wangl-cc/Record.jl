@@ -46,7 +46,7 @@ function Base.iterate(e::AbstractEntries, state = 1)
     end
 end
 
-tspan(e::AbstractEntries) = (tse=ts(e); tse[end] - tse[1])
+tspan(e::AbstractEntries) = (tse = ts(e); tse[end] - tse[1])
 toseries(e::AbstractEntries) = ts(e), vs(e)
 
 """
@@ -76,19 +76,18 @@ ts(e::SingleEntries) = e.ts
 Type store changes of multiple variables of type `V` with time of type `T`, created by
 [`unione`](@ref unione).
 """
-struct UnionEntries{T, V} <: AbstractEntries{T,V}
+struct UnionEntries{T,V} <: AbstractEntries{T,V}
     ts::Vector{T}
     vs::Matrix{V}
-    function UnionEntries(ts::Vector{T}, vs::Matrix{V}) where {T, V}
-        length(ts) != size(vs, 1) && throw(
-            ArgumentError("length of ts must be same as the first size of vs.")
-        )
+    function UnionEntries(ts::Vector{T}, vs::Matrix{V}) where {T,V}
+        length(ts) != size(vs, 1) &&
+            throw(ArgumentError("length of ts must be same as the first size of vs."))
         return new{T,V}(ts, vs)
     end
 end
 
 Base.eltype(::Type{<:UnionEntries{T,V}}) where {T,V} = Pair{T,Vector{V}}
-Base.getindex(e::UnionEntries, i::Integer) = ts(e)[i] => vs(e)[i,:]
+Base.getindex(e::UnionEntries, i::Integer) = ts(e)[i] => vs(e)[i, :]
 
 vs(e::UnionEntries) = e.vs
 ts(e::UnionEntries) = e.ts
@@ -172,9 +171,9 @@ function gettime(
     l, h = indrange
     l == 1 && ts_e[1] > t && return (zeros(eltype(vs_e), n), indrange)
     for i = l:h
-        ts_e[i] > t && return vs_e[i-1,:], (i - 1, h)
+        ts_e[i] > t && return vs_e[i-1, :], (i - 1, h)
     end
-    return vs_e[end,:], (vs_e[end,:], nothing)
+    return vs_e[end, :], (vs_e[end, :], nothing)
 end
 gettime(::AbstractEntries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
 
@@ -259,7 +258,7 @@ function unione(e1::AbstractEntries, e2::AbstractEntries)
         v2, state2 = gettime(e2, t, state2)
         vs_new[i, :] = vcat(v1, v2)
     end
-    return UnionEntries(ts_new, vs_new) 
+    return UnionEntries(ts_new, vs_new)
 end
 @inline unione(es::Vector{<:AbstractEntries}) = unione(es...)
 @inline unione(e1::AbstractEntries) = e1
