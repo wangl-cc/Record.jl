@@ -39,8 +39,8 @@ During iteration, the current time will be updated automatically and returned as
 item. When the iteration finnished without `break`, [`init!(c)`](@ref init!) wil be applied.
 `DiscreteClock(stop)` will create a clock with `start=0` and `indexset=Base.OneTo(stop)`
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(0:3);
 
@@ -109,8 +109,8 @@ current time will be returned. If the `max_epoch` is specified, the iteration wi
 when epoch reach to the `max_epoch`, even `now(c) < limit(c)`, and break in this way the
 [`init!(c)`](@ref init!) will not be applied.
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = ContinuousClock(3.0; max_epoch=2);
 

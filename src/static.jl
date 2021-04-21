@@ -18,8 +18,8 @@ end
 Implementation of recorded static vector, created by
 `StaticRArray(c::AbstractClock, v::AbstractVector)`.
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(3);
 

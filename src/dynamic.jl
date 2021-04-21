@@ -17,8 +17,8 @@ end
 Implementation of recorded scaler, created by `DynamicRArray(t::AbstractClock, v::Number)`.
 Use `S[1] = v` to change its value instead of `S = v`.
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(3);
 
@@ -85,8 +85,8 @@ Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
 
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(3);
 

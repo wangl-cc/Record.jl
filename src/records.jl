@@ -100,8 +100,8 @@ Get the value(s) of `e` at time `t`, If `t` is not in `ts(e)`, return value at t
 `i` in `indrange[1]:indrange[2]`. The return value is a tuple consists of the value and
 some information about next search which is useful during iteration.
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(5);
 
@@ -193,8 +193,8 @@ end
 Construct the union of given entries `es`. `union(r)` construct union all of elements of
 Records `r`. See example.
 
-Examples
-≡≡≡≡≡≡≡≡≡≡
+# Examples
+
 ```jldoctest
 julia> c = DiscreteClock(3);
 

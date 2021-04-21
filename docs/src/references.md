@@ -8,7 +8,7 @@ continuous or discrete time. A clock can be iterate by `for` loop and break
 when reach to stop.
 
 ```@docs
-AbstractClock
+RecordedArray.AbstractClock
 ```
 
 ```@docs
@@ -41,7 +41,7 @@ Create a RArray with a clock and a array, then all changes will be recorded
 automatically.
 
 ```@docs
-AbstractRArray
+RecordedArray.AbstractRArray
 ```
 
 ```@docs
@@ -49,15 +49,11 @@ state
 ```
 
 ```@docs
-StaticRArray
+RecordedArray.StaticRArray
 ```
 
 ```@docs
-DynamicRArray
-```
-
-```@docs
-DynamicRVector
+RecordedArray.DynamicRArray
 ```
 
 ## Records
@@ -68,19 +64,19 @@ records
 ```
 
 ```@docs
-Records
+RecordedArray.Records
 ```
 
 ```@docs
-AbstractEntries
+RecordedArray.AbstractEntries
 ```
 
 ```@docs
-SingleEntries
+RecordedArray.SingleEntries
 ```
 
 ```@docs
-UnionEntries
+RecordedArray.UnionEntries
 ```
 
 ```@docs
