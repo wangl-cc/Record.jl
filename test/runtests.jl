@@ -11,9 +11,9 @@ filters = Regex[
 
 DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recursive = true)
 
-@testset "RecordedArray" begin
+@testset "RecordedArrays" begin
     if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
-        doctest(RecordedArray; testset = "Doctests", doctestfilters = filters)
+        doctest(RecordedArrays; testset = "Doctests", doctestfilters = filters)
     end
 
     @testset "Math" begin
