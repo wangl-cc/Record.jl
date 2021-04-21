@@ -15,12 +15,12 @@ Create a [Records](@ref Records) with RecordedArray `A`.
 records(A::AbstractRArray) = Records(A)
 
 Base.IteratorSize(::Type{<:Records{T}}) where {T} = Base.IteratorSize(T)
-Base.eltype(::Type{<:Records{A}}) where {A} = Entries{timetype(A),eltype(A)}
+Base.eltype(::Type{<:Records{A}}) where {A} = SingleEntries{timetype(A),eltype(A)}
 Base.length(r::Records) = length(r.array)
 Base.size(r::Records) = size(r.array)
 function Base.iterate(r::Records, state = 1)
     if state <= length(r)
-        return r[state]::Entries, state + 1
+        return r[state]::SingleEntries, state + 1
     else
         return nothing
     end
@@ -31,24 +31,14 @@ function Base.show(io::IO, ::MIME"text/plain", r::Records)
 end
 
 """
-    Entries{T<:Real,V}
-
-Changes of a specified variable of type `V` with time of type `T`, element of [Records](@ref Records).
+    AbstractEntries{T<:Real,V}
+Supertype of entries, which store changes of specified variable(s) of type `V` with time
+of type `T`.
 """
-struct Entries{T<:Real,V}
-    ts::Vector{T}
-    vs::Vector{V}
-    function Entries(ts::Vector{T}, vs::Vector{V}) where {T,V}
-        length(ts) != length(vs) && throw(ArgumentError("ts and xs must be same length."))
-        return new{T,V}(ts, vs)
-    end
-end
-
-Base.IteratorSize(::Type{<:Entries}) = Base.HasLength()
-Base.eltype(::Type{<:Entries{T,V}}) where {T,V} = Pair{T,V}
-Base.length(e::Entries) = length(e.ts)
-Base.getindex(e::Entries, i::Integer) = e.ts[i] => e.vs[i]
-function Base.iterate(e::Entries, state = 1)
+abstract type AbstractEntries{T<:Real,V} end
+Base.IteratorSize(::Type{<:AbstractEntries}) = Base.HasLength()
+Base.length(e::AbstractEntries) = length(ts(e))
+function Base.iterate(e::AbstractEntries, state = 1)
     if state <= length(e)
         return e[state], state + 1
     else
@@ -56,19 +46,60 @@ function Base.iterate(e::Entries, state = 1)
     end
 end
 
-tspan(e::Entries) = e.ts[end] - e.ts[1]
-vs(e::Entries) = e.vs
-ts(e::Entries) = e.ts
-toseries(e::Entries) = ts(e), vs(e)
+tspan(e::AbstractEntries) = (tse=ts(e); tse[end] - tse[1])
+toseries(e::AbstractEntries) = ts(e), vs(e)
 
 """
-    getstate_bytime(e::Entries, t::Real, [indrange::Tuple=(1,length)])
+    SingleEntries{T,V} <: AbstractEntries{T,V}
 
-Get the state(`v`) of `e` at time `t`, evenif `t` is not in `ts(e)`. If `indrange`
-is specified, will only search in `ts(e)[indrange[1]:indrange[2]]`. The return value
-is a tuple consists of its state and some information about next state which is useful
-during iteration.
+Type store changes of a specified variable of type `V` with time of type `T`, element of
+[Records](@ref Records).
+"""
+struct SingleEntries{T,V} <: AbstractEntries{T,V}
+    ts::Vector{T}
+    vs::Vector{V}
+    function SingleEntries(ts::Vector{T}, vs::Vector{V}) where {T,V}
+        length(ts) != length(vs) && throw(ArgumentError("ts and vs must be same length."))
+        return new{T,V}(ts, vs)
+    end
+end
 
+Base.eltype(::Type{<:SingleEntries{T,V}}) where {T,V} = Pair{T,V}
+Base.getindex(e::SingleEntries, i::Integer) = ts(e)[i] => vs(e)[i]
+
+vs(e::SingleEntries) = e.vs
+ts(e::SingleEntries) = e.ts
+
+"""
+    UnionEntries{T,V} <: AbstractEntries{T,V}
+
+Type store changes of multiple variables of type `V` with time of type `T`, created by
+[`unione`](@ref unione).
+"""
+struct UnionEntries{T, V} <: AbstractEntries{T,V}
+    ts::Vector{T}
+    vs::Matrix{V}
+    function UnionEntries(ts::Vector{T}, vs::Matrix{V}) where {T, V}
+        length(ts) != size(vs, 1) && throw(
+            ArgumentError("length of ts must be same as the first size of vs.")
+        )
+        return new{T,V}(ts, vs)
+    end
+end
+
+Base.eltype(::Type{<:UnionEntries{T,V}}) where {T,V} = Pair{T,Vector{V}}
+Base.getindex(e::UnionEntries, i::Integer) = ts(e)[i] => vs(e)[i,:]
+
+vs(e::UnionEntries) = e.vs
+ts(e::UnionEntries) = e.ts
+
+"""
+    gettime(e::AbstractEntries, t::Real, [indrange::Tuple=(1,length)])
+
+Get the value(s) of `e` at time `t`, If `t` is not in `ts(e)`, return value at time
+`ts(e)[i]` where `ts(e)[i] < t < ts(e)[i+1]`. If `indrange` is specified, will only search
+`i` in `indrange[1]:indrange[2]`. The return value is a tuple consists of the value and
+some information about next search which is useful during iteration.
 
 Examples
 ≡≡≡≡≡≡≡≡≡≡
@@ -98,40 +129,142 @@ v: 6-element Vector{Int64}:
  4
  5
 
-julia> getstate_bytime(e, 1.0)
-(1, (2, 6))
+julia> v, state = gettime(e, 1.5);
+
+julia> v
+1
+
+julia> state
+(2, 6)
 
 julia> state = (1, length(e))
 (1, 6)
 
 julia> for t in 0:0.5:6
-           v, state = getstate_bytime(e, t, state)
+           v, state = gettime(e, t, state)
            print(v, " ")
        end
 0 0 1 1 2 2 3 3 4 4 5 5 5
 ```
 """
-function getstate_bytime(
-    e::Entries,
+function gettime(
+    e::SingleEntries,
     t::Real,
     indrange::Tuple{Integer,Integer} = (1, length(e)),
 )
     ts_e = ts(e)
     vs_e = vs(e)
     l, h = indrange
-    l == 1 && ts_e[1] > t && return (false, indrange)
+    l == 1 && ts_e[1] > t && return (zero(eltype(vs_e)), indrange)
     for i = l:h
         ts_e[i] > t && return vs_e[i-1], (i - 1, h)
     end
     return vs_e[end], (vs_e[end], nothing)
 end
-getstate_bytime(::Entries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
+function gettime(
+    e::UnionEntries,
+    t::Real,
+    indrange::Tuple{Integer,Integer} = (1, size(e, 1)),
+)
+    ts_e = ts(e)
+    vs_e = vs(e)
+    n = size(vs_e, 2)
+    l, h = indrange
+    l == 1 && ts_e[1] > t && return (zeros(eltype(vs_e), n), indrange)
+    for i = l:h
+        ts_e[i] > t && return vs_e[i-1,:], (i - 1, h)
+    end
+    return vs_e[end,:], (vs_e[end,:], nothing)
+end
+gettime(::AbstractEntries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
 
-function Base.show(io::IO, ::MIME"text/plain", e::Entries)
+function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntries)
     println(io, "Record Entries")
     print(io, "t: ")
     show(io, MIME("text/plain"), ts(e))
     print(io, "\nv: ")
     show(io, MIME("text/plain"), vs(e))
+end
+
+"""
+    unione(es::AbstractEntries...)
+    unione(es::Vector{<:AbstractEntries})
+    unione(r::Records)
+
+Construct the union of given entries `es`. `union(r)` construct union all of elements of
+Records `r`. See example.
+
+Examples
+≡≡≡≡≡≡≡≡≡≡
+```jldoctest
+julia> c = DiscreteClock(3);
+
+julia> v = DynamicRArray(c, [1, 1, 1]);
+
+julia> for t in c
+           v[t] = 2
+       end
+
+julia> ea, eb, ec = records(v);
+
+julia> ue = unione(ea, eb)
+Record Entries
+t: 3-element Vector{Int64}:
+ 0
+ 1
+ 2
+v: 3×2 Matrix{Int64}:
+ 1  1
+ 2  1
+ 2  2
+
+julia> ue = unione(ue, ec)
+Record Entries
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4×3 Matrix{Int64}:
+ 1  1  1
+ 2  1  1
+ 2  2  1
+ 2  2  2
+
+julia> unione(records(v))
+Record Entries
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4×3 Matrix{Int64}:
+ 1  1  1
+ 2  1  1
+ 2  2  1
+ 2  2  2
+```
+"""
+function unione(e1::AbstractEntries, e2::AbstractEntries)
+    ts_new = sort(union(ts(e1), ts(e2)))
+    vs1 = vs(e1)
+    vs2 = vs(e2)
+    V = promote_type(eltype(vs1), eltype(vs2))
+    vs_new = Matrix{V}(undef, length(ts_new), size(vs1, 2) + size(vs2, 2))
+    state1 = (1, length(e1))
+    state2 = (1, length(e2))
+    for i in eachindex(ts_new)
+        t = ts_new[i]
+        v1, state1 = gettime(e1, t, state1)
+        v2, state2 = gettime(e2, t, state2)
+        vs_new[i, :] = vcat(v1, v2)
+    end
+    return UnionEntries(ts_new, vs_new) 
+end
+@inline unione(es::Vector{<:AbstractEntries}) = unione(es...)
+@inline unione(e1::AbstractEntries) = e1
+@inline unione(r::Records) = unione(r...)
+function unione(e1::AbstractEntries, e2::AbstractEntries, es::AbstractEntries...)
+    return unione(unione(e1, e2), es...)
 end
 # vim:tw=92:ts=4:sw=4:et

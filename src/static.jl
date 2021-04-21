@@ -100,6 +100,6 @@ end
 function Base.getindex(r::Records{<:StaticRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
-    return Entries([A.s[i], A.e[i]], [A.v_all[i], A.v_all[i]])
+    return SingleEntries([A.s[i], A.e[i]], [A.v_all[i], A.v_all[i]])
 end
 # vim:tw=92:ts=4:sw=4:et

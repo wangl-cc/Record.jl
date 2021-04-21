@@ -2,7 +2,7 @@ module RecordedArray
 
 export DiscreteClock, ContinuousClock, now, limit, init!, increase!
 export DynamicRArray, StaticRArray, state
-export records, tspan, ts, vs, toseries, getstate_bytime
+export records, tspan, ts, vs, toseries, gettime, unione
 
 include("utilities.jl")
 

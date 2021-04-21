@@ -75,7 +75,7 @@ end
 function Base.getindex(r::Records{<:DynamicRScalar}, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     A = r.array
-    return Entries(A.ts, A.vs)
+    return SingleEntries(A.ts, A.vs)
 end
 
 """
@@ -170,6 +170,6 @@ end
 function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
-    return Entries(A.ts[i], A.vs[i])
+    return SingleEntries(A.ts[i], A.vs[i])
 end
 # vim:tw=92:ts=4:sw=4:et
