@@ -2,8 +2,9 @@
 
 A Pkg for record changes of array (and scalar) automatically.
 
-[![Build Status](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wangl-cc/RecordedArray.jl/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/wangl-cc/RecordedArray.jl/branch/master/graph/badge.svg?token=PB3THCTNJ9)](https://codecov.io/gh/wangl-cc/RecordedArray.jl)
-[![GitHub](https://img.shields.io/github/license/wangl-cc/RecordedArray.jl)](https://github.com/wangl-cc/RecordedArray.jl/blob/master/LICENSE)
+[![Build Status](https://github.com/wangl-cc/RecordedArrays.jl/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wangl-cc/RecordedArrays.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/wangl-cc/RecordedArrays.jl/branch/master/graph/badge.svg?token=PB3THCTNJ9)](https://codecov.io/gh/wangl-cc/RecordedArrays.jl)
+[![GitHub](https://img.shields.io/github/license/wangl-cc/RecordedArrays.jl)](https://github.com/wangl-cc/RecordedArrays.jl/blob/master/LICENSE)
 
 ## Usage
 
