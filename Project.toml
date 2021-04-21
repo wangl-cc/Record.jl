@@ -1,4 +1,4 @@
-name = "RecordedArray"
+name = "RecordedArrays"
 uuid = "1040807a-3a2f-4266-b2c1-805b33c7034a"
 authors = ["Long Wang <wangl.cc@outlook.com>"]
 version = "0.1.0"

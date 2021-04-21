@@ -1,5 +1,5 @@
 using Test
-using RecordedArray
+using RecordedArrays
 using Documenter
 
 # don't work now
@@ -9,7 +9,7 @@ filters = Regex[
     r"Array{\w+,\s?2}|Matrix{\w+}", # Array{X,2} <-> Matrix{X}
 ]
 
-DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArray); recursive = true)
+DocMeta.setdocmeta!(RecordedArray, :DocTestSetup, :(using RecordedArrays); recursive = true)
 
 @testset "RecordedArray" begin
     if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64

@@ -8,7 +8,7 @@ A Pkg for record changes of array (and scalar) automatically.
 ## Usage
 
 ```jldoctest
-julia> using RecordedArray
+julia> using RecordedArrays
 
 julia> c = ContinuousClock(3.0); # define a clock
 
@@ -60,7 +60,7 @@ Dict{Float64, Int64} with 2 entries:
 ### [Gaussian random walk](https://en.wikipedia.org/wiki/Random_walk) in two dimensions
 
 ```@example random_walk
-using RecordedArray
+using RecordedArrays
 using Plots
 
 c = DiscreteClock(10000)
@@ -77,7 +77,7 @@ random_walk_plt = plot(vs.(r)...; frame=:none, grid=false, legend=false)
 ### [Birth–death process](https://en.wikipedia.org/wiki/Birth–death_process) by [Gillespie algorithm](https://en.wikipedia.org/wiki/Gillespie_algorithm)
 
 ```@example birth_death
-using RecordedArray
+using RecordedArrays
 using Plots
 
 c = ContinuousClock(100.0)

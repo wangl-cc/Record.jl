@@ -1,5 +1,5 @@
 using Documenter
-using RecordedArray
+using RecordedArrays
 
 makedocs(; sitename = "RecordedArray.jl")
 

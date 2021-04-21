@@ -1,4 +1,4 @@
-module RecordedArray
+module RecordedArrays
 
 export DiscreteClock, ContinuousClock, now, limit, init!, increase!
 export DynamicRArray, StaticRArray, state
