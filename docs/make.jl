@@ -1,6 +1,6 @@
 using Documenter
 using RecordedArrays
 
-makedocs(; sitename = "RecordedArray.jl")
+makedocs(; sitename = "RecordedArrays.jl")
 
-deploydocs(; repo = "github.com/wangl-cc/RecordedArray.jl.git")
+deploydocs(; repo = "github.com/wangl-cc/RecordedArrays.jl.git")
