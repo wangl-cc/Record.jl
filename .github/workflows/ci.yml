@@ -9,10 +9,6 @@ on:
       - "**LICENSE*"
       - "**.gitignore"
   pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
     paths-ignore:
       - "**README*"
       - "**LICENSE*"
