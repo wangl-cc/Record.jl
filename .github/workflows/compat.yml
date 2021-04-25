@@ -1,5 +1,14 @@
 name: CompatHelper
 on:
+  push:
+    branches:
+      - master
+      - dev
+    paths:
+      - "**Project.toml"
+  pull_request:
+    paths:
+      - "**Project.toml"
   schedule:
     - cron: 0 0 * * *
   workflow_dispatch:
