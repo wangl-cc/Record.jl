@@ -30,6 +30,7 @@ for epoch in c
     @test now(c) == t
     @test state(X) == V
     @test state(Y) == S
+    @test Z[end] ≈ 0.1
     @test state(Z) ≈ C
 end
 
