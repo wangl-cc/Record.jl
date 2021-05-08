@@ -81,6 +81,7 @@ Base.size(A::StaticRVector) = (length(A),)
 function Base.getindex(A::StaticRVector, i::Integer)
     @boundscheck i <= length(A) || throw(BoundsError(A, i))
     return A.v[i]
+end
 
 function Base.push!(r::StaticRVector, v)
     push!(r.v, v)
