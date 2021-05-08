@@ -78,6 +78,9 @@ state(A::StaticRVector) = A.v
 
 Base.length(A::StaticRVector) = value(A.indmax)
 Base.size(A::StaticRVector) = (length(A),)
+function Base.getindex(A::StaticRVector, i::Integer)
+    @boundscheck i <= length(A) || throw(BoundsError(A, i))
+    return A.v[i]
 
 function Base.push!(r::StaticRVector, v)
     push!(r.v, v)
