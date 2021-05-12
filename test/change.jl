@@ -14,7 +14,7 @@ Z, _, _ = StaticRArray(c, C, [1], [1])
 
 # test record
 for epoch in c
-    global t, V, S, C, T, n
+    global t , V , S , C , T , n
     increase!(c, 0.1)
     n += 1
     t += 0.1
