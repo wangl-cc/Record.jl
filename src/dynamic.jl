@@ -60,10 +60,14 @@ state(A::DynamicRScalar) = value(A.v)
 
 Base.length(::DynamicRScalar) = 1
 Base.size(::DynamicRScalar) = (1,)
-function Base.getindex(A::DynamicRScalar, i::Integer)
+function Base.getindex(A::DynamicRScalar, i::Int)
     @boundscheck i == 1 || throw(BoundsError(A, i))
     return value(A.v)
 end
+
+rlength(::DynamicRScalar) = 1
+rsize(::DynamicRScalar) = (1,)
+
 function Base.setindex!(A::DynamicRScalar, v, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(A, i))
     update!(A.v, v)
@@ -131,18 +135,13 @@ function DynamicRArray(t::AbstractClock, v::AbstractVector)
     vs = map(i -> [i], v)
     ts = map(_ -> [now(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(copy(v), t, vs, ts, State(n), indmap)
+    return DynamicRVector(collect(v), t, vs, ts, State(n), indmap)
 end
 
 state(A::DynamicRVector) = A.v
 
-Base.length(A::DynamicRVector) = value(A.indmax)
-Base.size(A::DynamicRVector) = (length(A),)
-
-function Base.getindex(A::DynamicRVector, i::Integer)
-    @boundscheck i <= length(A) || throw(BoundsError(A, i))
-    return A.v[i]
-end
+rlength(A::DynamicRVector) = value(A.indmax)
+rsize(A::DynamicRVector) = (rlength(A),)
 
 function Base.setindex!(A::DynamicRVector, v, i::Integer)
     A.v[i] = v

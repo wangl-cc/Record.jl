@@ -2,9 +2,27 @@
     State{T}
 
 A box to store a variable of type `T` whose value can be update.
+
+
+# Examples
+
+```jldoctest
+julia> x = State(0)
+0
+
+julia> value(x)::Int
+0
+
+julia> update!(x, 1)
+1
+```
 """
 mutable struct State{T}
     x::T
+end
+
+function Base.show(io::IO, ::MIME"text/plain", x::State)
+    return show(io, MIME("text/plain"), value(x))
 end
 
 """

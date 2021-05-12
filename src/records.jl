@@ -15,9 +15,9 @@ Create a [Records](@ref Records) with RecordedArray `A`.
 records(A::AbstractRArray) = Records(A)
 
 Base.IteratorSize(::Type{<:Records{T}}) where {T} = Base.IteratorSize(T)
-Base.eltype(::Type{<:Records{A}}) where {A} = SingleEntries{timetype(A),eltype(A)}
-Base.length(r::Records) = length(r.array)
-Base.size(r::Records) = size(r.array)
+Base.eltype(::Type{<:Records{T}}) where {T} = SingleEntries{timetype(T),eltype(T)}
+Base.length(r::Records) = rlength(r.array)
+Base.size(r::Records) = rsize(r.array)
 function Base.iterate(r::Records, state = 1)
     if state <= length(r)
         return r[state]::SingleEntries, state + 1
@@ -27,11 +27,25 @@ function Base.iterate(r::Records, state = 1)
 end
 function Base.show(io::IO, ::MIME"text/plain", r::Records)
     print(io, "records for ")
-    show(io, MIME("text/plain"), r.array)
+    ns = size(r)
+    A = r.array
+    T = typeof(A)
+    if A isa DynamicRArray
+        type = " dynamic "
+    elseif A isa StaticRArray
+        type = " static "
+    end
+    if length(ns) == 1
+        print(io, ns[1], "-element")
+    else
+        join(io, ns, "×")
+    end
+    print(io, type, typeof(state(r.array)), " with time ", timetype(T))
 end
 
 """
     AbstractEntries{T<:Real,V}
+
 Supertype of entries, which store changes of specified variable(s) of type `V` with time
 of type `T`.
 """

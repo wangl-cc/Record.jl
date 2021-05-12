@@ -71,17 +71,13 @@ function StaticRArray(t::AbstractClock, v::AbstractVector)
     n = length(v)
     s = fill(now(t), n)
     e = fill(limit(t), n)
-    return StaticRVector(copy(v), copy(v), t, s, e, State(n), collect(1:n))
+    return StaticRVector(collect(v), copy(v), t, s, e, State(n), collect(1:n))
 end
 
 state(A::StaticRVector) = A.v
 
-Base.length(A::StaticRVector) = value(A.indmax)
-Base.size(A::StaticRVector) = (length(A),)
-function Base.getindex(A::StaticRVector, i::Integer)
-    @boundscheck i <= length(A) || throw(BoundsError(A, i))
-    return A.v[i]
-end
+rlength(A::StaticRVector) = value(A.indmax)
+rsize(A::StaticRVector) = (rlength(A),)
 
 function Base.push!(r::StaticRVector, v)
     push!(r.v, v)

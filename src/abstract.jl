@@ -1,6 +1,6 @@
 """
     AbstractRArray{V,T,N}
-    
+
 Supertype of recorded `N`-dimensional arrays with elements of type `V`
 and time of type `T`", whose changes will be recorded automatically.
 
@@ -19,6 +19,14 @@ timetype(::Type{<:AbstractRArray{V,T}}) where {V,T} = T
 Get current state of recorded array `A`. 
 """
 function state end
+
+function rlength end
+function rsize end
+
+# interface
+Base.length(A::AbstractRArray) = length(state(A))
+Base.size(A::AbstractRArray) = size(state(A))
+Base.getindex(A::AbstractRArray, I::Int...) = getindex(state(A), I...)
 
 function Base.show(io::IO, ::MIME"text/plain", A::AbstractRArray)
     print(io, "recorded ")

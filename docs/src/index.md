@@ -32,10 +32,7 @@ recorded 3-element Vector{Int64}:
  1
 
 julia> r = records(v) # create a records
-records for recorded 3-element Vector{Int64}:
- 1
- 1
- 1
+records for 3-element dynamic Vector{Int64} with time Float64
 
 julia> r[1] # show entries of a element
 Record Entries
