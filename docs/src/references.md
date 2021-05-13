@@ -8,29 +8,11 @@ continuous time `ContinuousClock` or discrete time `DiscreteClock`.
 
 ```@docs
 RecordedArrays.AbstractClock
-```
-
-```@docs
 DiscreteClock
-```
-
-```@docs
 ContinuousClock
-```
-
-```@docs
 now
-```
-
-```@docs
 limit
-```
-
-```@docs
 init!
-```
-
-```@docs
 increase!
 ```
 
@@ -43,17 +25,8 @@ array whose values of elements will change.
 
 ```@docs
 RecordedArrays.AbstractRArray
-```
-
-```@docs
 state
-```
-
-```@docs
 RecordedArrays.StaticRArray
-```
-
-```@docs
 RecordedArrays.DynamicRArray
 ```
 
@@ -64,41 +37,14 @@ access it by create a `Records` with `r = records(A)` and get entries by `r[i]`.
 
 ```@docs
 records
-```
-
-```@docs
 RecordedArrays.Records
-```
-
-```@docs
 RecordedArrays.AbstractEntries
-```
-
-```@docs
 RecordedArrays.SingleEntries
-```
-
-```@docs
 RecordedArrays.UnionEntries
-```
-
-```@docs
 gettime
-```
-
-```@docs
 unione
-```
-
-```@docs
 ts
-```
-
-```@docs
 vs
-```
-
-```@docs
 tspan
 ```
 
