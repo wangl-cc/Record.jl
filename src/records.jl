@@ -1,7 +1,7 @@
 """
     Records{T<:AbstractRArray}
 
-Contain a RecordedArray, whose elements are changing records of each element of given array.
+Contain a RecordedArray, whose elements are records of each element of given array.
 """
 struct Records{T<:AbstractRArray}
     array::T
@@ -10,7 +10,7 @@ end
 """
     records(A::AbstractRArray)
 
-Create a [Records](@ref Records) with RecordedArray `A`.
+Create a [`Records`](@ref RecordedArrays.Records) with RecordedArray `A`.
 """
 records(A::AbstractRArray) = Records(A)
 
@@ -93,7 +93,7 @@ toseries(e::AbstractEntries) = ts(e), vs(e)
     SingleEntries{T,V} <: AbstractEntries{T,V}
 
 Type store changes of a specified variable of type `V` with time of type `T`, element of
-[Records](@ref Records).
+[`Records`](@ref RecordedArrays.Records).
 """
 struct SingleEntries{T,V} <: AbstractEntries{T,V}
     ts::Vector{T}
