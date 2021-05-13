@@ -18,7 +18,7 @@ Base.IteratorSize(::Type{<:Records{T}}) where {T} = Base.IteratorSize(T)
 Base.eltype(::Type{<:Records{T}}) where {T} = SingleEntries{timetype(T),eltype(T)}
 Base.length(r::Records) = rlength(r.array)
 Base.size(r::Records) = rsize(r.array)
-function Base.iterate(r::Records, state = 1)
+function Base.iterate(r::Records, state=1)
     if state <= length(r)
         return r[state]::SingleEntries, state + 1
     else
@@ -41,6 +41,7 @@ function Base.show(io::IO, ::MIME"text/plain", r::Records)
         join(io, ns, "×")
     end
     print(io, type, typeof(state(r.array)), " with time ", timetype(T))
+    return nothing
 end
 
 """
@@ -52,7 +53,7 @@ of type `T`.
 abstract type AbstractEntries{T<:Real,V} end
 Base.IteratorSize(::Type{<:AbstractEntries}) = Base.HasLength()
 Base.length(e::AbstractEntries) = length(ts(e))
-function Base.iterate(e::AbstractEntries, state = 1)
+function Base.iterate(e::AbstractEntries, state=1)
     if state <= length(e)
         return e[state], state + 1
     else
@@ -160,31 +161,23 @@ julia> for t in 0:0.5:6
 0 0 1 1 2 2 3 3 4 4 5 5 5
 ```
 """
-function gettime(
-    e::SingleEntries,
-    t::Real,
-    indrange::Tuple{Integer,Integer} = (1, length(e)),
-)
+function gettime(e::SingleEntries, t::Real, indrange::Tuple{Integer,Integer}=(1, length(e)))
     ts_e = ts(e)
     vs_e = vs(e)
     l, h = indrange
     l == 1 && ts_e[1] > t && return (zero(eltype(vs_e)), indrange)
-    for i = l:h
+    for i in l:h
         ts_e[i] > t && return vs_e[i-1], (i - 1, h)
     end
     return vs_e[end], (vs_e[end], nothing)
 end
-function gettime(
-    e::UnionEntries,
-    t::Real,
-    indrange::Tuple{Integer,Integer} = (1, size(e, 1)),
-)
+function gettime(e::UnionEntries, t::Real, indrange::Tuple{Integer,Integer}=(1, size(e, 1)))
     ts_e = ts(e)
     vs_e = vs(e)
     n = size(vs_e, 2)
     l, h = indrange
     l == 1 && ts_e[1] > t && return (zeros(eltype(vs_e), n), indrange)
-    for i = l:h
+    for i in l:h
         ts_e[i] > t && return vs_e[i-1, :], (i - 1, h)
     end
     return vs_e[end, :], (vs_e[end, :], nothing)
@@ -197,6 +190,7 @@ function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntries)
     show(io, MIME("text/plain"), ts(e))
     print(io, "\nv: ")
     show(io, MIME("text/plain"), vs(e))
+    return nothing
 end
 
 """

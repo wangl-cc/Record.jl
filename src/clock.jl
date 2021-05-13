@@ -151,8 +151,8 @@ struct ContinuousClock{T,I<:Union{Nothing,Integer}} <: AbstractClock{T}
 end
 function ContinuousClock(
     stop::Real,
-    start::Real = zero(stop);
-    max_epoch::Union{Nothing,Integer} = nothing,
+    start::Real=zero(stop);
+    max_epoch::Union{Nothing,Integer}=nothing,
 )
     return ContinuousClock(promote(start, stop)..., max_epoch)
 end
@@ -164,8 +164,8 @@ Base.iterate(c::ContinuousClock) = now(c) < limit(c) ? _itr(c.epoch) : (init!(c)
 Base.iterate(c::ContinuousClock, state) =
     now(c) < limit(c) ? _itr(c.epoch, state) : (init!(c); nothing)
 
-_itr(::Nothing, i::Int = 1) = (i, i + 1)
-_itr(lim::Integer, i::Integer = one(lim)) = ifelse(i > lim, nothing, (i, i + 1))
+_itr(::Nothing, i::Int=1) = (i, i + 1)
+_itr(lim::Integer, i::Integer=one(lim)) = ifelse(i > lim, nothing, (i, i + 1))
 
 # clock interfaces
 now(c::ContinuousClock) = value(c.current)

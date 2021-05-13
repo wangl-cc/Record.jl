@@ -1,0 +1,5 @@
+always_for_in = true
+remove_extra_newlines = true
+pipe_to_function_call = true
+always_use_return = true
+whitespace_in_kwargs = false

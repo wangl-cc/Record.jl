@@ -9,16 +9,11 @@ filters = Regex[
     r"Array{\w+,\s?2}|Matrix{\w+}", # Array{X,2} <-> Matrix{X}
 ]
 
-DocMeta.setdocmeta!(
-    RecordedArrays,
-    :DocTestSetup,
-    :(using RecordedArrays);
-    recursive = true,
-)
+DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recursive=true)
 
 @testset "RecordedArrays" begin
     if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
-        doctest(RecordedArrays; testset = "Doctests", doctestfilters = filters)
+        doctest(RecordedArrays; testset="Doctests", doctestfilters=filters)
     end
 
     @testset "Math" begin
@@ -29,6 +24,5 @@ DocMeta.setdocmeta!(
         include("change.jl")
     end
 end
-
 
 # vim:tw=92:ts=4:sw=4:et
