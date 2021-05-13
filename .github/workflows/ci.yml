@@ -51,25 +51,25 @@ jobs:
         with:
           file: ./lcov.info
 
-  format:
-    name: Format Code
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Install JuliaFormatter
-        run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
-      - name: Format Code
-        run: julia -e 'using JuliaFormatter;format(".")'
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'style: format **.jl files by JuliaFormatter'
-          title: 'Format by JuliaFormatter'
-          branch: juliaformatter-pr/patch
-          branch-suffix: timestamp
-          delete-branch: true
-          labels: formatting, automated pr
+#   format:
+#     name: Format Code
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Install JuliaFormatter
+#         run: julia -e 'using Pkg; Pkg.add("JuliaFormatter")'
+#       - name: Format Code
+#         run: julia -e 'using JuliaFormatter;format(".")'
+#       - name: Create pull request
+#         uses: peter-evans/create-pull-request@v3
+#         with:
+#           token: ${{ secrets.GITHUB_TOKEN }}
+#           commit-message: 'style: format **.jl files by JuliaFormatter'
+#           title: 'Format by JuliaFormatter'
+#           branch: juliaformatter-pr/patch
+#           branch-suffix: timestamp
+#           delete-branch: true
+#           labels: formatting, automated pr
 
   docs:
     name: Deploy Documentation
