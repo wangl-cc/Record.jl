@@ -61,7 +61,32 @@ function Base.iterate(e::AbstractEntries, state=1)
     end
 end
 
+"""
+    ts(e::AbstractEntries{T,V}) -> Vector{T}
+
+Get time entries of given `e`.
+"""
+function ts end
+
+"""
+    vs(e::AbstractEntries{T,V}) -> VecOrMat{V}
+
+Get value entries of given `e`.
+"""
+function vs end
+
+"""
+    tspan(e::AbstractEntries{T,V}) -> T
+
+Get last time of given `e`.
+"""
 tspan(e::AbstractEntries) = (tse = ts(e); tse[end] - tse[1])
+
+"""
+    toseries(e::AbstractEntries)
+
+Convert `e` to the form accepted by `plot` of `Plots.jl`.
+"""
 toseries(e::AbstractEntries) = ts(e), vs(e)
 
 """

@@ -1,7 +1,19 @@
 """
     DynamicRArray{V,T,N} <: AbstractRecord{V,T,N}
 
-Recorded arrays whose elements change overtime.
+Recorded array whose elements change overtime can be created by
+`DynamicRArray(t::AbstractClock, xs...)` where `xs` are abstract arrays or
+numbers (or called scalar) to be recorded.
+
+Implemented dynamical arrays:
+* `DynamicRScalar`
+* `DynamicRVector`
+
+!!! note
+
+    For a recorded dynamical scalar `S`, use `S[1] = v` to change its value
+    instead of `S = v`.
+
 """
 abstract type DynamicRArray{V,T,N} <: AbstractRArray{V,T,N} end
 function DynamicRArray(t::AbstractClock, x1, x2)
@@ -87,7 +99,6 @@ end
 
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
-
 
 # Examples
 

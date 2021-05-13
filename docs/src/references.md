@@ -1,11 +1,10 @@
-# Reference
+# References
 
 ## Clock
 
 To record changes of array automatically, the array must refer to a time
 variable, which defined as a clock. There are different types of clock for
-continuous or discrete time. A clock can be iterate by `for` loop and break
-when reach to stop.
+continuous time `ContinuousClock` or discrete time `DiscreteClock`.
 
 ```@docs
 RecordedArrays.AbstractClock
@@ -35,10 +34,12 @@ init!
 increase!
 ```
 
-## RArray
+## Recorded Arrays
 
-Create a RArray with a clock and a array, then all changes will be recorded
-automatically.
+Create a recorded array with a clock and a array, then all changes will be recorded
+automatically. There are two types of recorded array: `StaticRArray` for array whose
+values of elements never change but new element will be pushed, `DynamicRArray` for
+array whose values of elements will change.
 
 ```@docs
 RecordedArrays.AbstractRArray
@@ -56,9 +57,11 @@ RecordedArrays.StaticRArray
 RecordedArrays.DynamicRArray
 ```
 
-## Records
+## View Records
 
-View recorded changes with `records`.
+You can't access the recorded entries of your recorded array `A` directly but you can
+access it by create a `Records` with `r = records(A)` and get entries by `r[i]`.
+
 ```@docs
 records
 ```
@@ -85,4 +88,20 @@ gettime
 
 ```@docs
 unione
+```
+
+```@docs
+ts
+```
+
+```@docs
+vs
+```
+
+```@docs
+tspan
+```
+
+```@docs
+toseries
 ```

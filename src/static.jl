@@ -2,7 +2,11 @@
     StaticRArray{V,T,N} <: AbstractRecord{V,T,N}
 
 Record type to record changes of arrays whose elements never change but insert
-or delete.
+or delete can  be created by `StaticRArray(t::AbstractClock, xs...)` where
+`xs` are abstract arrays to be recorded.
+
+Implemented statical arrays:
+* `StaticRVector`
 """
 abstract type StaticRArray{V,T,N} <: AbstractRArray{V,T,N} end
 function StaticRArray(t::AbstractClock, x1, x2)
