@@ -16,6 +16,10 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
         doctest(RecordedArrays; testset="Doctests", doctestfilters=filters)
     end
 
+    @testset "Base" begin
+        include("base.jl")
+    end
+
     @testset "Math" begin
         include("math.jl")
     end
