@@ -22,6 +22,13 @@ the max time might larger than `limit(c)`.
 function limit end
 
 """
+    start(c::AbstractClock)
+
+Return the start time of clock `c`.
+"""
+function start end
+
+"""
     init!(c::AbstractClock)
 
 Update current time to start time.
@@ -97,6 +104,7 @@ end
 now(c::DiscreteClock) = value(c.current)
 limit(c::DiscreteClock) = last(c.indexset)
 init!(c::DiscreteClock) = update!(c.current, c.start)
+start(c::DiscreteClock) = c.start
 
 """
     ContinuousClock{T, I<:Union{Nothing, DiscreteClock}} <: AbstractClock{T}
@@ -170,7 +178,8 @@ _itr(lim::Integer, i::Integer=one(lim)) = ifelse(i > lim, nothing, (i, i + 1))
 # clock interfaces
 now(c::ContinuousClock) = value(c.current)
 limit(c::ContinuousClock) = c.stop
-init!(c::ContinuousClock) = update!(c.current, c.start)
+start(c::ContinuousClock) = c.start
+init!(c::ContinuousClock) = update!(c.current, start(c))
 
 """
     increase!(c::ContinuousClock, t::Real)

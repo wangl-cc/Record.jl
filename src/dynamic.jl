@@ -1,61 +1,8 @@
 """
-    DynamicRArray{V,T,N} <: AbstractRecord{V,T,N}
-
-Recorded array whose elements change overtime can be created by
-`DynamicRArray(t::AbstractClock, xs...)` where `xs` are abstract arrays or
-numbers (or called scalar) to be recorded.
-
-Implemented dynamical arrays:
-* `DynamicRScalar`
-* `DynamicRVector`
-
-!!! note
-
-    For a recorded dynamical scalar `S`, use `S[1] = v` to change its value
-    instead of `S = v`.
-
-"""
-abstract type DynamicRArray{V,T,N} <: AbstractRArray{V,T,N} end
-function DynamicRArray(t::AbstractClock, x1, x2)
-    return DynamicRArray(t, x1), DynamicRArray(t, x2)
-end
-function DynamicRArray(t::AbstractClock, x1, x2, xs...)
-    return DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
-end
-
-"""
     DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRScalar{V,T,0}
 
 Implementation of recorded scaler, created by `DynamicRArray(t::AbstractClock, v::Number)`.
 Use `S[1] = v` to change its value instead of `S = v`.
-
-# Examples
-
-```jldoctest
-julia> c = DiscreteClock(3);
-
-julia> s = DynamicRArray(c, 0)
-recorded 0
-
-julia> for epoch in c
-           s[1] += 1
-       end
-
-julia> s
-recorded 3
-
-julia> records(s)[1]
-Record Entries
-t: 4-element Vector{Int64}:
- 0
- 1
- 2
- 3
-v: 4-element Vector{Int64}:
- 0
- 1
- 2
- 3
 ```
 """
 struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
@@ -91,7 +38,7 @@ end
 function Base.getindex(r::Records{<:DynamicRScalar}, i::Integer)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     A = r.array
-    return SingleEntries(A.ts, A.vs)
+    return DynamicEntries(A.ts, A.vs)
 end
 
 """
@@ -99,39 +46,6 @@ end
 
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
-
-# Examples
-
-```jldoctest
-julia> c = DiscreteClock(3);
-
-julia> v = DynamicRArray(c, [0, 1])
-recorded 2-element Vector{Int64}:
- 0
- 1
-
-julia> for epoch in c
-           v[1] += 1
-       end
-
-julia> v
-recorded 2-element Vector{Int64}:
- 3
- 1
-
-julia> records(v)[1]
-Record Entries
-t: 4-element Vector{Int64}:
- 0
- 1
- 2
- 3
-v: 4-element Vector{Int64}:
- 0
- 1
- 2
- 3
-```
 """
 struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
     v::Vector{V}
@@ -180,6 +94,6 @@ end
 function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
-    return SingleEntries(A.ts[i], A.vs[i])
+    return DynamicEntries(A.ts[i], A.vs[i])
 end
 # vim:tw=92:ts=4:sw=4:et
