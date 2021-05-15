@@ -8,6 +8,7 @@ on:
     paths:
       - "src/**"
       - "test/**"
+      - "docs/src/**" # doctest
       - "Project.toml"
       - ".github/workflows/ci.yml"
   pull_request:
