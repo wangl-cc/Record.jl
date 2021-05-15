@@ -6,13 +6,13 @@ on:
       - master
       - dev
     paths:
-      - "src"
-      - "test"
+      - "src/**"
+      - "test/**"
       - "Project.toml"
   pull_request:
     paths:
-      - "src"
-      - "test"
+      - "src/**"
+      - "test/**"
       - "Project.toml"
 
 jobs:
