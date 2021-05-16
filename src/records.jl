@@ -248,7 +248,7 @@ function vs(e::UnionEntries{V}) where {V}
     vs_e = Matrix{V}(undef, length(ts_e), N)
     for i in 1:N
         ei = e.es[i]
-        state = (1,length(ei))
+        state = _init_state(e)
         for (j, t) in enumerate(ts_e)
             vs_e[j, i], state = gettime(ei, t, state)
         end
