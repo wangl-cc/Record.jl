@@ -105,13 +105,17 @@ some information about next search which is useful during iteration.
 ```jldoctest
 julia> c = DiscreteClock(5);
 
-julia> n = DynamicRArray(c, 0);
+julia> d = DynamicRArray(c, 0);
+
+julia> s = StaticRArray(c, [0]);
 
 julia> for t in c
-           n[1] += 1
+           d[1] += 1
+           push!(s, t)
+           t >= 3 && deleteat!(s, 1)
        end
 
-julia> e = records(n)[1]
+julia> ed = records(d)[1]
 Record Entries
 t: 6-element Vector{Int64}:
  0
@@ -128,27 +132,34 @@ v: 6-element Vector{Int64}:
  4
  5
 
-julia> v, state = gettime(e, 1.5);
+julia> es = records(s)[2]
+Record Entries
+t: 2-element Vector{Int64}:
+ 1
+ 4
+v: 2-element Vector{Int64}:
+ 1
+ 1
 
-julia> v
+julia> gettime(ed, 1.5)
 1
 
-julia> state
-(2, 6)
+julia> gettime(ed, 5)
+5
 
-julia> state = (1, length(e))
-(1, 6)
+julia> gettime(ed, 6)
+5
 
-julia> for t in 0:0.5:6
-           v, state = gettime(e, t, state)
-           print(v, " ")
-       end
-0 0 1 1 2 2 3 3 4 4 5 5 5
+julia> gettime(es, 2)
+1
+
+julia> gettime(es, 5)
+0
 ```
 """
-function gettime end
+gettime(e::AbstractEntries, t::Real) = _gettime(e, t)[1]
 
-gettime(::AbstractEntries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
+_gettime(::AbstractEntries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
 
 """
     SingleEntries{V,T} <: AbstractEntries{V,T}
@@ -179,7 +190,7 @@ vs(e::DynamicEntries) = e.vs
 ts(e::DynamicEntries) = e.ts
 
 _init_state(e::DynamicEntries) = 1, length(e)
-function gettime(e::DynamicEntries, t::Real, state::Tuple{Int,Int}=_init_state(e))
+function _gettime(e::DynamicEntries, t::Real, state::Tuple{Int,Int}=_init_state(e))
     ts_e = ts(e)
     vs_e = vs(e)
     l, h = state
@@ -216,7 +227,7 @@ vs(e::StaticEntries) = [e.v, e.v]
 ts(e::StaticEntries) = [e.s, e.e]
 
 _init_state(::StaticEntries) = true
-function gettime(e::StaticEntries, t::Real, state::Bool=_init_state(e))
+function _gettime(e::StaticEntries, t::Real, state::Bool=_init_state(e))
     state && e.s > t && return zero(e.v), state
     if e.e >= t
         return e.v, false
@@ -239,7 +250,7 @@ end
 Base.eltype(::Type{<:UnionEntries{V,T}}) where {V,T} = Pair{T,Vector{V}}
 function Base.getindex(e::UnionEntries, i::Integer)
     t = ts(e)[i]
-    return t => [gettime(i, t)[1] for i in e.es]
+    return t => [_gettime(i, t)[1] for i in e.es]
 end
 
 function vs(e::UnionEntries{V}) where {V}
@@ -248,9 +259,9 @@ function vs(e::UnionEntries{V}) where {V}
     vs_e = Matrix{V}(undef, length(ts_e), N)
     for i in 1:N
         ei = e.es[i]
-        state = _init_state(e)
+        state = _init_state(ei)
         for (j, t) in enumerate(ts_e)
-            vs_e[j, i], state = gettime(ei, t, state)
+            vs_e[j, i], state = _gettime(ei, t, state)
         end
     end
     return vs_e
@@ -258,12 +269,12 @@ end
 ts(e::UnionEntries) = sort(union(ts.(e.es)...))
 
 _init_state(e::UnionEntries) = Any[_init_state(i) for i in e.es]
-function gettime(e::UnionEntries{V}, t::Real, state::Vector=_init_state(e)) where {V}
+function _gettime(e::UnionEntries{V}, t::Real, state::Vector=_init_state(e)) where {V}
     es = e.es
     N = length(es)
     v_e = Vector{V}(undef, N)
     for i in 1:N
-        v_e[i], state[i] = gettime(es[i], t, state[i])
+        v_e[i], state[i] = _gettime(es[i], t, state[i])
     end
     return v_e, state
 end

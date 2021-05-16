@@ -101,24 +101,24 @@ u3 = unione(u2, e3)
 end
 
 @testset "gettime" begin
-    @test gettime(e1, 0)[1] == 1
-    @test gettime(e2, 0)[1] == 0
-    @test gettime(e3, 0)[1] == 1
-    @test gettime(u1, 0)[1] == [1]
-    @test gettime(u2, 0)[1] == [1, 0]
-    @test gettime(u3, 0)[1] == [1, 0, 1]
+    @test gettime(e1, 0) == 1
+    @test gettime(e2, 0) == 0
+    @test gettime(e3, 0) == 1
+    @test gettime(u1, 0) == [1]
+    @test gettime(u2, 0) == [1, 0]
+    @test gettime(u3, 0) == [1, 0, 1]
 
-    @test gettime(e1, 1)[1] == 2
-    @test gettime(e2, 1)[1] == 2
-    @test gettime(e3, 1)[1] == 1
-    @test gettime(u1, 1)[1] == [2]
-    @test gettime(u2, 1)[1] == [2, 2]
-    @test gettime(u3, 1)[1] == [2, 2, 1]
+    @test gettime(e1, 1) == 2
+    @test gettime(e2, 1) == 2
+    @test gettime(e3, 1) == 1
+    @test gettime(u1, 1) == [2]
+    @test gettime(u2, 1) == [2, 2]
+    @test gettime(u3, 1) == [2, 2, 1]
 
-    @test gettime(e1, 2)[1] == 2
-    @test gettime(e2, 2)[1] == 2
-    @test gettime(e3, 2)[1] == 0
-    @test gettime(u1, 2)[1] == [2]
-    @test gettime(u2, 2)[1] == [2, 2]
-    @test gettime(u3, 2)[1] == [2, 2, 0]
+    @test gettime(e1, 2) == 2
+    @test gettime(e2, 2) == 2
+    @test gettime(e3, 2) == 0
+    @test gettime(u1, 2) == [2]
+    @test gettime(u2, 2) == [2, 2]
+    @test gettime(u3, 2) == [2, 2, 0]
 end
