@@ -92,13 +92,19 @@ Convert `e` to the form accepted by `plot` of `Plots.jl`.
 """
 toseries(e::AbstractEntries) = ts(e), vs(e)
 
+valuetype(::AbstractEntries{V}) where {V} = V
+
 """
-    gettime(e::AbstractEntries, t::Real, [indrange::Tuple=(1,length)])
+    gettime(e::AbstractEntries, t::Real)
+    gettime(e::AbstractEntries, ts)
 
 Get the value(s) of `e` at time `t`, If `t` is not in `ts(e)`, return value at time
-`ts(e)[i]` where `ts(e)[i] < t < ts(e)[i+1]`. If `indrange` is specified, will only search
-`i` in `indrange[1]:indrange[2]`. The return value is a tuple consists of the value and
-some information about next search which is useful during iteration.
+`ts(e)[i]` where `ts(e)[i] < t < ts(e)[i+1]`. If a iterator of time `ts` is given,
+return the value of each time in `ts`.
+
+!!! note
+
+    `ts` must be monotonically increasing.
 
 # Examples
 
@@ -144,22 +150,18 @@ v: 2-element Vector{Int64}:
 julia> gettime(ed, 1.5)
 1
 
-julia> gettime(ed, 5)
-5
+julia> gettime(ed, [5, 6])
+2-element Vector{Int64}:
+ 5
+ 5
 
-julia> gettime(ed, 6)
-5
-
-julia> gettime(es, 2)
-1
-
-julia> gettime(es, 5)
-0
+julia> gettime(es, [2, 5])
+2-element Vector{Int64}:
+ 1
+ 0
 ```
 """
-gettime(e::AbstractEntries, t::Real) = _gettime(e, t)[1]
-
-_gettime(::AbstractEntries, ::Real, v::Tuple{Any,Nothing}) = (v[1], v)
+function gettime end
 
 """
     SingleEntries{V,T} <: AbstractEntries{V,T}
@@ -189,7 +191,22 @@ Base.getindex(e::DynamicEntries, i::Integer) = ts(e)[i] => vs(e)[i]
 vs(e::DynamicEntries) = e.vs
 ts(e::DynamicEntries) = e.ts
 
+gettime(e::SingleEntries, t::Real) = _gettime(e, t)[1]
+function gettime(e::SingleEntries, ts_e)
+    state = _init_state(e)
+    V = valuetype(e)
+    vs_e = Vector{V}(undef, length(ts_e))
+    state = _init_state(e)
+    tl = first(ts_e)
+    for (i, t) in enumerate(ts_e)
+        tl > t && throw(ArgumentError("ts must be monotonically increasing"))
+        vs_e[i], state = _gettime(e, t, state)
+    end
+    return vs_e
+end
+
 _init_state(e::DynamicEntries) = 1, length(e)
+_gettime(::SingleEntries{V}, ::Real, v::Tuple{V,Nothing}) where {V} = (v[1], v)
 function _gettime(e::DynamicEntries, t::Real, state::Tuple{Int,Int}=_init_state(e))
     ts_e = ts(e)
     vs_e = vs(e)
@@ -253,30 +270,24 @@ function Base.getindex(e::UnionEntries, i::Integer)
     return t => [_gettime(i, t)[1] for i in e.es]
 end
 
-function vs(e::UnionEntries{V}) where {V}
-    ts_e = ts(e)
+vs(e::UnionEntries) = gettime(e, ts(e))
+ts(e::UnionEntries) = sort(union(ts.(e.es)...))
+
+gettime(e::UnionEntries, t::Real) = [gettime(i, t) for i in e.es] 
+function gettime(e::UnionEntries, ts_e)
     N = length(e.es)
+    V = valuetype(e)
     vs_e = Matrix{V}(undef, length(ts_e), N)
     for i in 1:N
         ei = e.es[i]
         state = _init_state(ei)
+        tl = first(ts_e)
         for (j, t) in enumerate(ts_e)
+            tl > t && throw(ArgumentError("ts must be monotonically increasing"))
             vs_e[j, i], state = _gettime(ei, t, state)
         end
     end
     return vs_e
-end
-ts(e::UnionEntries) = sort(union(ts.(e.es)...))
-
-_init_state(e::UnionEntries) = Any[_init_state(i) for i in e.es]
-function _gettime(e::UnionEntries{V}, t::Real, state::Vector=_init_state(e)) where {V}
-    es = e.es
-    N = length(es)
-    v_e = Vector{V}(undef, N)
-    for i in 1:N
-        v_e[i], state[i] = _gettime(es[i], t, state[i])
-    end
-    return v_e, state
 end
 
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntries)
