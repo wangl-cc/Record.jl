@@ -16,9 +16,9 @@ records(A::AbstractRArray) = Records(A)
 
 Base.IteratorSize(::Type{<:Records{T}}) where {T} = Base.IteratorSize(T)
 Base.eltype(::Type{<:Records{T}}) where {T<:DynamicRArray} =
-    DynamicEntries{timetype(T),eltype(T)}
+    DynamicEntries{eltype(T),timetype(T)}
 Base.eltype(::Type{<:Records{T}}) where {T<:StaticRArray} =
-    StaticEntries{timetype(T),eltype(T)}
+    StaticEntries{eltype(T),timetype(T)}
 Base.length(r::Records) = rlength(r.array)
 Base.size(r::Records) = rsize(r.array)
 function Base.iterate(r::Records, state=1)

@@ -62,6 +62,9 @@ This is a simple implementation to simulate a 2-D
 ```@example random_walk
 using RecordedArrays
 using Plots
+using Random
+
+Random.seed!(1)
 
 c = DiscreteClock(10000) # define a clock, the particle will walk 10000 epoch
 pos = DynamicRArray(c, [0.0, 0.0]) # create a pos vector of the particle
@@ -84,6 +87,9 @@ with growth rate $r=0.5$ and carrying capacity $K=100$.
 ```@example birth_death
 using RecordedArrays
 using Plots
+using Random
+
+Random.seed!(1)
 
 c = ContinuousClock(100.0) # define a clock, the population will growth for 100 time unit
 n = DynamicRArray(c, 10)   # define a scalar to record population size
