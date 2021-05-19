@@ -9,5 +9,7 @@ This package provides `RecordedArray` types. For a `RecordedArray`, all changes
 will be recorded automatically.
 
 More about this package, see docs:
-[![Docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://wangl-cc.github.io/RecordedArrays.jl/dev).
+
+[![Docs stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://wangl-cc.github.io/RecordedArrays.jl/stable)
+[![Docs dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://wangl-cc.github.io/RecordedArrays.jl/dev)
 <!-- vim: set ts=2:sw=2:spell:spl=en -->
