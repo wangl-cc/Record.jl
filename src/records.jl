@@ -95,8 +95,8 @@ toseries(e::AbstractEntries) = ts(e), vs(e)
 valuetype(::AbstractEntries{V}) where {V} = V
 
 """
-    gettime(e::AbstractEntries, t::Real)
-    gettime(e::AbstractEntries, ts)
+    gettime(e::AbstractEntries{V}, t::Real) -> V
+    gettime(e::AbstractEntries{V}, ts) -> Vector{V}
 
 Get the value(s) of `e` at time `t`, If `t` is not in `ts(e)`, return value at time
 `ts(e)[i]` where `ts(e)[i] < t < ts(e)[i+1]`. If a iterator of time `ts` is given,
@@ -267,7 +267,7 @@ end
 Base.eltype(::Type{<:UnionEntries{V,T}}) where {V,T} = Pair{T,Vector{V}}
 function Base.getindex(e::UnionEntries, i::Integer)
     t = ts(e)[i]
-    return t => [_gettime(i, t)[1] for i in e.es]
+    return t => [gettime(i, t) for i in e.es]
 end
 
 vs(e::UnionEntries) = gettime(e, ts(e))
@@ -304,8 +304,8 @@ end
     unione(es::Vector{<:AbstractEntries})
     unione(r::Records)
 
-Construct the union of given entries `es`. `union(r)` construct union all of elements of
-Records `r`. See example.
+Construct the union of given entries `es`. `union(r)` construct union all of
+elements of Records `r`.
 
 # Examples
 
