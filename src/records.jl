@@ -38,7 +38,9 @@ function Base.show(io::IO, ::MIME"text/plain", r::Records)
     elseif A isa StaticRArray
         type = " static "
     end
-    if length(ns) == 1
+    if isempty(ns)
+        print(io, "0-dimensional")
+    elseif length(ns) == 1
         print(io, ns[1], "-element")
     else
         join(io, ns, "×")
