@@ -48,7 +48,7 @@ function Base.deleteat!(r::StaticRVector, i::Int)
     return r
 end
 
-function Base.getindex(r::Records{<:StaticRVector}, i::Int)
+function Base.getindex(r::Records{<:StaticRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
     t = now(A.t)

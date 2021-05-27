@@ -35,7 +35,7 @@ function Base.setindex!(A::DynamicRScalar, v, i::Int)
     return A
 end
 
-function Base.getindex(r::Records{<:DynamicRScalar}, i::Int)
+function Base.getindex(r::Records{<:DynamicRScalar}, i::Integer=1)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     A = r.array
     return DynamicEntries(A.ts, A.vs)
@@ -93,7 +93,7 @@ function Base.push!(A::DynamicRVector, v)
     return A
 end
 
-function Base.getindex(r::Records{<:DynamicRVector}, i::Int)
+function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
     return DynamicEntries(A.ts[i], A.vs[i])
