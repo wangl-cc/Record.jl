@@ -3,9 +3,6 @@ module RecordedArrays
 export DiscreteClock, ContinuousClock, now, limit, start, init!, increase!
 export DynamicRArray, StaticRArray, state
 export records, tspan, ts, vs, toseries, gettime, unione
-export State, value, update!, plus!
-
-include("utilities.jl")
 
 include("clock.jl")
 

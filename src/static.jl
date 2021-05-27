@@ -11,7 +11,7 @@ struct StaticRVector{V,T,C<:AbstractClock{T},I} <: StaticRArray{V,T,1}
     t::C
     s::Vector{T}
     e::Vector{T}
-    indmax::State{I}
+    indmax::Array{I,0}
     indmap::Vector{I}
 end
 function StaticRArray(t::AbstractClock, v::AbstractVector)
@@ -20,26 +20,26 @@ function StaticRArray(t::AbstractClock, v::AbstractVector)
     s = fill(now(t), n)
     e = fill(limit(t), n)
     delete = zeros(Bool, n)
-    return StaticRVector(v, copy(v), delete, t, s, e, State(n), collect(1:n))
+    return StaticRVector(v, copy(v), delete, t, s, e, fill(n), collect(1:n))
 end
 
 state(A::StaticRVector) = A.v
 
-rlength(A::StaticRVector) = value(A.indmax)
+rlength(A::StaticRVector) = A.indmax[]
 rsize(A::StaticRVector) = (rlength(A),)
 
 function Base.push!(r::StaticRVector, v)
     push!(r.v, v)
     push!(r.v_all, v)
     push!(r.delete, false)
-    ind = plus!(r.indmax, true)
+    ind = r.indmax[] += 1
     push!(r.indmap, ind)
     push!(r.s, now(r.t))
     push!(r.e, limit(r.t))
     return r
 end
 
-function Base.deleteat!(r::StaticRVector, i::Integer)
+function Base.deleteat!(r::StaticRVector, i::Int)
     deleteat!(r.v, i)
     ind = r.indmap[i]
     r.delete[ind] = true
@@ -48,7 +48,7 @@ function Base.deleteat!(r::StaticRVector, i::Integer)
     return r
 end
 
-function Base.getindex(r::Records{<:StaticRVector}, i::Integer)
+function Base.getindex(r::Records{<:StaticRVector}, i::Int)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
     t = now(A.t)

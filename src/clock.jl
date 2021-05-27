@@ -70,11 +70,11 @@ julia> (now(c), collect(c))
 ```
 """
 struct DiscreteClock{T,I<:AbstractVector{T}} <: AbstractClock{T}
-    current::State{T}
+    current::Array{T,0}
     start::T
     indexset::I
     function DiscreteClock(start::T, indexset::I) where {T,I<:AbstractVector{T}}
-        return new{T,I}(State(start), start, indexset)
+        return new{T,I}(fill(start), start, indexset)
     end
 end
 function DiscreteClock(indexset::AbstractVector)
@@ -96,14 +96,14 @@ function Base.iterate(c::DiscreteClock, state)
 end
 _itr_update!(c::DiscreteClock, ::Nothing) = (init!(c); nothing)
 function _itr_update!(c::DiscreteClock{T,I}, ret::Tuple{T,Any}) where {T,I}
-    update!(c.current, ret[1])
+    c.current[] = ret[1]
     return ret
 end
 
 # clock interfaces
-now(c::DiscreteClock) = value(c.current)
+now(c::DiscreteClock) = c.current[]
 limit(c::DiscreteClock) = last(c.indexset)
-init!(c::DiscreteClock) = update!(c.current, c.start)
+init!(c::DiscreteClock) = c.current[] = c.start
 start(c::DiscreteClock) = c.start
 
 """
@@ -144,7 +144,7 @@ julia> for epoch in c
 ```
 """
 struct ContinuousClock{T,I<:Union{Nothing,Integer}} <: AbstractClock{T}
-    current::State{T}
+    current::Array{T,0}
     start::T
     stop::T
     epoch::I
@@ -154,7 +154,7 @@ struct ContinuousClock{T,I<:Union{Nothing,Integer}} <: AbstractClock{T}
         epoch::I,
     ) where {T<:Real,I<:Union{Nothing,Integer}}
         start > stop && throw(ArgumentError("stop must be larger than start"))
-        return new{T,I}(State(start), start, stop, epoch)
+        return new{T,I}(fill(start), start, stop, epoch)
     end
 end
 function ContinuousClock(
@@ -176,16 +176,16 @@ _itr(::Nothing, i::Int=1) = (i, i + 1)
 _itr(lim::Integer, i::Integer=one(lim)) = ifelse(i > lim, nothing, (i, i + 1))
 
 # clock interfaces
-now(c::ContinuousClock) = value(c.current)
+now(c::ContinuousClock) = c.current[]
 limit(c::ContinuousClock) = c.stop
 start(c::ContinuousClock) = c.start
-init!(c::ContinuousClock) = update!(c.current, start(c))
+init!(c::ContinuousClock) = c.current[] = start(c)
 
 """
     increase!(c::ContinuousClock, t::Real)
 
 Update current time of clock `c` to `now(c) + t`.
 """
-increase!(c::ContinuousClock, t::Real) = plus!(c.current, t)
+increase!(c::ContinuousClock, t::Real) = c.current[] += t
 
 # vim:tw=92:ts=4:sw=4:et

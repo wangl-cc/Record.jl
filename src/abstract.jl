@@ -15,23 +15,29 @@ its current state [`state(A)`](@ref state).
 """
 abstract type AbstractRArray{V<:Number,T<:Real,N} <: AbstractArray{V,N} end
 
-timetype(::Type{<:AbstractRArray{V,T}}) where {V,T} = T
+# type alias
+const AbstractRScalar{V,T} = AbstractRArray{V,T,0}
+const AbstractRVector{V,T} = AbstractRArray{V,T,1}
+const AbstractRMatrix{V,T} = AbstractRArray{V,T,2}
+
+# API
+timetype(::Type{<:AbstractRArray{<:Any,T}}) where {T} = T
 
 """
     state(A::AbstractRArray{V,T,N}) -> Array{V,N}
 
-Get current state of recorded array `A`. 
+Get current state of recorded array `A`. API for mathematical operations.
 """
 function state end
 
 function rlength end
 function rsize end
 
-# interface
+# array interface
+Base.IndexStyle(::Type{<:AbstractRArray}) = IndexLinear()
 Base.length(A::AbstractRArray) = length(state(A))
 Base.size(A::AbstractRArray) = size(state(A))
 Base.getindex(A::AbstractRArray, I::Int...) = getindex(state(A), I...)
-
 function Base.show(io::IO, ::MIME"text/plain", A::AbstractRArray)
     print(io, "recorded ")
     return show(io, MIME("text/plain"), state(A))

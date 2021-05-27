@@ -6,36 +6,31 @@ Use `S[1] = v` to change its value instead of `S = v`.
 ```
 """
 struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
-    v::State{V}
+    v::Array{V,0}
     t::C
     vs::Vector{V}
     ts::Vector{T}
 end
-function DynamicRArray(t::AbstractClock, v::Number)
-    return DynamicRScalar(State(v), t, [v], [now(t)])
-end
+DynamicRArray(t::AbstractClock, v::Number) = DynamicRScalar(fill(v), t, [v], [now(t)])
+DynamicRArray(t::AbstractClock, v::Array{<:Any,0}) = DynamicRScalar(v, t, [v[]], [now(t)])
 
-state(A::DynamicRScalar) = value(A.v)
+state(A::DynamicRScalar) = A.v[]
 
 Base.length(::DynamicRScalar) = 1
 Base.size(::DynamicRScalar) = (1,)
-function Base.getindex(A::DynamicRScalar, i::Int)
-    @boundscheck i == 1 || throw(BoundsError(A, i))
-    return value(A.v)
-end
 
 rlength(::DynamicRScalar) = 1
 rsize(::DynamicRScalar) = (1,)
 
-function Base.setindex!(A::DynamicRScalar, v, i::Integer)
+function Base.setindex!(A::DynamicRScalar, v, i::Int)
     @boundscheck i == 1 || throw(BoundsError(A, i))
-    update!(A.v, v)
+    @inbounds A.v[] = v
     push!(A.vs, v)
     push!(A.ts, now(A.t))
     return A
 end
 
-function Base.getindex(r::Records{<:DynamicRScalar}, i::Integer)
+function Base.getindex(r::Records{<:DynamicRScalar}, i::Int)
     @boundscheck i == 1 || throw(BoundsError(r, i))
     A = r.array
     return DynamicEntries(A.ts, A.vs)
@@ -52,7 +47,7 @@ struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
     t::C
     vs::Vector{Vector{V}}
     ts::Vector{Vector{T}}
-    indmax::State{I}
+    indmax::Array{I,0}
     indmap::Vector{I}
 end
 function DynamicRArray(t::AbstractClock, v::AbstractVector)
@@ -60,15 +55,16 @@ function DynamicRArray(t::AbstractClock, v::AbstractVector)
     vs = map(i -> [i], v)
     ts = map(_ -> [now(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(collect(v), t, vs, ts, State(n), indmap)
+    return DynamicRVector(collect(v), t, vs, ts, fill(n), indmap)
 end
 
 state(A::DynamicRVector) = A.v
 
-rlength(A::DynamicRVector) = value(A.indmax)
+rlength(A::DynamicRVector) = A.indmax[]
 rsize(A::DynamicRVector) = (rlength(A),)
 
-function Base.setindex!(A::DynamicRVector, v, i::Integer)
+function Base.setindex!(A::DynamicRVector, v, i::Int)
+    @boundscheck i <= length(A) || throw(BoundsError(A, i))
     A.v[i] = v
     ind = A.indmap[i]
     push!(A.vs[ind], v)
@@ -76,7 +72,8 @@ function Base.setindex!(A::DynamicRVector, v, i::Integer)
     return A
 end
 
-function Base.deleteat!(A::DynamicRVector, i::Integer)
+function Base.deleteat!(A::DynamicRVector, i::Int)
+    @boundscheck i <= length(A) || throw(BoundsError(A, i))
     deleteat!(A.v, i)
     deleteat!(A.indmap, i)
     return A
@@ -84,14 +81,14 @@ end
 
 function Base.push!(A::DynamicRVector, v)
     push!(A.v, v)
-    ind = plus!(A.indmax, true)
+    ind = A.indmax[] += 1
     push!(A.indmap, ind)
     push!(A.vs, [v])
     push!(A.ts, [now(A.t)])
     return A
 end
 
-function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
+function Base.getindex(r::Records{<:DynamicRVector}, i::Int)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
     return DynamicEntries(A.ts[i], A.vs[i])
