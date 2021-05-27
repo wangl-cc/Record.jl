@@ -1,8 +1,13 @@
 """
     DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRScalar{V,T,0}
 
-Implementation of recorded scaler, created by `DynamicRArray(t::AbstractClock, v::Number)`.
-Use `S[1] = v` to change its value instead of `S = v`.
+Implementation of recorded scaler, created by `DynamicRArray(t::AbstractClock, v::Number)`,
+or `DynamicRArray(t::AbstractClock, A::AbstractArray{T,0})`.
+
+!!! info
+     
+    Store a value `v` of a `DynamicRScalar` `S` by `S[] = v` or `S[1] = v` instead of `S = v`.
+    Although this is an array type, Mathematical operations on it work like `Number` for convenience.
 ```
 """
 struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
