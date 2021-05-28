@@ -30,6 +30,30 @@ Get current state of recorded array `A`. API for mathematical operations.
 """
 function state end
 
+"""
+    setclock(A::AbstractRArray, c::AbstractClock)
+
+Non-mutating setclock for `A`. It will create a deepcopy of `A` besides 
+the clock field, which will be assigned to `c`.
+"""
+function setclock(x::AbstractRArray, c::AbstractClock)
+    nf = nfields(x)
+    T = typeof(x)
+    stackdict = IdDict()
+    flds = Vector{Any}(undef, nf)
+    for i in 1:nf
+        ft = fieldtype(T, i)
+        if ft <: AbstractClock
+            flds[i] = c::ft
+        else
+            xi = getfield(x, i)
+            flds[i] = Base.deepcopy_internal(xi, stackdict)::ft
+        end
+    end
+    y = ccall(:jl_new_structv, Any, (Any, Ptr{Any}, UInt32), T, flds, nf)
+    return y
+end
+
 function rlength end
 function rsize end
 

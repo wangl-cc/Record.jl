@@ -28,6 +28,7 @@ RecordedArrays.AbstractRArray
 state
 RecordedArrays.StaticRArray
 RecordedArrays.DynamicRArray
+setclock
 ```
 
 ## View Records

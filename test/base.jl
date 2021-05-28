@@ -5,6 +5,27 @@ c = DiscreteClock(1)
 DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], [1, 2])
 SV1, SV2 = StaticRArray(c, [1], [1, 2])
 
+@testset "setclock" begin
+    cn = DiscreteClock(1)
+    @test cn !== c
+    for D in (DS1, DV1, SV1)
+        D_copy = setclock(D, cn)
+        for i in 1:nfields(D_copy)
+            xi = getfield(D, i)
+            xi_copy = getfield(D_copy, i)
+            if xi isa RecordedArrays.AbstractClock
+                @test xi === c
+                @test xi !== cn
+                @test xi_copy === cn
+                @test xi_copy !== c
+            else
+                @test xi == xi_copy
+                @test xi !== xi_copy
+            end
+        end
+    end
+end
+
 @testset "length and size" begin
     @test length(DS1)  == 1
     @test length(DS2)  == 1
