@@ -118,6 +118,6 @@ for _ in c
     state(n) <= 0 && break # break if population extinct
 end
 
-plot(records(n)); frame=:box, grid=false, legend=false) # plot population dynamics
+plot(records(n); frame=:box, grid=false, legend=false) # plot population dynamics
 ```
 
