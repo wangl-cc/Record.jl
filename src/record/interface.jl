@@ -3,8 +3,8 @@
     return _toplot(r, vars)
 end
 
-
 _toplot(r::Records, ::Nothing) = ts.(r), vs.(r)
+_toplot(r::Records, V::Vector) = map(vs -> _toplot(r, vs), V)
 _toplot(r::Records, T::Tuple) = _toplot(r, T...)
 function _toplot(r::Records, v1::Integer, vs::Integer...)
     any(==(0), vs) && throw(ArgumentError("0 must be the first variable"))

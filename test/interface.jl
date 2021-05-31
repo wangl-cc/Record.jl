@@ -28,6 +28,7 @@ minus(t, x, y) = t, x - y
 
 @testset "_toplot" begin
     @test _toplot(r, nothing) == ([t1, t2], [v1, v2])
+    @test _toplot(r, [(0, 1), (0, 2)]) == [(t1, v1), (t2, v2)]
     @test _toplot(r, (0, 1)) == (t1, v1)
     @test _toplot(r, (0, 2)) == (t2, v2)
     @test _toplot(r, (1, 2)) == (v1u, v2u)
