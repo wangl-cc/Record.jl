@@ -48,6 +48,7 @@ function Base.show(io::IO, ::MIME"text/plain", r::Records)
     print(io, type, typeof(state(r.array)), " with time ", timetype(T))
     return nothing
 end
+Base.getindex(r::Records, I::Vector) = [getindex(r, i) for i in I]
 
 """
     AbstractEntries{V,T<:Real}
@@ -86,13 +87,6 @@ function vs end
 Get last time of given `e`.
 """
 tspan(e::AbstractEntries) = (tse = ts(e); tse[end] - tse[1])
-
-"""
-    toseries(e::AbstractEntries)
-
-Convert `e` to the form accepted by `plot` of `Plots.jl`.
-"""
-toseries(e::AbstractEntries) = ts(e), vs(e)
 
 valuetype(::AbstractEntries{V}) where {V} = V
 
@@ -164,6 +158,23 @@ julia> gettime(es, [2, 5])
 ```
 """
 function gettime end
+
+"""
+    toseries(e::AbstractEntries)
+
+Convert `e` to the form accepted by `plot` of `Plots.jl`.
+"""
+function toseries end
+toseries(e::AbstractEntries) = ts(e), vs(e)
+
+function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntries)
+    println(io, "Record Entries")
+    print(io, "t: ")
+    show(io, MIME("text/plain"), ts(e))
+    print(io, "\nv: ")
+    show(io, MIME("text/plain"), vs(e))
+    return nothing
+end
 
 """
     SingleEntries{V,T} <: AbstractEntries{V,T}
@@ -290,15 +301,6 @@ function gettime(e::UnionEntries, ts_e)
         end
     end
     return vs_e
-end
-
-function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntries)
-    println(io, "Record Entries")
-    print(io, "t: ")
-    show(io, MIME("text/plain"), ts(e))
-    print(io, "\nv: ")
-    show(io, MIME("text/plain"), vs(e))
-    return nothing
 end
 
 """

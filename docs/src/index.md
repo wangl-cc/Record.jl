@@ -74,7 +74,7 @@ for t in c
 end
 
 # plot path of particle
-random_walk_plt = plot(vs.(records(pos))...; frame=:none, grid=false, legend=false)
+plot(records(pos); vars=(1,2), frame=:none, grid=false, legend=false)
 ```
 
 ### Logistic growth
@@ -118,6 +118,6 @@ for _ in c
     state(n) <= 0 && break # break if population extinct
 end
 
-plot(toseries(records(n)[1]); frame=:box, grid=false, legend=false) # plot population dynamics
+plot(records(n)); frame=:box, grid=false, legend=false) # plot population dynamics
 ```
 

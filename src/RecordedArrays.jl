@@ -1,5 +1,7 @@
 module RecordedArrays
 
+using RecipesBase
+
 export DiscreteClock, ContinuousClock, now, limit, start, init!, increase!
 export DynamicRArray, StaticRArray, state, setclock
 export records, tspan, ts, vs, toseries, gettime, unione
@@ -8,7 +10,9 @@ include("clock.jl")
 
 include("abstract.jl")
 
-include("records.jl")
+include("record/records.jl")
+
+include("record/interface.jl")
 
 include("math.jl")
 
