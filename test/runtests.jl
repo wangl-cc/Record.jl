@@ -27,6 +27,10 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
     @testset "Changes" begin
         include("change.jl")
     end
+
+    @testset "Interfaces" begin
+        include("interface.jl")
+    end
 end
 
 # vim:tw=92:ts=4:sw=4:et
