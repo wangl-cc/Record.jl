@@ -84,7 +84,7 @@ with direct method to simulate a
 [Logistic growth population](https://en.wikipedia.org/wiki/Logistic_function#In_ecology:_modeling_population_growth)
 with growth rate $r=0.5$ and carrying capacity $K=100$.
 
-```@example birth_death
+```@example logistic
 using RecordedArrays
 using Plots
 using Random
