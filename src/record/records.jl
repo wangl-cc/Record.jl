@@ -8,11 +8,18 @@ struct Records{T<:AbstractRArray}
 end
 
 """
-    records(A::AbstractRArray)
+    records(A::AbstractRArray) -> Records
 
 Create a [`Records`](@ref RecordedArrays.Records) with RecordedArray `A`.
 """
 records(A::AbstractRArray) = Records(A)
+
+"""
+    rarray(r::Records) -> AbstractRArray
+
+Get array of given Records `r`.
+"""
+rarray(r::Records) = r.array
 
 Base.IteratorSize(::Type{<:Records{T}}) where {T} = Base.IteratorSize(T)
 Base.eltype(::Type{<:Records{T}}) where {T<:DynamicRArray} =

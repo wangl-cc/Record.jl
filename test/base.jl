@@ -92,6 +92,14 @@ Dr3 = records(DS1)
 Sr1 = records(SV1)
 Sr2 = records(SV2)
 
+@testset "rarray" begin
+    @test rarray(Dr1) === DV1
+    @test rarray(Dr2) === DV2
+    @test rarray(Dr3) === DS1
+    @test rarray(Sr1) === SV1
+    @test rarray(Sr2) === SV2
+end
+
 @testset "Records" begin
     @test Base.IteratorSize(typeof(Dr1)) == Base.HasShape{1}()
     @test Base.IteratorSize(typeof(Dr2)) == Base.HasShape{1}()

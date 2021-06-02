@@ -4,7 +4,7 @@ using RecipesBase
 
 export DiscreteClock, ContinuousClock, now, limit, start, init!, increase!
 export DynamicRArray, StaticRArray, state, setclock
-export records, tspan, ts, vs, toseries, gettime, unione
+export records, rarray, tspan, ts, vs, toseries, gettime, unione
 
 include("clock.jl")
 
