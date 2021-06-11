@@ -25,6 +25,16 @@ state(A::DynamicRVector) = A.v
 rlength(A::DynamicRVector) = A.indmax[]
 rsize(A::DynamicRVector) = (rlength(A),)
 
+function Base.push!(A::DynamicRVector{T}, v::T) where {T}
+    push!(A.v, v)
+    ind = A.indmax[] += 1
+    push!(A.indmap, ind)
+    push!(A.vs, [v])
+    push!(A.ts, [now(A.t)])
+    return A
+end
+Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
+
 function Base.setindex!(A::DynamicRVector, v, i::Int)
     @boundscheck i <= length(A) || throw(BoundsError(A, i))
     A.v[i] = v
@@ -34,19 +44,10 @@ function Base.setindex!(A::DynamicRVector, v, i::Int)
     return A
 end
 
-function Base.deleteat!(A::DynamicRVector, i::Int)
+function Base.deleteat!(A::DynamicRVector, i::Integer)
     @boundscheck i <= length(A) || throw(BoundsError(A, i))
     deleteat!(A.v, i)
     deleteat!(A.indmap, i)
-    return A
-end
-
-function Base.push!(A::DynamicRVector, v)
-    push!(A.v, v)
-    ind = A.indmax[] += 1
-    push!(A.indmap, ind)
-    push!(A.vs, [v])
-    push!(A.ts, [now(A.t)])
     return A
 end
 

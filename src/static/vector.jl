@@ -28,24 +28,25 @@ state(A::StaticRVector) = A.v
 rlength(A::StaticRVector) = A.indmax[]
 rsize(A::StaticRVector) = (rlength(A),)
 
-function Base.push!(r::StaticRVector, v)
-    push!(r.v, v)
-    push!(r.v_all, v)
-    push!(r.delete, false)
-    ind = r.indmax[] += 1
-    push!(r.indmap, ind)
-    push!(r.s, now(r.t))
-    push!(r.e, limit(r.t))
-    return r
+function Base.push!(A::StaticRVector{V}, v::V) where {V}
+    push!(A.v, v)
+    push!(A.v_all, v)
+    push!(A.delete, false)
+    ind = A.indmax[] += 1
+    push!(A.indmap, ind)
+    push!(A.s, now(A.t))
+    push!(A.e, limit(A.t))
+    return A
 end
+Base.push!(A::StaticRVector{T}, v) where {T} = push!(A, convert(T, v))
 
-function Base.deleteat!(r::StaticRVector, i::Int)
-    deleteat!(r.v, i)
-    ind = r.indmap[i]
-    r.delete[ind] = true
-    r.e[ind] = now(r.t)
-    deleteat!(r.indmap, i)
-    return r
+function Base.deleteat!(A::StaticRVector, i::Integer)
+    deleteat!(A.v, i)
+    ind = A.indmap[i]
+    A.delete[ind] = true
+    A.e[ind] = now(A.t)
+    deleteat!(A.indmap, i)
+    return A
 end
 
 function Base.getindex(r::Records{<:StaticRVector}, i::Integer)

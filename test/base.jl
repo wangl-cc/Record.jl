@@ -46,8 +46,8 @@ end
 for _ in c
     DS1[1] += 1
     DS2[1] += 1
-    push!(SV1, 2)
-    push!(DV1, 2)
+    push!(SV1, UInt(2)) # test convert
+    push!(DV1, UInt(2)) # test convert
     DV1[1] += 1
     deleteat!(SV2, 1)
     deleteat!(DV2, 1)
