@@ -16,9 +16,11 @@ include("record/interface.jl")
 
 include("math.jl")
 
-include("dynamic.jl")
+include("dynamic/scalar.jl")
 
-include("static.jl")
+include("dynamic/vector.jl")
+
+include("static/vector.jl")
 
 end
 # vim:tw=92:ts=4:sw=4:et

@@ -55,4 +55,3 @@ function Base.getindex(r::Records{<:StaticRVector}, i::Integer)
     e = ifelse(A.delete[i] || t == start(A.t), A.e[i], t)
     return StaticEntries(A.s[i], e, A.v_all[i])
 end
-# vim:tw=92:ts=4:sw=4:et
