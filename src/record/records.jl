@@ -95,8 +95,6 @@ Get last time of given `e`.
 """
 tspan(e::AbstractEntries) = (tse = ts(e); tse[end] - tse[1])
 
-valuetype(::AbstractEntries{V}) where {V} = V
-
 """
     gettime(e::AbstractEntries{V}, t::Real) -> V
     gettime(e::AbstractEntries{V}, ts) -> Vector{V}
