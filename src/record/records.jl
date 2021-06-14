@@ -211,32 +211,6 @@ Base.getindex(e::DynamicEntries, i::Integer) = ts(e)[i] => vs(e)[i]
 vs(e::DynamicEntries) = e.vs
 ts(e::DynamicEntries) = e.ts
 
-gettime(e::SingleEntries, t::Real) = _gettime(e, t)[1]
-function gettime(e::SingleEntries, ts_e)
-    state = _init_state(e)
-    V = valuetype(e)
-    vs_e = Vector{V}(undef, length(ts_e))
-    state = _init_state(e)
-    tl = first(ts_e)
-    for (i, t) in enumerate(ts_e)
-        tl > t && throw(ArgumentError("ts must be monotonically increasing"))
-        vs_e[i], state = _gettime(e, t, state)
-    end
-    return vs_e
-end
-
-_init_state(e::DynamicEntries) = 1, length(e)
-_gettime(::SingleEntries{V}, ::Real, v::Tuple{V,Nothing}) where {V} = (v[1], v)
-function _gettime(e::DynamicEntries, t::Real, state::Tuple{Int,Int}=_init_state(e))
-    ts_e = ts(e)
-    vs_e = vs(e)
-    l, h = state
-    l == 1 && ts_e[1] > t && return zero(eltype(vs_e)), state
-    for i in l:h
-        ts_e[i] > t && return vs_e[i-1], (i-1, h)
-    end
-    return vs_e[end], (vs_e[end], nothing)
-end
 
 """
     StaticEntries{V,T} <: AbstractEntries{V,T}
@@ -263,17 +237,6 @@ end
 vs(e::StaticEntries) = [e.v, e.v]
 ts(e::StaticEntries) = [e.s, e.e]
 
-_init_state(::StaticEntries) = true
-function _gettime(e::StaticEntries, t::Real, state::Bool=_init_state(e))
-    state && e.s > t && return zero(e.v), state
-    if e.e >= t
-        return e.v, false
-    else
-        zero_v = zero(e.v)
-        return zero_v, (zero_v, nothing)
-    end
-end
-
 """
     UnionEntries{V,T,N} <: AbstractEntries{T,V}
 
@@ -287,28 +250,11 @@ end
 Base.eltype(::Type{<:UnionEntries{V,T}}) where {V,T} = Pair{T,Vector{V}}
 function Base.getindex(e::UnionEntries, i::Integer)
     t = ts(e)[i]
-    return t => [gettime(i, t) for i in e.es]
+    return t => [gettime(BinarySearch(), i, t) for i in e.es]
 end
 
-vs(e::UnionEntries) = gettime(e, ts(e))
+vs(e::UnionEntries) = gettime(BinarySearch(), e, ts(e))
 ts(e::UnionEntries) = sort(union(ts.(e.es)...))
-
-gettime(e::UnionEntries, t::Real) = [gettime(i, t) for i in e.es] 
-function gettime(e::UnionEntries, ts_e)
-    N = length(e.es)
-    V = valuetype(e)
-    vs_e = Matrix{V}(undef, length(ts_e), N)
-    for i in 1:N
-        ei = e.es[i]
-        state = _init_state(ei)
-        tl = first(ts_e)
-        for (j, t) in enumerate(ts_e)
-            tl > t && throw(ArgumentError("ts must be monotonically increasing"))
-            vs_e[j, i], state = _gettime(ei, t, state)
-        end
-    end
-    return vs_e
-end
 
 """
     unione(es::AbstractEntries...)
@@ -381,4 +327,103 @@ unione(r::Records) = unione(r...)
 function unione(e1::AbstractEntries, e2::AbstractEntries, es::AbstractEntries...)
     return unione(unione(e1, e2), es...)
 end
+
+
+# search algorithm
+abstract type AbstractSearch end
+struct LinearSearch <: AbstractSearch end
+struct BinarySearch <: AbstractSearch end
+
+gettime(e::AbstractEntries, t) = gettime(BinarySearch(), e, t)
+
+function gettime(::LinearSearch, e::DynamicEntries{V}, t::Real) where {V}
+    ts_e = ts(e)
+    vs_e = vs(e)
+    ts_e[1] > t && return zero(V)
+    for i in eachindex(ts_e)
+        ts_e[i] > t && return vs_e[i-1]
+    end
+    return vs_e[end]
+end
+
+function gettime(::BinarySearch, e::DynamicEntries{V}, t::Real) where {V}
+    match = searchsortedlast(ts(e), t)
+    return match == 0 ? zero(V) : vs(e)[match]
+end
+
+function gettime(::AbstractSearch, e::StaticEntries{V}, t::Real) where {V}
+    return t <  e.s ? zero(V) :
+           t <= e.e ? e.v : zero(V)
+end
+
+function gettime(alg::AbstractSearch, e::SingleEntries{V}, ts_e) where {V}
+    state = _init_state(e)
+    vs_e = Vector{V}(undef, length(ts_e))
+    state = _init_state(e)
+    tl = first(ts_e)
+    v  = zero(V)
+    @inbounds for (i, t) in enumerate(ts_e)
+        tl > t && throw(ArgumentError("ts must be monotonically increasing"))
+        v::V, state = _gettime_itr(alg, e, t, v, state)
+        vs_e[i] = v
+    end
+    return vs_e
+end
+
+gettime(alg::AbstractSearch, e::UnionEntries, t::Real) = [gettime(alg, i, t) for i in e.es]
+function gettime(alg::AbstractSearch, e::UnionEntries{V}, ts_e) where {V}
+    N = length(e.es)
+    vs_e = Matrix{V}(undef, length(ts_e), N)
+    @inbounds for i in 1:N
+        ei = e.es[i]
+        state = _init_state(ei)
+        tl = first(ts_e)
+        v = zero(V)
+        for (j, t) in enumerate(ts_e)
+            tl > t && throw(ArgumentError("ts must be monotonically increasing"))
+            v::V, state = _gettime_itr(alg, ei, t, v, state)
+            vs_e[j, i] = v
+        end
+    end
+    return vs_e
+end
+
+_gettime_itr(::AbstractSearch, ::SingleEntries{V}, ::Real, v::V, ::Nothing) where {V} = v, nothing
+
+_init_state(e::DynamicEntries) = 1, length(e)
+function _gettime_itr(::LinearSearch, e::DynamicEntries{V}, t::Real, ::V, state::Tuple{Int,Int}) where {V}
+    ts_e = ts(e)
+    vs_e = vs(e)
+    lo, hi = state
+    lo == 1 && ts_e[1] > t && return zero(V), state
+    for i in lo:hi
+        ts_e[i] > t && return vs_e[i-1], (i-1, hi)
+    end
+    return vs_e[hi], nothing
+end
+
+function _gettime_itr(::BinarySearch, e::DynamicEntries{V}, t::Real, ::V, state::Tuple{Int,Int}) where {V}
+    ts_e = ts(e)
+    vs_e = vs(e)
+    lo, hi = state
+    m = searchsortedlast(ts_e, t, lo, hi, Base.Order.Forward)
+    if m + 1 == lo
+        return zero(V), state
+    elseif m == hi
+        return vs_e[hi], nothing
+    else
+        return vs_e[m], (m, hi)
+    end
+end
+
+_init_state(::StaticEntries) = true
+function _gettime_itr(::AbstractSearch, e::StaticEntries{V}, t::Real, ::V, state::Bool) where {V}
+    state && e.s > t && return zero(V), true
+    if e.e >= t
+        return e.v, false
+    else
+        return zero(V), nothing
+    end
+end
+
 # vim:tw=92:ts=4:sw=4:et

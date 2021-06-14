@@ -191,40 +191,52 @@ u1223 = unione(u12, u23)
     @test getindex(u1223, 2) == (1 => [2, 2, 2, 1])
 end
 
-@testset "gettime" begin
-    @test gettime(e1, 0) == 1
-    @test gettime(e2, 0) == 0
-    @test gettime(e3, 0) == 1
-    @test gettime(e4, 0) == 1
-    @test gettime(u1, 0) == [1]
-    @test gettime(u12, 0) == [1, 0]
-    @test gettime(u23, 0) == [0, 1]
-    @test gettime(ur, 0) == [1, 0]
-    @test gettime(u123, 0) == [1, 0, 1]
-    @test gettime(u312, 0) == [1, 1, 0]
-    @test gettime(u1223, 0) == [1, 0, 0, 1]
+@testset "gettime $alg" for alg in (LinearSearch(), BinarySearch())
+    @test gettime(alg, e1, 0) == 1
+    @test gettime(alg, e2, 0) == 0
+    @test gettime(alg, e3, 0) == 1
+    @test gettime(alg, e4, 0) == 1
+    @test gettime(alg, u1, 0) == [1]
+    @test gettime(alg, u12, 0) == [1, 0]
+    @test gettime(alg, u23, 0) == [0, 1]
+    @test gettime(alg, ur, 0) == [1, 0]
+    @test gettime(alg, u123, 0) == [1, 0, 1]
+    @test gettime(alg, u312, 0) == [1, 1, 0]
+    @test gettime(alg, u1223, 0) == [1, 0, 0, 1]
 
-    @test gettime(e1, 1) == 2
-    @test gettime(e2, 1) == 2
-    @test gettime(e3, 1) == 1
-    @test gettime(e4, 1) == 2
-    @test gettime(u1, 1) == [2]
-    @test gettime(u12, 1) == [2, 2]
-    @test gettime(u23, 1) == [2, 1]
-    @test gettime(ur, 1) == [2, 2]
-    @test gettime(u123, 1) == [2, 2, 1]
-    @test gettime(u312, 1) == [1, 2, 2]
-    @test gettime(u1223, 1) == [2, 2, 2, 1]
+    @test gettime(alg, e1, 1) == 2
+    @test gettime(alg, e2, 1) == 2
+    @test gettime(alg, e3, 1) == 1
+    @test gettime(alg, e4, 1) == 2
+    @test gettime(alg, u1, 1) == [2]
+    @test gettime(alg, u12, 1) == [2, 2]
+    @test gettime(alg, u23, 1) == [2, 1]
+    @test gettime(alg, ur, 1) == [2, 2]
+    @test gettime(alg, u123, 1) == [2, 2, 1]
+    @test gettime(alg, u312, 1) == [1, 2, 2]
+    @test gettime(alg, u1223, 1) == [2, 2, 2, 1]
 
-    @test gettime(e1, 2) == 2
-    @test gettime(e2, 2) == 2
-    @test gettime(e3, 2) == 0
-    @test gettime(e4, 2) == 2
-    @test gettime(u1, 2) == [2]
-    @test gettime(u12, 2) == [2, 2]
-    @test gettime(u23, 2) == [2, 0]
-    @test gettime(ur, 2) == [2, 2]
-    @test gettime(u123, 2) == [2, 2, 0]
-    @test gettime(u312, 2) == [0, 2, 2]
-    @test gettime(u1223, 2) == [2, 2, 2, 0]
+    @test gettime(alg, e1, 2) == 2
+    @test gettime(alg, e2, 2) == 2
+    @test gettime(alg, e3, 2) == 0
+    @test gettime(alg, e4, 2) == 2
+    @test gettime(alg, u1, 2) == [2]
+    @test gettime(alg, u12, 2) == [2, 2]
+    @test gettime(alg, u23, 2) == [2, 0]
+    @test gettime(alg, ur, 2) == [2, 2]
+    @test gettime(alg, u123, 2) == [2, 2, 0]
+    @test gettime(alg, u312, 2) == [0, 2, 2]
+    @test gettime(alg, u1223, 2) == [2, 2, 2, 0]
+
+    @test gettime(alg, e1, 0:2) == [1, 2, 2]
+    @test gettime(alg, e2, 0:2) == [0, 2, 2]
+    @test gettime(alg, e3, 0:2) == [1, 1, 0]
+    @test gettime(alg, e4, 0:2) == [1, 2, 2]
+    @test gettime(alg, u1, 0:2) == hcat([1; 2; 2])
+    @test gettime(alg, u12, 0:2) == [1 0; 2 2; 2 2]
+    @test gettime(alg, u23, 0:2) == [0 1; 2 1; 2 0]
+    @test gettime(alg, ur, 0:2) == [1 0; 2 2; 2 2]
+    @test gettime(alg, u123, 0:2) == [1 0 1; 2 2 1; 2 2 0]
+    @test gettime(alg, u312, 0:2) == [1 1 0; 1 2 2; 0 2 2]
+    @test gettime(alg, u1223, 0:2) == [1 0 0 1; 2 2 2 1; 2 2 2 0]
 end
