@@ -202,6 +202,7 @@ struct DynamicEntries{V,T} <: SingleEntries{V,T}
     vs::Vector{V}
     function DynamicEntries(ts::Vector{T}, vs::Vector{V}) where {T,V}
         length(ts) != length(vs) && throw(ArgumentError("ts and vs must be same length."))
+        issorted(ts) || throw(ArgumentError("ts must be monotonically increasing"))
         return new{V,T}(ts, vs)
     end
 end
@@ -360,10 +361,8 @@ function gettime(alg::AbstractSearch, e::SingleEntries{V}, ts_e) where {V}
     state = _init_state(e)
     vs_e = Vector{V}(undef, length(ts_e))
     state = _init_state(e)
-    tl = first(ts_e)
     v  = zero(V)
     @inbounds for (i, t) in enumerate(ts_e)
-        tl > t && throw(ArgumentError("ts must be monotonically increasing"))
         v::V, state = _gettime_itr(alg, e, t, v, state)
         vs_e[i] = v
     end
@@ -377,10 +376,8 @@ function gettime(alg::AbstractSearch, e::UnionEntries{V}, ts_e) where {V}
     @inbounds for i in 1:N
         ei = e.es[i]
         state = _init_state(ei)
-        tl = first(ts_e)
         v = zero(V)
         for (j, t) in enumerate(ts_e)
-            tl > t && throw(ArgumentError("ts must be monotonically increasing"))
             v::V, state = _gettime_itr(alg, ei, t, v, state)
             vs_e[j, i] = v
         end
