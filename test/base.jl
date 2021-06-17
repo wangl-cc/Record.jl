@@ -2,8 +2,25 @@ using RecordedArrays: rsize, rlength, StaticEntries, DynamicEntries
 
 # init test vars
 c = DiscreteClock(1)
-DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], [1, 2])
-SV1, SV2 = StaticRArray(c, [1], [1, 2])
+DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], 1:2)
+SV1, SV2, _ = StaticRArray(c, [1], 1:2, 1:3)
+
+@testset "create rarray with {V}" begin 
+    UDS1, UDS2, UDV1, UDV2 = DynamicRArray{UInt}(c, 1, fill(1), [1], 1:2)
+    USV1, USV2, USV3 = StaticRArray{UInt}(c, [1], 1:2, 1:3)
+    for (D, UD) in Dict(DS1 => UDS1, DV1 => UDV1, SV1 => USV1)
+        for i in 1:nfields(D)
+            xi = getfield(D, i)
+            xi_u = getfield(UD, i)
+            if xi isa RecordedArrays.AbstractClock
+                @test xi === c
+                @test xi_u === c
+            else
+                @test xi == xi_u 
+            end
+        end
+    end
+end
 
 @testset "setclock" begin
     cn = DiscreteClock(1)

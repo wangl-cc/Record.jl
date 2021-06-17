@@ -124,6 +124,15 @@ end
 function StaticRArray(t::AbstractClock, x1, x2, xs...)
     return StaticRArray(t, x1), StaticRArray(t, x2, xs...)::Tuple...
 end
+function StaticRArray{V}(t::AbstractClock, x) where {V}
+    return StaticRArray(t, convert_array(V, x))
+end
+function StaticRArray{V}(t::AbstractClock, x1, x2) where {V}
+    return StaticRArray{V}(t, x1), StaticRArray{V}(t, x2)
+end
+function StaticRArray{V}(t::AbstractClock, x1, x2, xs...) where {V}
+    return StaticRArray{V}(t, x1), StaticRArray{V}(t, x2, xs...)::Tuple...
+end
 
 # dynamic
 """
@@ -210,4 +219,20 @@ end
 function DynamicRArray(t::AbstractClock, x1, x2, xs...)
     return DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
 end
+function DynamicRArray{V}(t::AbstractClock, x) where {V}
+    return DynamicRArray(t, convert_array(V, x))
+end
+function DynamicRArray{V}(t::AbstractClock, x1, x2) where {V}
+    return DynamicRArray{V}(t, x1), DynamicRArray{V}(t, x2)
+end
+function DynamicRArray{V}(t::AbstractClock, x1, x2, xs...) where {V}
+    return DynamicRArray{V}(t, x1), DynamicRArray{V}(t, x2, xs...)::Tuple...
+end
+
+convert_array(::Type{T}, x::T) where {T<:Number} = x
+convert_array(::Type{T}, x::Number) where {T<:Number} = convert(T, x)
+convert_array(::Type{T}, x::Array{T}) where {T<:Number} = x
+convert_array(::Type{T}, x::AbstractArray{<:Number,N}) where {T<:Number,N} =
+    convert(Array{T,N}, x)
+
 # vim:tw=92:ts=4:sw=4:et
