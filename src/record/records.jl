@@ -355,32 +355,36 @@ function gettime(::AbstractSearch, e::StaticEntries{V}, t::Real) where {V}
            t <= e.e ? e.v : zero(V)
 end
 
-function gettime(alg::AbstractSearch, e::SingleEntries{V}, ts_e) where {V}
-    state = _init_state(e)
-    vs_e = Vector{V}(undef, length(ts_e))
+function gettime(alg::AbstractSearch, e::SingleEntries{V}, ts) where {V}
+    return gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
+end
+
+function gettime!(alg::AbstractSearch, dst::AbstractVector{V}, e::SingleEntries{V}, ts) where {V}
     state = _init_state(e)
     v  = zero(V)
-    @inbounds for (i, t) in enumerate(ts_e)
+    @inbounds for (i, t) in enumerate(ts)
         v::V, state = _gettime_itr(alg, e, t, v, state)
-        vs_e[i] = v
+        dst[i] = v
     end
-    return vs_e
+    return dst
 end
 
 gettime(alg::AbstractSearch, e::UnionEntries, t::Real) = [gettime(alg, i, t) for i in e.es]
-function gettime(alg::AbstractSearch, e::UnionEntries{V}, ts_e) where {V}
-    N = length(e.es)
-    vs_e = Matrix{V}(undef, length(ts_e), N)
-    @inbounds for i in 1:N
+function gettime(alg::AbstractSearch, e::UnionEntries{V}, ts) where {V}
+    return gettime!(alg, Matrix{V}(undef, length(ts), length(e.es)), e, ts)
+end
+
+function gettime!(alg::AbstractSearch, dst::AbstractMatrix{V}, e::UnionEntries{V}, ts) where {V}
+    @inbounds for i in 1:size(dst, 2)
         ei = e.es[i]
         state = _init_state(ei)
         v = zero(V)
-        for (j, t) in enumerate(ts_e)
+        for (j, t) in enumerate(ts)
             v::V, state = _gettime_itr(alg, ei, t, v, state)
-            vs_e[j, i] = v
+            dst[j, i] = v
         end
     end
-    return vs_e
+    return dst
 end
 
 _gettime_itr(::AbstractSearch, ::SingleEntries{V}, ::Real, v::V, ::Nothing) where {V} = v, nothing
