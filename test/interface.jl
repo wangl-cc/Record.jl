@@ -35,6 +35,7 @@ plusminus(x, y) = x + y, x - y
     @test selectvars(r, (1, 2)) == (v1u, v2u)
     @test selectvars(r, (0, 1, 2)) == (tu, v1u, v2u)
     @test selectvars(r, (1, 1, 2, 2)) == (v1u, v1u, v2u, v2u)
+    @test selectvars(r, (1, 1, 2)) == (v1u, v1u, v2u)
     @test selectvars(r, (plus, 0, 1, 2)) == (tu, vplus)
     @test selectvars(r, (minus, 0, 1, 2)) == (tu, vminus)
     @test selectvars(r, (plusminus, 1, 2)) == (vplus, vminus)
