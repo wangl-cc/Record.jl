@@ -104,8 +104,8 @@ recorded 3-element Vector{Int64}:
  4
  5
 
-julia> records(v)[6] # but six element are recorded
-Record Entries
+julia> record(v)[6] # but six element are recorded
+Record Entry
 t: 2-element Vector{Int64}:
  3
  3
@@ -113,7 +113,7 @@ v: 2-element Vector{Int64}:
  5
  5
 
-julia> gettime(records(v)[1], 2)[1] # element after deletion is 0
+julia> gettime(record(v)[1], 2)[1] # element after deletion is 0
 0
 ```
 """
@@ -178,8 +178,8 @@ recorded 2-element Vector{Int64}:
  3
  1
 
-julia> records(s)[1]
-Record Entries
+julia> record(s)[1]
+Record Entry
 t: 4-element Vector{Int64}:
  0
  1
@@ -191,8 +191,8 @@ v: 4-element Vector{Int64}:
  2
  3
 
-julia> records(v)[1]
-Record Entries
+julia> record(v)[1]
+Record Entry
 t: 4-element Vector{Int64}:
  0
  1
@@ -204,8 +204,8 @@ v: 4-element Vector{Int64}:
  2
  3
 
-julia> records(v)[2]
-Record Entries
+julia> record(v)[2]
+Record Entry
 t: 1-element Vector{Int64}:
  0
 v: 1-element Vector{Int64}:

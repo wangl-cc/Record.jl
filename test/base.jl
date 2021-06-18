@@ -1,4 +1,4 @@
-using RecordedArrays: rsize, rlength, StaticEntries, DynamicEntries
+using RecordedArrays: rsize, rlength, StaticEntry, DynamicEntry
 
 # init test vars
 c = DiscreteClock(1)
@@ -102,12 +102,12 @@ end
     @test rsize(SV2) == (2,)
 end
 
-# get records
-Dr1 = records(DV1)
-Dr2 = records(DV2)
-Dr3 = records(DS1)
-Sr1 = records(SV1)
-Sr2 = records(SV2)
+# get record
+Dr1 = record(DV1)
+Dr2 = record(DV2)
+Dr3 = record(DS1)
+Sr1 = record(SV1)
+Sr2 = record(SV2)
 
 @testset "rarray" begin
     @test rarray(Dr1) === DV1
@@ -117,18 +117,18 @@ Sr2 = records(SV2)
     @test rarray(Sr2) === SV2
 end
 
-@testset "Records" begin
+@testset "Record" begin
     @test Base.IteratorSize(typeof(Dr1)) == Base.HasShape{1}()
     @test Base.IteratorSize(typeof(Dr2)) == Base.HasShape{1}()
     @test Base.IteratorSize(typeof(Dr3)) == Base.HasShape{0}()
     @test Base.IteratorSize(typeof(Sr1)) == Base.HasShape{1}()
     @test Base.IteratorSize(typeof(Sr2)) == Base.HasShape{1}()
 
-    @test eltype(typeof(Dr1)) == DynamicEntries{Int,Int}
-    @test eltype(typeof(Dr2)) == DynamicEntries{Int,Int}
-    @test eltype(typeof(Dr3)) == DynamicEntries{Int,Int}
-    @test eltype(typeof(Sr1)) == StaticEntries{Int,Int}
-    @test eltype(typeof(Sr2)) == StaticEntries{Int,Int}
+    @test eltype(typeof(Dr1)) == DynamicEntry{Int,Int}
+    @test eltype(typeof(Dr2)) == DynamicEntry{Int,Int}
+    @test eltype(typeof(Dr3)) == DynamicEntry{Int,Int}
+    @test eltype(typeof(Sr1)) == StaticEntry{Int,Int}
+    @test eltype(typeof(Sr2)) == StaticEntry{Int,Int}
 
     @test length(Dr1) == 2
     @test length(Dr2) == 2
@@ -150,7 +150,7 @@ u123 = unione(u12, e3)
 u312 = unione(e3, u12)
 u1223 = unione(u12, u23)
 
-@testset "Entries" begin
+@testset "Entry" begin
     @test eltype(e1) == Pair{Int,Int}
     @test eltype(e2) == Pair{Int,Int}
     @test eltype(e3) == Pair{Int,Int}

@@ -36,37 +36,37 @@ end
 
 @test now(c) ≈ 0.0
 
-@test size(records(X)) == size(X)
-@test length(records(X)) == length(X)
+@test size(record(X)) == size(X)
+@test length(record(X)) == length(X)
 
-for (i, x) in enumerate(records(X))
+for (i, x) in enumerate(record(X))
     @test tspan(x) ≈ T
-    @test ts(x) ≈ collect(0:0.1:T)
+    @test getts(x) ≈ collect(0:0.1:T)
     if i == 1
-        @test vs(x) == collect(1:3)
+        @test getvs(x) == collect(1:3)
     elseif i == 2
-        @test vs(x) == collect(3:-1:1)
+        @test getvs(x) == collect(3:-1:1)
     end
 end
 
-for (i, y) in enumerate(records(Y))
+for (i, y) in enumerate(record(Y))
     @test i == 1
     @test tspan(y) == T
-    @test ts(y) == collect(0:0.1:T)
-    @test vs(y) == collect(1:3)
+    @test getts(y) == collect(0:0.1:T)
+    @test getvs(y) == collect(1:3)
 end
 
-for (z, t_) in zip(records(Z), 0:0.1:T)
+for (z, t_) in zip(record(Z), 0:0.1:T)
     @test tspan(z) == T - t_
-    @test ts(z) == [t_, T]
-    @test vs(z) == [0.1, 0.1]
+    @test getts(z) == [t_, T]
+    @test getvs(z) == [0.1, 0.1]
 end
 
 push!(X, 1)
-rX = records(X)
+rX = record(X)
 @test state(X) == push!(V, 1)
-@test ts(rX[length(rX)]) == [0.0]
-@test vs(rX[length(rX)]) == [1]
+@test getts(rX[length(rX)]) == [0.0]
+@test getvs(rX[length(rX)]) == [1]
 
 deleteat!(X, 1)
 @test state(X) == deleteat!(V, 1)

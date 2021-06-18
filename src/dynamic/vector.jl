@@ -51,8 +51,8 @@ function Base.deleteat!(A::DynamicRVector, i::Integer)
     return A
 end
 
-function Base.getindex(r::Records{<:DynamicRVector}, i::Integer)
+function Base.getindex(r::Record{<:DynamicRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
-    return DynamicEntries(A.ts[i], A.vs[i])
+    return DynamicEntry(A.ts[i], A.vs[i])
 end

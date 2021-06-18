@@ -31,22 +31,23 @@ RecordedArrays.DynamicRArray
 setclock
 ```
 
-## View Records
+## View Record
 
 You can't access the recorded entries of your recorded array `A` directly but you can
-access it by create a `Records` with `r = records(A)` and get entries by `r[i]`.
+access it by create a `Record` with `r = record(A)` and get entries by `r[i]`.
 
 ```@docs
-records
-RecordedArrays.Records
-RecordedArrays.AbstractEntries
-RecordedArrays.SingleEntries
-RecordedArrays.UnionEntries
+record
+RecordedArrays.Record
+RecordedArrays.AbstractEntry
+RecordedArrays.SingleEntry
+RecordedArrays.UnionEntry
 gettime
 unione
-ts
-vs
+getts
+getvs
 tspan
+selectvar
 ```
 
 ```@docs

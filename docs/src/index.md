@@ -31,11 +31,11 @@ recorded 3-element Vector{Int64}:
  1
  1
 
-julia> r = records(v) # view recorded changes by creating a records
-records for 3-element dynamic Vector{Int64} with time Float64
+julia> r = record(v) # view recorded changes by creating a record
+record for 3-element dynamic Vector{Int64} with time Float64
 
 julia> r[1] # show entries of the first element of v
-Record Entries
+Record Entry
 t: 2-element Vector{Float64}:
  0.0
  1.0
@@ -74,7 +74,7 @@ for t in c
 end
 
 # plot path of particle
-plot(records(pos); vars=(1,2), frame=:none, grid=false, legend=false)
+plot(record(pos); vars=(1,2), frame=:none, grid=false, legend=false)
 ```
 
 ### Logistic growth
@@ -118,6 +118,6 @@ for _ in c
     state(n) <= 0 && break # break if population extinct
 end
 
-plot(records(n); frame=:box, grid=false, legend=false) # plot population dynamics
+plot(record(n); frame=:box, grid=false, legend=false) # plot population dynamics
 ```
 

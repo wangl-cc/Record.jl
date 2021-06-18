@@ -49,10 +49,10 @@ function Base.deleteat!(A::StaticRVector, i::Integer)
     return A
 end
 
-function Base.getindex(r::Records{<:StaticRVector}, i::Integer)
+function Base.getindex(r::Record{<:StaticRVector}, i::Integer)
     @boundscheck i <= length(r) || throw(BoundsError(r, i))
     A = r.array
     t = now(A.t)
     e = ifelse(A.delete[i] || t == start(A.t), A.e[i], t)
-    return StaticEntries(A.s[i], e, A.v_all[i])
+    return StaticEntry(A.s[i], e, A.v_all[i])
 end
