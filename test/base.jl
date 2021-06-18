@@ -51,8 +51,8 @@ end
     @test length(SV1) == 1
     @test length(SV2) == 2
 
-    @test size(DS1)  == (1,)
-    @test size(DS2)  == (1,)
+    @test size(DS1)  == ()
+    @test size(DS2)  == ()
     @test size(DV1) == (1,)
     @test size(DV2) == (2,)
     @test size(SV1) == (1,)
@@ -78,8 +78,8 @@ end
     @test length(SV1) == 2
     @test length(SV2) == 1
 
-    @test size(DS1)  == (1,)
-    @test size(DS2)  == (1,)
+    @test size(DS1)  == ()
+    @test size(DS2)  == ()
     @test size(DV1) == (2,)
     @test size(DV2) == (1,)
     @test size(SV1) == (2,)
@@ -94,8 +94,8 @@ end
     @test rlength(SV1) == 2
     @test rlength(SV2) == 2
 
-    @test rsize(DS1) == (1,)
-    @test rsize(DS2) == (1,)
+    @test rsize(DS1) == ()
+    @test rsize(DS2) == ()
     @test rsize(DV1) == (2,)
     @test rsize(DV2) == (2,)
     @test rsize(SV1) == (2,)
