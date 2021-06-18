@@ -5,7 +5,7 @@ c = DiscreteClock(1)
 DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], 1:2)
 SV1, SV2, _ = StaticRArray(c, [1], 1:2, 1:3)
 
-@testset "create rarray with {V}" begin 
+@testset "create rarray with {V}" begin
     UDS1, UDS2, UDV1, UDV2 = DynamicRArray{UInt}(c, UInt(1), fill(1), [1], 1:2)
     USV1, USV2, USV3 = StaticRArray{UInt}(c, UInt[1], 1:2, 1:3)
     for (D, UD) in Dict(DS1 => UDS1, DV1 => UDV1, SV1 => USV1)
@@ -16,7 +16,7 @@ SV1, SV2, _ = StaticRArray(c, [1], 1:2, 1:3)
                 @test xi === c
                 @test xi_u === c
             else
-                @test xi == xi_u 
+                @test xi == xi_u
             end
         end
     end
@@ -44,15 +44,15 @@ end
 end
 
 @testset "length and size" begin
-    @test length(DS1)  == 1
-    @test length(DS2)  == 1
+    @test length(DS1) == 1
+    @test length(DS2) == 1
     @test length(DV1) == 1
     @test length(DV2) == 2
     @test length(SV1) == 1
     @test length(SV2) == 2
 
-    @test size(DS1)  == ()
-    @test size(DS2)  == ()
+    @test size(DS1) == ()
+    @test size(DS2) == ()
     @test size(DV1) == (1,)
     @test size(DV2) == (2,)
     @test size(SV1) == (1,)
@@ -78,8 +78,8 @@ end
     @test length(SV1) == 2
     @test length(SV2) == 1
 
-    @test size(DS1)  == ()
-    @test size(DS2)  == ()
+    @test size(DS1) == ()
+    @test size(DS2) == ()
     @test size(DV1) == (2,)
     @test size(DV2) == (1,)
     @test size(SV1) == (2,)
@@ -162,7 +162,7 @@ u1223 = unione(u12, u23)
     @test eltype(u123) == Pair{Int,Vector{Int}}
     @test eltype(u312) == Pair{Int,Vector{Int}}
     @test eltype(u1223) == Pair{Int,Vector{Int}}
-    
+
     @test length(e1) == 2
     @test length(e2) == 1
     @test length(e3) == 2

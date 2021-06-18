@@ -210,7 +210,6 @@ Base.getindex(e::DynamicEntry, i::Integer) = getts(e)[i] => getvs(e)[i]
 getvs(e::DynamicEntry) = e.vs
 getts(e::DynamicEntry) = e.ts
 
-
 """
     StaticEntry{V,T} <: AbstractEntry{V,T}
 
@@ -327,7 +326,6 @@ function unione(e1::AbstractEntry, e2::AbstractEntry, es::AbstractEntry...)
     return unione(unione(e1, e2), es...)
 end
 
-
 # search algorithm
 abstract type AbstractSearch end
 struct LinearSearch <: AbstractSearch end
@@ -351,17 +349,21 @@ function gettime(::BinarySearch, e::DynamicEntry{V}, t::Real) where {V}
 end
 
 function gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V}
-    return t <  e.s ? zero(V) :
-           t <= e.e ? e.v : zero(V)
+    return t < e.s ? zero(V) : t <= e.e ? e.v : zero(V)
 end
 
 function gettime(alg::AbstractSearch, e::SingleEntry{V}, ts) where {V}
     return gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
 end
 
-function gettime!(alg::AbstractSearch, dst::AbstractVector{V}, e::SingleEntry{V}, ts) where {V}
+function gettime!(
+    alg::AbstractSearch,
+    dst::AbstractVector{V},
+    e::SingleEntry{V},
+    ts,
+) where {V}
     state = _init_state(e)
-    v  = zero(V)
+    v = zero(V)
     @inbounds for (i, t) in enumerate(ts)
         v::V, state = _gettime_itr(alg, e, t, v, state)
         dst[i] = v
@@ -374,7 +376,12 @@ function gettime(alg::AbstractSearch, e::UnionEntry{V}, ts) where {V}
     return gettime!(alg, Matrix{V}(undef, length(ts), length(e.es)), e, ts)
 end
 
-function gettime!(alg::AbstractSearch, dst::AbstractMatrix{V}, e::UnionEntry{V}, ts) where {V}
+function gettime!(
+    alg::AbstractSearch,
+    dst::AbstractMatrix{V},
+    e::UnionEntry{V},
+    ts,
+) where {V}
     @inbounds for i in 1:size(dst, 2)
         ei = e.es[i]
         state = _init_state(ei)
@@ -387,21 +394,34 @@ function gettime!(alg::AbstractSearch, dst::AbstractMatrix{V}, e::UnionEntry{V},
     return dst
 end
 
-_gettime_itr(::AbstractSearch, ::SingleEntry{V}, ::Real, v::V, ::Nothing) where {V} = v, nothing
+_gettime_itr(::AbstractSearch, ::SingleEntry{V}, ::Real, v::V, ::Nothing) where {V} =
+    v, nothing
 
 _init_state(e::DynamicEntry) = 1, length(e)
-function _gettime_itr(::LinearSearch, e::DynamicEntry{V}, t::Real, ::V, state::Tuple{Int,Int}) where {V}
+function _gettime_itr(
+    ::LinearSearch,
+    e::DynamicEntry{V},
+    t::Real,
+    ::V,
+    state::Tuple{Int,Int},
+) where {V}
     ts = getts(e)
     vs = getvs(e)
     lo, hi = state
     lo == 1 && ts[1] > t && return zero(V), state
     for i in lo:hi
-        ts[i] > t && return vs[i-1], (i-1, hi)
+        ts[i] > t && return vs[i-1], (i - 1, hi)
     end
     return vs[hi], nothing
 end
 
-function _gettime_itr(::BinarySearch, e::DynamicEntry{V}, t::Real, ::V, state::Tuple{Int,Int}) where {V}
+function _gettime_itr(
+    ::BinarySearch,
+    e::DynamicEntry{V},
+    t::Real,
+    ::V,
+    state::Tuple{Int,Int},
+) where {V}
     ts = getts(e)
     vs = getvs(e)
     lo, hi = state
@@ -416,7 +436,13 @@ function _gettime_itr(::BinarySearch, e::DynamicEntry{V}, t::Real, ::V, state::T
 end
 
 _init_state(::StaticEntry) = true
-function _gettime_itr(::AbstractSearch, e::StaticEntry{V}, t::Real, ::V, state::Bool) where {V}
+function _gettime_itr(
+    ::AbstractSearch,
+    e::StaticEntry{V},
+    t::Real,
+    ::V,
+    state::Bool,
+) where {V}
     state && e.s > t && return zero(V), true
     if e.e >= t
         return e.v, false

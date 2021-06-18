@@ -1,5 +1,5 @@
 # recipe for AbstractEntry is not implemented
-@recipe function f(r::Union{Record, AbstractEntry}; vars=nothing)
+@recipe function f(r::Union{Record,AbstractEntry}; vars=nothing)
     seriestype --> :path
     return selectvars(r, vars)
 end
@@ -63,7 +63,7 @@ selectvars(r::Record) = vec(map(toseries, r))
 selectvars(r::Record, ::Nothing) = selectvars(r)
 selectvars(r::Record, V::Vector) = map(vs -> selectvars(r, vs), V)
 selectvars(r::Record, t::Tuple) = selectvars(r, t...)
-function selectvars(r::Record, v1::Integer, vs::Vararg{Integer, N}) where {N}
+function selectvars(r::Record, v1::Integer, vs::Vararg{Integer,N}) where {N}
     any(==(0), vs) && throw(ArgumentError("0 must be the first variable"))
     if v1 == 0
         return _selectvars_0(r, vs)

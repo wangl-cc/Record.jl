@@ -3,7 +3,7 @@ using RecordedArrays: selectvars
 c = DiscreteClock(10)
 pos = DynamicRArray(c, [0, 0])
 for t in c
-    if  t % 2 == 0
+    if t % 2 == 0
         pos[1] += 1
     else
         pos[2] -= 1
@@ -20,7 +20,7 @@ v1 = collect(0:5)
 v2 = -collect(0:5)
 v1u = sort(repeat(v1, 2))[1:end-1]
 v2u = sort(repeat(v2, 2), rev=true)[2:end]
-vplus  = vcat(repeat([0, -1], 5), 0)
+vplus = vcat(repeat([0, -1], 5), 0)
 vminus = 0:10
 
 plus(t, x, y) = t, x + y

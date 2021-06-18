@@ -22,7 +22,8 @@ end
 # fix for Adjoint or Transpose (copy from LinearAlgebra adjtrans.jl)
 # Adjoint/Transpose-vector * vector
 @inline *(u::AdjointAbsVec{<:Number}, v::AbstractRVector{<:Number,<:Real}) = *(u, state(v))
-@inline *(u::TransposeAbsVec{T}, v::AbstractRVector{T,<:Real}) where {T<:Real} = *(u, state(v))
+@inline *(u::TransposeAbsVec{T}, v::AbstractRVector{T,<:Real}) where {T<:Real} =
+    *(u, state(v))
 # vector * Adjoint/Transpose-vector
 @inline *(u::AbstractRVector, v::AdjOrTransAbsVec) = *(state(u), v)
 
