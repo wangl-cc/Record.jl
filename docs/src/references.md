@@ -47,7 +47,7 @@ unione
 getts
 getvs
 tspan
-selectvar
+selectvars
 ```
 
 ```@docs
