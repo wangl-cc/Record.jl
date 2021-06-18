@@ -44,21 +44,21 @@ julia> selectvars(r) # select without vars
 julia> selectvars(r, (0, 1, 2)) # select with a tuple of indices
 ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
 
-julia> f(t, x, y) = t, x + y # define a process function
+julia> f(t, x, y) = t, x + y; # define a process function
 
 julia> selectvars(r, (f, 0, 1, 2)) # select with a function and indices
 ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
 
-julia> selectvars(r, plus) # select with a function
+julia> selectvars(r, f) # select with a function
 ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
 
-julia> selectvars(r, [(1, 2), plus]) # select with a vector
+julia> selectvars(r, [(1, 2), f]) # select with a vector
 2-element Vector{Tuple{Vector{Int64}, Vector{Int64}}}:
  ([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
  ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
 ```
 """
-
+function selectvars end
 selectvars(r::Record) = vec(map(toseries, r))
 selectvars(r::Record, ::Nothing) = selectvars(r)
 selectvars(r::Record, V::Vector) = map(vs -> selectvars(r, vs), V)
