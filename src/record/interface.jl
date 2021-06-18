@@ -59,7 +59,7 @@ julia> selectvars(r, [(1, 2), plus]) # select with a vector
 ```
 """
 
-selectvars(r::Record) = map(e -> (getts(e), getvs(e)), r)
+selectvars(r::Record) = vec(map(toseries, r))
 selectvars(r::Record, ::Nothing) = selectvars(r)
 selectvars(r::Record, V::Vector) = map(vs -> selectvars(r, vs), V)
 selectvars(r::Record, t::Tuple) = selectvars(r, t...)
