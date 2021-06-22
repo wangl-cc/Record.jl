@@ -29,9 +29,17 @@ A = rand(ComplexF64, 2, 2, 2) # 3-rank array
 tS, tV, tM, tA = RecordedArrays._testa(fill(S), V, M, A) # test arrays
 
 
-@testset "Unary Operations: $f" for f in (:+, :-, :conj, :real, :imag, :reverse)
+@testset "Unary Operations: $f" for f in (:+, :-, :conj, :real, :imag)
     @eval begin
         @test $f(tS) == $f(S)
+        @test $f(tV) == $f(V)
+        @test $f(tM) == $f(M)
+        @test $f(tA) == $f(A)
+    end
+end
+
+@testset "Unary Operations without Scalar: $f" for f in (:reverse,)
+    @eval begin
         @test $f(tV) == $f(V)
         @test $f(tM) == $f(M)
         @test $f(tA) == $f(A)
