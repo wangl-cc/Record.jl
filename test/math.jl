@@ -39,9 +39,9 @@ tS, tV, tM, tA = RecordedArrays._testa(fill(S), V, M, A) # test arrays
 end
 
 @testset "reverse" begin
-    @test $f(tV) == $f(V)
-    @test $f(tM; dims=1) == $f(M; dims=1)
-    @test $f(tA; dims=1) == $f(A; dims=1)
+    @test reverse(tV) == reverse(V)
+    @test reverse(tM; dims=1) == reverse(M; dims=1)
+    @test reverse(tA; dims=1) == reverse(A; dims=1)
 end
 
 @testset "Binary Operations: $f" for f in (:+, :-)
