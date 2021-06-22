@@ -44,7 +44,11 @@ end
 
 ## data movement ##
 # recevse! is forbiden
-recevse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims)
+if VERSION >= v"1.6"
+    reverse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims)
+else
+    reverse(A::AbstractRArray; dims::Integer) = reverse!(copy(state(A)); dims)
+end
 
 # for DenseArray BLAS
 Base.pointer(A::AbstractRArray) = pointer(state(A))
