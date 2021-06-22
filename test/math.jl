@@ -38,10 +38,10 @@ tS, tV, tM, tA = RecordedArrays._testa(fill(S), V, M, A) # test arrays
     end
 end
 
-@testset "Unary Operations only for Vector: $f" for f in (:reverse,)
-    @eval begin
-        @test $f(tV) == $f(V)
-    end
+@testset "reverse" begin
+    @test $f(tV) == $f(V)
+    @test $f(tM; dims=1) == $f(M; dims=1)
+    @test $f(tA; dims=1) == $f(A; dims=1)
 end
 
 @testset "Binary Operations: $f" for f in (:+, :-)
