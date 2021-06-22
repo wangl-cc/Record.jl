@@ -77,7 +77,7 @@ v: 1-element Vector{Int64}:
  # if you want to calculate the sum of v at each timestamp
 julia> f(t, x...) = t, sum(x); # defined a function calculate the sum 
 
-julia> selectvars(r, f) # apply f by selectvars will return sum of v at each timestamp
+julia> selectrecs(r, f, T0) # apply f by selectrecs will return sum of v at each timestamp
 ([0.0, 1.0], [1, 3])
 ```
 

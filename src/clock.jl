@@ -1,8 +1,7 @@
 """
     AbstractClock{T<:Real}
 
-Supertype of clocks with time of type `T`. Clocks are used to record changes of time.
-A clock can be iterate by `for` loop and break when reach to stop.
+Supertype of clocks with time of type `T`.
 """
 abstract type AbstractClock{T<:Real} end
 
@@ -36,15 +35,17 @@ Update current time to start time.
 function init! end
 
 """
-    DiscreteClock{T, I<:AbstractVector{T}} <: AbstractClock{T}
-    DiscreteClock([start], indexset)
+    DiscreteClock([start], timelist)
     DiscreteClock(stop)
 
-A clock for discrete-time process, it's `indexset` must be a non-empty `AbstractVector`.  If
-the `start` is not specified, the first item of indexset will be poped and set as `start`.
-During iteration, the current time will be updated automatically and returned as iteration
-item. When the iteration finnished without `break`, [`init!(c)`](@ref init!) wil be applied.
-`DiscreteClock(stop)` will create a clock with `start=0` and `indexset=Base.OneTo(stop)`
+Clock for discrete-time process, time of which muse be increased with given step and
+can't
+be updated manually. The `timelist` must be a non-empty and monotonically increasing
+`AbstractVector`.  If the `start` is not specified, the first item of `timelist` will be
+deleted and set as `start`. During iteration, the current time will be updated automatically
+and returned as iteration item. When the iteration finished without `break`, [`init!`](@ref)
+will be applied.  `DiscreteClock(stop)` will create a clock with `start=0` and
+`timelist=Base.OneTo(stop)`
 
 # Examples
 
@@ -72,14 +73,14 @@ julia> (now(c), collect(c))
 struct DiscreteClock{T,I<:AbstractVector{T}} <: AbstractClock{T}
     current::Array{T,0}
     start::T
-    indexset::I
-    function DiscreteClock(start::T, indexset::I) where {T,I<:AbstractVector{T}}
-        return new{T,I}(fill(start), start, indexset)
+    timelist::I
+    function DiscreteClock(start::T, timelist::I) where {T,I<:AbstractVector{T}}
+        return new{T,I}(fill(start), start, timelist)
     end
 end
-function DiscreteClock(indexset::AbstractVector)
-    isempty(indexset) && throw(ArgumentError("indexset must contain at least one element"))
-    return DiscreteClock(indexset[1], indexset[2:end])
+function DiscreteClock(timelist::AbstractVector)
+    isempty(timelist) && throw(ArgumentError("timelist must contain at least one element"))
+    return DiscreteClock(timelist[1], timelist[2:end])
 end
 function DiscreteClock(stop::Integer)
     stop > 0 || throw(ArgumentError("stop time must be > 0"))
@@ -88,11 +89,11 @@ end
 
 # iterator interfaces
 Base.IteratorSize(::Type{<:DiscreteClock}) = Base.HasLength()
-Base.length(c::DiscreteClock) = length(c.indexset)
+Base.length(c::DiscreteClock) = length(c.timelist)
 Base.eltype(::Type{<:DiscreteClock{T}}) where {T} = T
-Base.iterate(c::DiscreteClock) = _itr_update!(c, iterate(c.indexset))
+Base.iterate(c::DiscreteClock) = _itr_update!(c, iterate(c.timelist))
 function Base.iterate(c::DiscreteClock, state)
-    return _itr_update!(c, iterate(c.indexset, state))
+    return _itr_update!(c, iterate(c.timelist, state))
 end
 _itr_update!(c::DiscreteClock, ::Nothing) = (init!(c); nothing)
 function _itr_update!(c::DiscreteClock{T,I}, ret::Tuple{T,Any}) where {T,I}
@@ -102,7 +103,7 @@ end
 
 # clock interfaces
 now(c::DiscreteClock) = c.current[]
-limit(c::DiscreteClock) = last(c.indexset)
+limit(c::DiscreteClock) = last(c.timelist)
 init!(c::DiscreteClock) = c.current[] = c.start
 start(c::DiscreteClock) = c.start
 

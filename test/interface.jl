@@ -1,5 +1,3 @@
-using RecordedArrays: selectvars
-
 c = DiscreteClock(10)
 pos = DynamicRArray(c, [0, 0])
 for t in c
@@ -23,23 +21,35 @@ v2u = sort(repeat(v2, 2), rev=true)[2:end]
 vplus = vcat(repeat([0, -1], 5), 0)
 vminus = 0:10
 
+ue = unione(r)
+
 plus(t, x, y) = t, x + y
 minus(t, x, y) = t, x - y
 plusminus(x, y) = x + y, x - y
 
-@testset "selectvars" begin
-    @test selectvars(r, nothing) == [(t1, v1), (t2, v2)]
-    @test selectvars(r, (0, 1)) == (t1, v1)
-    @test selectvars(r, (0, 2)) == (t2, v2)
-    @test selectvars(r, [(0, 1), (0, 2)]) == [(t1, v1), (t2, v2)]
-    @test selectvars(r, (1, 2)) == (v1u, v2u)
-    @test selectvars(r, (0, 1, 2)) == (tu, v1u, v2u)
-    @test selectvars(r, (1, 1, 2, 2)) == (v1u, v1u, v2u, v2u)
-    @test selectvars(r, (1, 1, 2)) == (v1u, v1u, v2u)
-    @test selectvars(r, (plus, 0, 1, 2)) == (tu, vplus)
-    @test selectvars(r, (minus, 0, 1, 2)) == (tu, vminus)
-    @test selectvars(r, (plusminus, 1, 2)) == (vplus, vminus)
-    @test selectvars(r, plus) == (tu, vplus)
-    @test selectvars(r, minus) == (tu, vminus)
-    @test selectvars(r, [plus, minus]) == [(tu, vplus), (tu, vminus)]
+@testset "selectrecs" begin
+    @test selectrecs(r) == (v1u, v2u)
+    @test selectrecs(r, 1) == (t1, v1)
+    @test selectrecs(r, 2) == (t2, v2)
+    @test selectrecs(r[1], 1) == (t1, v1)
+    @test selectrecs(r[2], 1) == (t2, v2)
+    @test selectrecs(r, (1, 2)) == (v1u, v2u)
+    @test selectrecs(r, (T0, 1)) == (t1, v1)
+    @test selectrecs(r, (T0, 2)) == (t2, v2)
+    @test selectrecs(r, (T0, 1, 2)) == (tu, v1u, v2u)
+    @test selectrecs(ue, (T0, 1)) == (t1, v1)
+    @test selectrecs(ue, (T0, 2)) == (t2, v2)
+    @test selectrecs(ue, (T0, 1, 2)) == (tu, v1u, v2u)
+    @test selectrecs(r, T0) == (tu, v1u, v2u)
+    @test selectrecs(ue, T0) == (tu, v1u, v2u)
+    @test selectrecs(r[1], T0) == (t1, v1)
+    @test selectrecs(r[2], T0) == (t2, v2)
+    @test selectrecs(r, t1, T0) == (t1, v1, v2)
+    @test selectrecs(r, (t1, 1)) == (t1, v1)
+    @test selectrecs(r, (t1, 2)) == (t1, v2)
+    @test selectrecs(r, (plus, T0, 1, 2)) == (tu, vplus)
+    @test selectrecs(r, (minus, T0, 1, 2)) == (tu, vminus)
+    @test selectrecs(r, (plusminus, 1, 2)) == (vplus, vminus)
+    @test selectrecs(r, plus, T0) == (tu, vplus)
+    @test selectrecs(r, minus, T0) == (tu, vminus)
 end

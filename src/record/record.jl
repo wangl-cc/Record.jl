@@ -60,7 +60,7 @@ Base.getindex(r::Record, I::Vector) = [getindex(r, i) for i in I]
 """
     AbstractEntry{V,T<:Real}
 
-Supertype of entries, which store changes of specified variable(s) of type `V` with time
+Supertype of entry, which store changes of specified variable(s) of type `V` with time
 of type `T`.
 """
 abstract type AbstractEntry{V,T<:Real} end
@@ -77,14 +77,14 @@ end
 """
     getts(e::AbstractEntry{V,T}) -> Vector{T}
 
-Get time entries of given `e`.
+Get time entry of given `e`.
 """
 function getts end
 
 """
     getvs(e::AbstractEntry{V,T}) -> VecOrMat{V}
 
-Get value entries of given `e`.
+Get value entry of given `e`.
 """
 function getvs end
 
@@ -193,7 +193,7 @@ Base.eltype(::Type{<:SingleEntry{V,T}}) where {V,T} = Pair{T,V}
 """
     DynamicEntry{V,T} <: AbstractEntry{V,T}
 
-Specifical single entries type to store changes of a [`DynamicRArray`](@ref).
+Specifical single entry type to store changes of a [`DynamicRArray`](@ref).
 """
 struct DynamicEntry{V,T} <: SingleEntry{V,T}
     ts::Vector{T}
@@ -213,7 +213,7 @@ getts(e::DynamicEntry) = e.ts
 """
     StaticEntry{V,T} <: AbstractEntry{V,T}
 
-Specifical single entries type to store changes of a [`StaticRArray`](@ref).
+Specifical single entry type to store changes of a [`StaticRArray`](@ref).
 """
 struct StaticEntry{V,T} <: SingleEntry{V,T}
     s::T
@@ -259,7 +259,7 @@ getts(e::UnionEntry) = sort(union(map(getts, e.es)...))
     unione(es::Vector{<:AbstractEntry})
     unione(r::Record)
 
-Construct the union of given entries `es`. `union(r)` construct union all of
+Construct the union of given entry `es`. `union(r)` construct union all of
 elements of Record `r`.
 
 # Examples

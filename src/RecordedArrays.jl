@@ -2,10 +2,11 @@ module RecordedArrays
 
 using RecipesBase
 
-export DiscreteClock, ContinuousClock, now, limit, start, init!, increase!
-export DynamicRArray, StaticRArray, state, setclock
-export LinearSearch, BinarySearch, record, rarray, selectvars
-export tspan, getts, getvs, toseries, unione, gettime, gettime!
+export DiscreteClock, ContinuousClock, now, limit, start, init!, increase! # clock 
+export DynamicRArray, StaticRArray, state, setclock # rarray
+export record, rarray, gettime, selectrecs, T0 # record and common
+export tspan, getts, getvs, toseries, unione, gettime! # entry
+export LinearSearch, BinarySearch # search methods
 
 include("clock.jl")
 
