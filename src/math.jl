@@ -45,7 +45,7 @@ end
 if VERSION >= v"1.6"
     reverse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims=dims)
 else
-    reverse(A::AbstractRArray; dims::Integer) = reverse!(copy(state(A)); dims=dims)
+    reverse(A::AbstractRArray; dims::Integer) = reverse(state(A); dims=dims)
 end
 
 # for DenseArray BLAS
