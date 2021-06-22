@@ -13,7 +13,7 @@ its current state [`state(A)`](@ref state).
     Avoid to edit recorded arrays out of loop, because clocks will initial
     automatically during loop.
 """
-abstract type AbstractRArray{V<:Number,T<:Real,N} <: AbstractArray{V,N} end
+abstract type AbstractRArray{V,T<:Real,N} <: DenseArray{V,N} end # Dense for BLAS
 
 # type alias
 const AbstractRScalar{V,T} = AbstractRArray{V,T,0}
@@ -29,6 +29,10 @@ timetype(::Type{<:AbstractRArray{<:Any,T}}) where {T} = T
 Get current state of recorded array `A`. API for mathematical operations.
 """
 function state end
+
+@inline state(A::AbstractArray) = A
+@inline state(As::AbstractArray...) = map(state, As)
+@inline state(As::Tuple) = map(state, As)
 
 """
     setclock(A::AbstractRArray, c::AbstractClock)
@@ -213,26 +217,23 @@ v: 1-element Vector{Int64}:
 ```
 """
 abstract type DynamicRArray{V,T,N} <: AbstractRArray{V,T,N} end
-function DynamicRArray(t::AbstractClock, x1, x2)
-    return DynamicRArray(t, x1), DynamicRArray(t, x2)
-end
-function DynamicRArray(t::AbstractClock, x1, x2, xs...)
-    return DynamicRArray(t, x1), DynamicRArray(t, x2, xs...)::Tuple...
-end
-function DynamicRArray{V}(t::AbstractClock, x) where {V}
-    return DynamicRArray(t, convert_array(V, x))
-end
-function DynamicRArray{V}(t::AbstractClock, x1, x2) where {V}
-    return DynamicRArray{V}(t, x1), DynamicRArray{V}(t, x2)
-end
-function DynamicRArray{V}(t::AbstractClock, x1, x2, xs...) where {V}
-    return DynamicRArray{V}(t, x1), DynamicRArray{V}(t, x2, xs...)::Tuple...
-end
+DynamicRArray(t::AbstractClock, xs...) = map(x -> DynamicRArray(t, x), xs)
+DynamicRArray{V}(t::AbstractClock, x) where {V} = DynamicRArray(t, convert_array(V, x))
+DynamicRArray{V}(t::AbstractClock, xs...) where {V} = map(x -> DynamicRArray{V}(t, x), xs)
 
-convert_array(::Type{T}, x::T) where {T<:Number} = x
-convert_array(::Type{T}, x::Number) where {T<:Number} = convert(T, x)
-convert_array(::Type{T}, x::Array{T}) where {T<:Number} = x
-convert_array(::Type{T}, x::AbstractArray{<:Number,N}) where {T<:Number,N} =
-    convert(Array{T,N}, x)
+convert_array(::Type{T}, x::T) where {T} = x
+convert_array(::Type{T}, x) where {T} = convert(T, x)
+convert_array(::Type{T}, x::Array{T}) where {T} = x
+convert_array(::Type{T}, x::AbstractArray{<:Any,N}) where {T,N} = convert(Array{T,N}, x)
+
+# Type for test math API (some types of RArray are not implemented now)
+struct _TestArray{V,N} <: RecordedArrays.AbstractRArray{V,Int,N}
+    A::Array{V,N}
+end
+state(A::_TestArray) = A.A
+state(A::_TestArray{<:Any,0}) = A.A[1]
+_testa(A::Array) = _TestArray(A)
+_testa(x::Number) = _TestArray(x)
+_testa(As::Array...) = map(_testa, As)
 
 # vim:tw=92:ts=4:sw=4:et

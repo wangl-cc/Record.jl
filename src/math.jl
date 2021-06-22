@@ -1,31 +1,54 @@
 # overload mathematical operations
-import Base: +, -, *, /, \, ^, adjoint, transpose, broadcastable
+import Base: +, -, *, /, \, ^, conj, real, imag, reverse
+import Base: adjoint, transpose
+import Base: broadcastable
+
+import LinearAlgebra: dot
 
 using LinearAlgebra: Adjoint, Transpose, AdjointAbsVec, TransposeAbsVec, AdjOrTransAbsVec
 
-## unary operators
-for op in (:+, :-, :transpose, :adjoint)
-    @eval @inline ($op)(r::AbstractRArray) = ($op)(state(r))
+# Union of Array and RArray
+const NRArray{T} = Union{Array{T},AbstractRArray{T}}
+
+## Unary arithmetic operators ##
+@inline +(A::AbstractRArray{<:Number}) = state(A) # do nothing for better performance
+for f in (:-, :conj, :real, :imag, :transpose, :adjoint)
+    @eval @inline ($f)(r::AbstractRArray) = ($f)(state(r))
 end
 
-## binary operators
-for op in (:+, :-, :*, :/, :\, :^)
-    @eval @inline ($op)(x::AbstractRArray, y::AbstractRArray) = ($op)(state(x), state(y))
-    for T in (Number, Transpose, Adjoint, AbstractArray)
-        @eval begin
-            @inline ($op)(x::AbstractRArray, y::$T) = ($op)(state(x), y)
-            @inline ($op)(x::$T, y::AbstractRArray) = ($op)(x, state(y))
-        end
+## Binary arithmetic operators ##
+# +(A, B) and -(A, B) implemented in arraymath, this is + for more than two args
++(A::NRArray, Bs::NRArray...) = +(state(A), state(Bs)...)
+
+# * / \ for Array and Number is in arraymath, this is for Scalar
+for f in (:/, :\, :*)
+    if f !== :/
+        @eval @inline ($f)(A::AbstractRScalar, B::NRArray) =
+            Base.broadcast_preserving_zero_d($f, state(A), state(B))
+    end
+    if f !== :\
+        @eval @inline ($f)(A::NRArray, B::AbstractRScalar) =
+            Base.broadcast_preserving_zero_d($f, state(A), state(B))
     end
 end
 
-# fix for Adjoint or Transpose (copy from LinearAlgebra adjtrans.jl)
-# Adjoint/Transpose-vector * vector
-@inline *(u::AdjointAbsVec{<:Number}, v::AbstractRVector{<:Number,<:Real}) = *(u, state(v))
-@inline *(u::TransposeAbsVec{T}, v::AbstractRVector{T,<:Real}) where {T<:Real} =
-    *(u, state(v))
-# vector * Adjoint/Transpose-vector
-@inline *(u::AbstractRVector, v::AdjOrTransAbsVec) = *(state(u), v)
+# arithmetic operators for number
+for f in (:+, :-, :*, :/, :\, :^)
+    @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) =
+        ($f)(state(A), state(B))
+    @eval @inline ($f)(A::Number, B::AbstractRScalar) =
+        ($f)(A, state(B))
+    @eval @inline ($f)(A::AbstractRScalar, B::Number) =
+        ($f)(state(A), B)
+end
+
+## data movement ##
+# recevse! is forbiden
+recevse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims)
+
+# for DenseArray BLAS
+Base.pointer(A::AbstractRArray) = pointer(state(A))
+Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} = Base.unsafe_convert(Ptr{T}, state(A))
 
 ## broadcast
 @inline broadcastable(r::AbstractRArray) = state(r)

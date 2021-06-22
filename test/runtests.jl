@@ -1,6 +1,7 @@
 using Test
 using RecordedArrays
 using Documenter
+using BenchmarkTools
 
 # don't work now
 filters = Regex[
