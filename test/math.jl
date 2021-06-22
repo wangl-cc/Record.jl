@@ -38,11 +38,9 @@ tS, tV, tM, tA = RecordedArrays._testa(fill(S), V, M, A) # test arrays
     end
 end
 
-@testset "Unary Operations without Scalar: $f" for f in (:reverse,)
+@testset "Unary Operations only for Vector: $f" for f in (:reverse,)
     @eval begin
         @test $f(tV) == $f(V)
-        @test $f(tM) == $f(M)
-        @test $f(tA) == $f(A)
     end
 end
 

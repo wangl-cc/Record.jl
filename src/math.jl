@@ -23,12 +23,10 @@ end
 # * / \ for Array and Number is in arraymath, this is for Scalar
 for f in (:/, :\, :*)
     if f !== :/
-        @eval @inline ($f)(A::AbstractRScalar, B::NRArray) =
-            Base.broadcast_preserving_zero_d($f, state(A), state(B))
+        @eval @inline ($f)(A::AbstractRScalar, B::NRArray) = $f(state(A), state(B))
     end
     if f !== :\
-        @eval @inline ($f)(A::NRArray, B::AbstractRScalar) =
-            Base.broadcast_preserving_zero_d($f, state(A), state(B))
+        @eval @inline ($f)(A::NRArray, B::AbstractRScalar) = $f(state(A), state(B))
     end
 end
 
