@@ -40,6 +40,10 @@ end
 
 @testset "reverse" begin
     @test reverse(tV) == reverse(V)
+    if VERSION >= v"1.6"
+        @test reverse(tM) == reverse(M)
+        @test reverse(tA) == reverse(A)
+    end
     @test reverse(tM; dims=1) == reverse(M; dims=1)
     @test reverse(tA; dims=1) == reverse(A; dims=1)
 end

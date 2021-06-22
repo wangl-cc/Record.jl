@@ -45,6 +45,7 @@ end
 if VERSION >= v"1.6"
     reverse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims=dims)
 else
+    reverse(A::AbstractRVector) = reverse(state(A))
     reverse(A::AbstractRArray; dims::Integer) = reverse(state(A); dims=dims)
 end
 
