@@ -35,6 +35,17 @@ function Base.push!(A::DynamicRVector{T}, v::T) where {T}
 end
 Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
 
+# only insert for state not in record
+function Base.insert!(A::DynamicRVector{V}, i::Integer, v::V) where {V}
+    insert!(A.v, i, v)
+    ind = A.indmax[] += 1
+    insert!(A.indmap, i, ind)
+    push!(A.vs, [v])
+    push!(A.ts, [now(A.t)])
+    return A
+end
+Base.insert!(A::DynamicRVector{T}, i::Integer, v) where {T} = insert!(A, i, convert(T, v))
+
 function Base.setindex!(A::DynamicRVector, v, i::Int)
     @boundscheck i <= length(A) || throw(BoundsError(A, i))
     A.v[i] = v

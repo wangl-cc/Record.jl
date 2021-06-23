@@ -40,6 +40,19 @@ function Base.push!(A::StaticRVector{V}, v::V) where {V}
 end
 Base.push!(A::StaticRVector{T}, v) where {T} = push!(A, convert(T, v))
 
+# only insert for state not in record
+function Base.insert!(A::StaticRVector{V}, i::Integer, v::V) where {V}
+    insert!(A.v, i, v)
+    push!(A.v_all, v)
+    push!(A.delete, false)
+    ind = A.indmax[] += 1
+    insert!(A.indmap, i, ind)
+    push!(A.s, now(A.t))
+    push!(A.e, limit(A.t))
+    return A
+end
+Base.insert!(A::StaticRVector{T}, i::Integer, v) where {T} = insert!(A, i, convert(T, v))
+
 function Base.deleteat!(A::StaticRVector, i::Integer)
     deleteat!(A.v, i)
     ind = A.indmap[i]

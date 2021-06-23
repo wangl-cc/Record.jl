@@ -73,4 +73,11 @@ deleteat!(X, 1)
 
 deleteat!(Z, 1)
 @test state(Z) == deleteat!(C, 1)
+
+insert!(X, 1, UInt(2))
+@test state(X) == insert!(V, 1, 2)
+
+insert!(Z, 1, UInt(2))
+@test state(Z) == insert!(C, 1, 2)
+
 # vim:tw=92:ts=4:sw=4:et
