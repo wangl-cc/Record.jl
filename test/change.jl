@@ -65,8 +65,8 @@ end
 push!(X, 1)
 rX = record(X)
 @test state(X) == push!(V, 1)
-@test getts(rX[length(rX)]) == [0.0]
-@test getvs(rX[length(rX)]) == [1]
+@test getts(rX[end]) == [0.0]
+@test getvs(rX[end]) == [1]
 
 deleteat!(X, 1)
 @test state(X) == deleteat!(V, 1)

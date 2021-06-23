@@ -28,6 +28,8 @@ Base.eltype(::Type{<:Record{T}}) where {T<:StaticRArray} =
     StaticEntry{eltype(T),timetype(T)}
 Base.length(r::Record) = rlength(r.array)
 Base.size(r::Record) = rsize(r.array)
+Base.firstindex(::Record) = 1
+Base.lastindex(r::Record) = length(r)
 function Base.iterate(r::Record, state=1)
     if state <= length(r)
         return r[state]::SingleEntry, state + 1
@@ -66,6 +68,8 @@ of type `T`.
 abstract type AbstractEntry{V,T<:Real} end
 Base.IteratorSize(::Type{<:AbstractEntry}) = Base.HasLength()
 Base.length(e::AbstractEntry) = length(getts(e))
+Base.firstindex(::AbstractEntry) = 1
+Base.lastindex(e::AbstractEntry) = length(e)
 function Base.iterate(e::AbstractEntry, state=1)
     if state <= length(e)
         return e[state], state + 1

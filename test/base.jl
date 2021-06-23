@@ -117,6 +117,22 @@ Sr2 = record(SV2)
     @test rarray(Sr2) === SV2
 end
 
+@testset "firstindex Record" begin
+    @test firstindex(Dr1) == 1
+    @test firstindex(Dr2) == 1
+    @test firstindex(Dr3) == 1
+    @test firstindex(Sr1) == 1
+    @test firstindex(Sr2) == 1
+end
+
+@testset "lastindex Record" begin
+    @test lastindex(Dr1) == length(Dr1)
+    @test lastindex(Dr2) == length(Dr2)
+    @test lastindex(Dr3) == length(Dr3)
+    @test lastindex(Sr1) == length(Sr1)
+    @test lastindex(Sr2) == length(Sr2)
+end
+
 @testset "Record" begin
     @test Base.IteratorSize(typeof(Dr1)) == Base.HasShape{1}()
     @test Base.IteratorSize(typeof(Dr2)) == Base.HasShape{1}()
@@ -150,6 +166,34 @@ u123 = unione(u12, e3)
 u312 = unione(e3, u12)
 u1223 = unione(u12, u23)
 
+@testset "firstindex Record" begin
+    @test firstindex(e1) == 1
+    @test firstindex(e2) == 1
+    @test firstindex(e3) == 1
+    @test firstindex(e4) == 1
+    @test firstindex(u1) == 1
+    @test firstindex(u12) == 1
+    @test firstindex(u23) == 1
+    @test firstindex(ur) == 1
+    @test firstindex(u123) == 1
+    @test firstindex(u312) == 1
+    @test firstindex(u1223) == 1
+end
+
+@testset "lastindex Record" begin
+    @test lastindex(e1) == length(e1)
+    @test lastindex(e2) == length(e2)
+    @test lastindex(e3) == length(e3)
+    @test lastindex(e4) == length(e4)
+    @test lastindex(u1) == length(u1)
+    @test lastindex(u12) == length(u12)
+    @test lastindex(u23) == length(u23)
+    @test lastindex(ur) == length(ur)
+    @test lastindex(u123) == length(u123)
+    @test lastindex(u312) == length(u312)
+    @test lastindex(u1223) == length(u1223)
+end
+2
 @testset "Entry" begin
     @test eltype(e1) == Pair{Int,Int}
     @test eltype(e2) == Pair{Int,Int}
