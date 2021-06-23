@@ -27,7 +27,7 @@ jobs:
           - os: macOS-latest
             arch: x86
     env:
-      JULIA_RA_DOBENCH = true
+      JULIA_RA_DOBENCH: true
 
     steps:
       - uses: actions/checkout@v2
