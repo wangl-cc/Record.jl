@@ -46,6 +46,8 @@ function Base.show(io::IO, ::MIME"text/plain", r::Record)
         type = " dynamic "
     elseif A isa StaticRArray
         type = " static "
+    else
+        type = " "
     end
     if isempty(ns)
         print(io, "0-dimensional")

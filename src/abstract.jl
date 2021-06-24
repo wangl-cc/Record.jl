@@ -229,4 +229,7 @@ _testa(A::Array) = _TestArray(A)
 _testa(x::Number) = _TestArray(x)
 _testa(As::Array...) = map(_testa, As)
 
+rlength(A::_TestArray) = length(A.A)
+rsize(A::_TestArray) = size(A.A)
+
 # vim:tw=92:ts=4:sw=4:et
