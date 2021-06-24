@@ -15,6 +15,11 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
 @testset "RecordedArrays" begin
     if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
         doctest(RecordedArrays; testset="Doctests", doctestfilters=filters)
+
+        @testset "show" begin
+            include("show.jl")
+        end
+
     end
 
     @testset "Base" begin
@@ -31,10 +36,6 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
 
     @testset "Interfaces" begin
         include("interface.jl")
-    end
-
-    @testset "show" begin
-        include("show.jl")
     end
 end
 
