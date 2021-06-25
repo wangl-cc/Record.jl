@@ -17,7 +17,7 @@ end
 function StaticRArray(t::AbstractClock, v::AbstractVector)
     v = collect(v)
     n = length(v)
-    s = fill(now(t), n)
+    s = fill(currenttime(t), n)
     e = fill(limit(t), n)
     delete = zeros(Bool, n)
     return StaticRVector(v, copy(v), delete, t, s, e, fill(n), collect(1:n))
@@ -34,7 +34,7 @@ function Base.push!(A::StaticRVector{V}, v::V) where {V}
     push!(A.delete, false)
     ind = A.indmax[] += 1
     push!(A.indmap, ind)
-    push!(A.s, now(A.t))
+    push!(A.s, currenttime(A.t))
     push!(A.e, limit(A.t))
     return A
 end
@@ -47,7 +47,7 @@ function Base.insert!(A::StaticRVector{V}, i::Integer, v::V) where {V}
     push!(A.delete, false)
     ind = A.indmax[] += 1
     insert!(A.indmap, i, ind)
-    push!(A.s, now(A.t))
+    push!(A.s, currenttime(A.t))
     push!(A.e, limit(A.t))
     return A
 end
@@ -57,15 +57,14 @@ function Base.deleteat!(A::StaticRVector, i::Integer)
     deleteat!(A.v, i)
     ind = A.indmap[i]
     A.delete[ind] = true
-    A.e[ind] = now(A.t)
+    A.e[ind] = currenttime(A.t)
     deleteat!(A.indmap, i)
     return A
 end
 
-function Base.getindex(r::Record{<:StaticRVector}, i::Integer)
-    @boundscheck i <= length(r) || throw(BoundsError(r, i))
-    A = r.array
-    t = now(A.t)
+function rgetindex(A::StaticRVector, i::Integer)
+    @boundscheck i <= rlength(A) || throw(BoundsError(A, i))
+    t = currenttime(A.t)
     e = ifelse(A.delete[i] || t == start(A.t), A.e[i], t)
     return StaticEntry(A.s[i], e, A.v_all[i])
 end

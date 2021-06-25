@@ -27,14 +27,14 @@ for epoch in c
     push!(Z, 0.1)
     push!(C, 0.1)
     @test n == epoch
-    @test now(c) == t
+    @test currenttime(c) == t
     @test state(X) == V
     @test state(Y) == S
     @test Z[end] ≈ 0.1
     @test state(Z) ≈ C
 end
 
-@test now(c) ≈ 0.0
+@test currenttime(c) ≈ 0.0
 
 @test size(record(X)) == size(X)
 @test length(record(X)) == length(X)

@@ -1,7 +1,5 @@
 # This API is inspired ny `plot` API of DifferentialEquations.jl
 # but they are not same or compatible for all vars
-const RecEntry = Union{Record,AbstractEntry}
-
 @recipe function f(r::RecEntry; vars=())
     seriestype --> :path
     return selectrecs(r, vars)

@@ -6,7 +6,7 @@
 RecordedArrays.AbstractClock
 DiscreteClock
 ContinuousClock
-now
+currenttime
 limit
 start
 init!

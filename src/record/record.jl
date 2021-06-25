@@ -59,6 +59,7 @@ function Base.show(io::IO, ::MIME"text/plain", r::Record)
     print(io, type, typeof(state(r.array)), " with time ", timetype(T))
     return nothing
 end
+Base.getindex(r::Record, i::Int) = rgetindex(r.array, i)
 Base.getindex(r::Record, I::Vector) = [getindex(r, i) for i in I]
 
 """
@@ -337,7 +338,27 @@ abstract type AbstractSearch end
 struct LinearSearch <: AbstractSearch end
 struct BinarySearch <: AbstractSearch end
 
-gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t)
+const RecEntry = Union{Record,AbstractEntry}
+
+gettime(e::RecEntry, t) = gettime(BinarySearch(), e, t)
+
+function gettime(alg, r::Record, t::Real)
+    ret = similar(rarray(r), size(r))
+    for i in eachindex(ret)
+        @inbounds ret[i] = gettime(alg, r[i], t)
+    end
+    return ret
+end
+
+function gettime(alg, r::Record, ts)
+    size_r = size(r)
+    ret = similar(rarray(r), length(ts), size_r...)
+    for ind in CartesianIndices(size_r)
+        sub = @view ret[:, ind.I...]
+        @inbounds gettime!(alg, sub, r[ind.I...], ts)
+    end
+    return ret
+end
 
 function gettime(::LinearSearch, e::DynamicEntry{V}, t::Real) where {V}
     ts = getts(e)

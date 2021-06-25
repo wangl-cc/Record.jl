@@ -193,7 +193,7 @@ end
     @test lastindex(u312) == length(u312)
     @test lastindex(u1223) == length(u1223)
 end
-2
+
 @testset "Entry" begin
     @test eltype(e1) == Pair{Int,Int}
     @test eltype(e2) == Pair{Int,Int}
@@ -264,6 +264,7 @@ end
     @test gettime(alg, u123, 0) == [1, 0, 1]
     @test gettime(alg, u312, 0) == [1, 1, 0]
     @test gettime(alg, u1223, 0) == [1, 0, 0, 1]
+    @test gettime(alg, Dr1, 0) == [1, 0]
 
     @test gettime(alg, e1, 1) == 2
     @test gettime(alg, e2, 1) == 2
@@ -276,6 +277,7 @@ end
     @test gettime(alg, u123, 1) == [2, 2, 1]
     @test gettime(alg, u312, 1) == [1, 2, 2]
     @test gettime(alg, u1223, 1) == [2, 2, 2, 1]
+    @test gettime(alg, Dr1, 1) == [2, 2]
 
     @test gettime(alg, e1, 2) == 2
     @test gettime(alg, e2, 2) == 2
@@ -288,6 +290,7 @@ end
     @test gettime(alg, u123, 2) == [2, 2, 0]
     @test gettime(alg, u312, 2) == [0, 2, 2]
     @test gettime(alg, u1223, 2) == [2, 2, 2, 0]
+    @test gettime(alg, Dr1, 2) == [2, 2]
 
     @test gettime(alg, e1, 0:2) == [1, 2, 2]
     @test gettime(alg, e2, 0:2) == [0, 2, 2]
@@ -300,4 +303,5 @@ end
     @test gettime(alg, u123, 0:2) == [1 0 1; 2 2 1; 2 2 0]
     @test gettime(alg, u312, 0:2) == [1 1 0; 1 2 2; 0 2 2]
     @test gettime(alg, u1223, 0:2) == [1 0 0 1; 2 2 2 1; 2 2 2 0]
+    @test gettime(alg, Dr1, 0:2) == [1 0; 2 2; 2 2]
 end

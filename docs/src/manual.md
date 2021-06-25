@@ -12,7 +12,7 @@ Once you have defined a `Clock`, like:
 c = ContinuousClock(10.0);
 ```
 which create a `ContinuousClock` start at ``t=0`` and end at `t=10`.
-Your can get the current time by [`now`](@ref), and update the current time by
+Your can get the current time by [`currenttime`](@ref), and update the current time by
 [`increase!`](@ref) (**you can't updated a `DiscreteClock` by `increase!`**).
 
 `Clock`s also provide the iterator interfaces:

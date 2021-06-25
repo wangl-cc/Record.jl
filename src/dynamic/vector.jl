@@ -15,7 +15,7 @@ end
 function DynamicRArray(t::AbstractClock, v::AbstractVector)
     n = length(v)
     vs = map(i -> [i], v)
-    ts = map(_ -> [now(t)], 1:n)
+    ts = map(_ -> [currenttime(t)], 1:n)
     indmap = collect(1:n)
     return DynamicRVector(collect(v), t, vs, ts, fill(n), indmap)
 end
@@ -30,7 +30,7 @@ function Base.push!(A::DynamicRVector{T}, v::T) where {T}
     ind = A.indmax[] += 1
     push!(A.indmap, ind)
     push!(A.vs, [v])
-    push!(A.ts, [now(A.t)])
+    push!(A.ts, [currenttime(A.t)])
     return A
 end
 Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
@@ -41,7 +41,7 @@ function Base.insert!(A::DynamicRVector{V}, i::Integer, v::V) where {V}
     ind = A.indmax[] += 1
     insert!(A.indmap, i, ind)
     push!(A.vs, [v])
-    push!(A.ts, [now(A.t)])
+    push!(A.ts, [currenttime(A.t)])
     return A
 end
 Base.insert!(A::DynamicRVector{T}, i::Integer, v) where {T} = insert!(A, i, convert(T, v))
@@ -51,7 +51,7 @@ function Base.setindex!(A::DynamicRVector, v, i::Int)
     A.v[i] = v
     ind = A.indmap[i]
     push!(A.vs[ind], v)
-    push!(A.ts[ind], now(A.t))
+    push!(A.ts[ind], currenttime(A.t))
     return A
 end
 
@@ -62,8 +62,7 @@ function Base.deleteat!(A::DynamicRVector, i::Integer)
     return A
 end
 
-function Base.getindex(r::Record{<:DynamicRVector}, i::Integer)
-    @boundscheck i <= length(r) || throw(BoundsError(r, i))
-    A = r.array
+function rgetindex(A::DynamicRVector, i::Int)
+    @boundscheck i <= rlength(A) || throw(BoundsError(A, i))
     return DynamicEntry(A.ts[i], A.vs[i])
 end

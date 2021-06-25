@@ -6,11 +6,11 @@ Supertype of clocks with time of type `T`.
 abstract type AbstractClock{T<:Real} end
 
 """
-    now(c::AbstractClock)
+    currenttime(c::AbstractClock)
 
 Return current time of clock `c`.
 """
-function now end
+function currenttime end
 
 """
     limit(c::AbstractClock)
@@ -52,21 +52,21 @@ will be applied.  `DiscreteClock(stop)` will create a clock with `start=0` and
 ```jldoctest
 julia> c = DiscreteClock(0:3);
 
-julia> now(c)
+julia> currenttime(c)
 0
 
-julia> [(t, now(c)) for t in c]
+julia> [(t, currenttime(c)) for t in c]
 3-element Vector{Tuple{Int64, Int64}}:
  (1, 1)
  (2, 2)
  (3, 3)
 
-julia> now(c)
+julia> currenttime(c)
 0
 
 julia> c = DiscreteClock(3); # similar to DiscreteClock(0:3)
 
-julia> (now(c), collect(c))
+julia> (currenttime(c), collect(c))
 (0, [1, 2, 3])
 ```
 """
@@ -102,7 +102,7 @@ function _itr_update!(c::DiscreteClock{T,I}, ret::Tuple{T,Any}) where {T,I}
 end
 
 # clock interfaces
-now(c::DiscreteClock) = c.current[]
+currenttime(c::DiscreteClock) = c.current[]
 limit(c::DiscreteClock) = last(c.timelist)
 init!(c::DiscreteClock) = c.current[] = c.start
 start(c::DiscreteClock) = c.start
@@ -115,7 +115,7 @@ A clock for continuous-time process. Unlike the [`DiscreteClock`](@ref DiscreteC
 during iteration, the current time will not be update automatically, but update by
 [`increase!`](@ref increase!) manually. Besides the epoch of current iteration instead of
 current time will be returned. If the `max_epoch` is specified, the iteration will break
-when epoch reach to the `max_epoch`, even `now(c) < limit(c)`, and break in this way the
+when epoch reach to the `max_epoch`, even `currenttime(c) < limit(c)`, and break in this way the
 [`init!(c)`](@ref init!) will not be applied.
 
 # Examples
@@ -125,20 +125,20 @@ julia> c = ContinuousClock(3.0; max_epoch=2);
 
 julia> for epoch in c
            increase!(c, 1)
-           println(now(c), '\t', epoch)
+           println(currenttime(c), '\t', epoch)
        end
 1.0	1
 2.0	2
 
 julia> for epoch in c
            increase!(c, 1)
-           println(now(c), '\t', epoch)
+           println(currenttime(c), '\t', epoch)
        end
 3.0	1
 
 julia> for epoch in c
            increase!(c, 1)
-           println(now(c), '\t', epoch)
+           println(currenttime(c), '\t', epoch)
        end
 1.0	1
 2.0	2
@@ -167,17 +167,17 @@ function ContinuousClock(
 end
 
 # iterator interfaces
-Base.IteratorSize(::Type{<:ContinuousClock}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{<:ContinuousClock}) = Base.SizeUnkcurrenttimen()
 Base.eltype(::ContinuousClock{T}) where {T} = T
-Base.iterate(c::ContinuousClock) = now(c) < limit(c) ? _itr(c.epoch) : (init!(c); nothing)
+Base.iterate(c::ContinuousClock) = currenttime(c) < limit(c) ? _itr(c.epoch) : (init!(c); nothing)
 Base.iterate(c::ContinuousClock, state) =
-    now(c) < limit(c) ? _itr(c.epoch, state) : (init!(c); nothing)
+    currenttime(c) < limit(c) ? _itr(c.epoch, state) : (init!(c); nothing)
 
 _itr(::Nothing, i::Int=1) = (i, i + 1)
 _itr(lim::Integer, i::Integer=one(lim)) = ifelse(i > lim, nothing, (i, i + 1))
 
 # clock interfaces
-now(c::ContinuousClock) = c.current[]
+currenttime(c::ContinuousClock) = c.current[]
 limit(c::ContinuousClock) = c.stop
 start(c::ContinuousClock) = c.start
 init!(c::ContinuousClock) = c.current[] = start(c)
@@ -185,7 +185,7 @@ init!(c::ContinuousClock) = c.current[] = start(c)
 """
     increase!(c::ContinuousClock, t::Real)
 
-Update current time of clock `c` to `now(c) + t`.
+Update current time of clock `c` to `currenttime(c) + t`.
 """
 increase!(c::ContinuousClock, t::Real) = c.current[] += t
 
