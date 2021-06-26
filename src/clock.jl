@@ -169,7 +169,8 @@ end
 # iterator interfaces
 Base.IteratorSize(::Type{<:ContinuousClock}) = Base.SizeUnkcurrenttimen()
 Base.eltype(::ContinuousClock{T}) where {T} = T
-Base.iterate(c::ContinuousClock) = currenttime(c) < limit(c) ? _itr(c.epoch) : (init!(c); nothing)
+Base.iterate(c::ContinuousClock) =
+    currenttime(c) < limit(c) ? _itr(c.epoch) : (init!(c); nothing)
 Base.iterate(c::ContinuousClock, state) =
     currenttime(c) < limit(c) ? _itr(c.epoch, state) : (init!(c); nothing)
 

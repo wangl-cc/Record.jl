@@ -47,7 +47,8 @@ function setclock(A::AbstractRArray, c::AbstractClock)
     return (typeof(A))(flds_new...)
 end
 
-setclock_internal(xi, ::AbstractClock, stackdict) = Base.deepcopy_internal(xi, stackdict)::typeof(xi)
+setclock_internal(xi, ::AbstractClock, stackdict) =
+    Base.deepcopy_internal(xi, stackdict)::typeof(xi)
 setclock_internal(::AbstractClock, c::AbstractClock, _) = c
 
 function rlength end

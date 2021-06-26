@@ -16,8 +16,10 @@ struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
     vs::Vector{V}
     ts::Vector{T}
 end
-DynamicRArray(t::AbstractClock, v::Number) = DynamicRScalar(fill(v), t, [v], [currenttime(t)])
-DynamicRArray(t::AbstractClock, v::Array{<:Any,0}) = DynamicRScalar(v, t, [v[]], [currenttime(t)])
+DynamicRArray(t::AbstractClock, v::Number) =
+    DynamicRScalar(fill(v), t, [v], [currenttime(t)])
+DynamicRArray(t::AbstractClock, v::Array{<:Any,0}) =
+    DynamicRScalar(v, t, [v[]], [currenttime(t)])
 
 state(A::DynamicRScalar) = A.v[]
 

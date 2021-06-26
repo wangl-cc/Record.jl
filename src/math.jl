@@ -32,12 +32,9 @@ end
 
 # arithmetic operators for number
 for f in (:+, :-, :*, :/, :\, :^)
-    @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) =
-        ($f)(state(A), state(B))
-    @eval @inline ($f)(A::Number, B::AbstractRScalar) =
-        ($f)(A, state(B))
-    @eval @inline ($f)(A::AbstractRScalar, B::Number) =
-        ($f)(state(A), B)
+    @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) = ($f)(state(A), state(B))
+    @eval @inline ($f)(A::Number, B::AbstractRScalar) = ($f)(A, state(B))
+    @eval @inline ($f)(A::AbstractRScalar, B::Number) = ($f)(state(A), B)
 end
 
 ## data movement ##
@@ -51,7 +48,8 @@ end
 
 # for DenseArray BLAS
 Base.pointer(A::AbstractRArray) = pointer(state(A))
-Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} = Base.unsafe_convert(Ptr{T}, state(A))
+Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} =
+    Base.unsafe_convert(Ptr{T}, state(A))
 
 ## broadcast
 @inline broadcastable(r::AbstractRArray) = state(r)

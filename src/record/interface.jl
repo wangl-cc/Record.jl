@@ -9,7 +9,7 @@ const T0 = Val(:t)
 const T0_T = Val{:t}
 
 const RA_INDEX = Union{Integer,Base.AbstractCartesianIndex}
-const RA_TIME  = AbstractArray{<:Real}
+const RA_TIME = AbstractArray{<:Real}
 
 """
     selectrecs(r::Union{Record,AbstractEntry}, [vars])
@@ -80,7 +80,8 @@ function _selectrecs(r::RecEntry, is::RA_INDEX...)
 end
 
 # select with ts
-selectrecs(r::RecEntry, ts::RA_TIME, ::T0_T, is::RA_INDEX...) = ts, _selectrecs(r, ts, is...)...
+selectrecs(r::RecEntry, ts::RA_TIME, ::T0_T, is::RA_INDEX...) =
+    ts, _selectrecs(r, ts, is...)...
 selectrecs(r::RecEntry, ts::RA_TIME, is::RA_INDEX...) = _selectrecs(r, ts, is...)
 function _selectrecs(r::RecEntry, ts::RA_TIME, is::RA_INDEX...)
     es = _getindex_tuple(r, is...)

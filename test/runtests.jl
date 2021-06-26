@@ -19,7 +19,6 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
         @testset "show" begin
             include("show.jl")
         end
-
     end
 
     @testset "Base" begin

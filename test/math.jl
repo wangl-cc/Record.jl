@@ -28,7 +28,6 @@ A = rand(ComplexF64, 2, 2, 2) # 3-rank array
 
 tS, tV, tM, tA = RecordedArrays._testa(fill(S), V, M, A) # test arrays
 
-
 @testset "Unary Operations: $f" for f in (:+, :-, :conj, :real, :imag)
     @eval begin
         @test $f(tS) == $f(S)
