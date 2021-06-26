@@ -103,8 +103,8 @@ Get last time of given `e`.
 tspan(e::AbstractEntry) = (tse = getts(e); tse[end] - tse[1])
 
 """
-    gettime(e::AbstractEntry{V}, t::Real) -> V
-    gettime(e::AbstractEntry{V}, ts) -> Vector{V}
+    gettime(e::Union{Record,AbstractEntry}, t::Real)
+    gettime(e::Union{Record,AbstractEntry}, ts)
 
 Get the value(s) of `e` at time `t`, If `t` is not in `ts(e)`, return value at time
 `ts(e)[i]` where `ts(e)[i] < t < ts(e)[i+1]`. If a iterator of time `ts` is given,
