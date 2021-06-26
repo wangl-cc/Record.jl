@@ -5,6 +5,11 @@
     return selectrecs(r, vars)
 end
 
+@recipe function f(rs::RecEntry...; vars=())
+    seriestype --> :path
+    return [selectrecs(r, vars) for r in rs]
+end
+
 const T0 = Val(:t)
 const T0_T = Val{:t}
 
@@ -89,8 +94,8 @@ function _selectrecs(r::RecEntry, ts::RA_TIME, is::RA_INDEX...)
 end
 
 # select with only one index
-selectrecs(r::RecEntry, i1::Integer) = selectrecs(r, T0, i1)
-selectrecs(r::RecEntry, ts::RA_TIME, i1::Integer) = selectrecs(r, ts, T0, i1)
+selectrecs(r::RecEntry, i1::RA_INDEX) = selectrecs(r, T0, i1)
+selectrecs(r::RecEntry, ts::RA_TIME, i1::RA_INDEX) = selectrecs(r, ts, T0, i1)
 
 # select with function
 function selectrecs(r::RecEntry, f::Base.Callable, vars...)
