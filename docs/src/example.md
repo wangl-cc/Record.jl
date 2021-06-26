@@ -44,18 +44,18 @@ const r = 0.5
 const K = 100
 
 for _ in c
-    # eval a_i
+    # evaluate a_i
     grow = r * n         # intrinsic growth
     comp = r * n * n / K # resource competition
 
-    sumed = grow + comp  # sum a_i
+    summed = grow + comp  # sum a_i
 
-    τ = -log(rand()) / sumed # compute time intervel
+    τ = -log(rand()) / summed # compute time interval
 
     increase!(c, τ) # update current time
 
-    # sample a reation and adjust population size
-    if rand() * sumed < grow
+    # sample a reaction and adjust population size
+    if rand() * summed < grow
         n[1] += 1
     else
         n[1] -= 1
@@ -64,5 +64,64 @@ for _ in c
     state(n) <= 0 && break # break if population extinct
 end
 
-plot(record(n)...; frame=:box, grid=false, legend=false) # plot population dynamics
+plot(record(n)...; vars=T0, frame=:box, grid=false, legend=false) # plot population dynamics
+```
+
+## Stochastic Predator–prey Dynamics
+
+This is a simple implementation of [Gillespie algorithm](https://en.wikipedia.org/wiki/Gillespie_algorithm)
+with direct method to simulate a
+[Predator–prey Dynamics](https://en.wikipedia.org/wiki/Lotka–Volterra_equations).
+
+```@example predator_prey
+using RecordedArrays
+using Plots
+using Random
+
+Random.seed!(1)
+
+c = ContinuousClock(100.0) # define a clock, the population will growth for 100 time unit
+n = DynamicRArray(c, [100, 100])  # define a vector to record population size (n[1] for prey, n[2] for predator)
+
+α = 0.5
+β = 0.001
+δ = 0.001
+γ = 0.5
+
+for _ in c
+    n[2] == 0 && break
+
+    # evaluate a_i
+    grow = α * n[1] # intrinsic growth of prey
+    predation_prey = β * n[1] * n[2] # predation cause death of prey
+    predation_pred = δ * n[1] * n[2] # predation cause reproduction of predator
+    death = γ * n[2] # intrinsic death of prey
+
+    summed = grow + predation_prey + predation_pred + death
+
+    summed <= 0 && break
+    
+    τ = -log(rand()) / summed # compute time interval
+
+    increase!(c, τ) # update current time
+
+    # sample a reaction and adjust population size
+    r1 = rand() * summed
+
+    if (r1 -= grow; r1 < 0)
+        n[1] += 1
+    elseif (r1 -= predation_prey; r1 < 0)
+        n[1] -= 1
+    elseif (r1 -= predation_pred; r1 < 0)
+        n[2] += 1
+    else
+        n[2] -= 1
+    end
+end
+
+plot(record(n)...; vars=T0, frame=:box, grid=false, legend=false) # plot population dynamics
+```
+
+```@example predator_prey
+plot(record(n); frame=:box, grid=false, legend=false) # plot phase space
 ```
