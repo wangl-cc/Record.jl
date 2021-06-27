@@ -21,6 +21,10 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
         end
     end
 
+    @testset "Clock" begin
+        include("clock.jl")
+    end
+
     @testset "Base" begin
         include("base.jl")
     end
