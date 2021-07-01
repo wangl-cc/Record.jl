@@ -61,14 +61,10 @@ end
 end
 
 @testset "elsize" begin
-    @test elsize(DS1) == 8
-    @test elsize(DS2) == 8
-    @test elsize(DV1) == 8
-    @test elsize(DV2) == 8
-    @test elsize(SV1) == 8
-
-    for A in DynamicRArray{Int8}(c, 1, fill(1), [1], 1:2)
-        @test elsize(A) == 1
+    for T in (Int8, Int16, Int32, Int64)
+        for A in DynamicRArray{T}(c, 1, fill(1), [1], 1:2)
+            @test elsize(A) == sizeof(T)
+        end
     end
 end
 
