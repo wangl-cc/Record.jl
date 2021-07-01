@@ -13,7 +13,7 @@ its current state [`state(A)`](@ref state).
     Avoid to edit recorded arrays out of loop, because clocks will initial
     automatically during loop.
 """
-abstract type AbstractRArray{V,T<:Real,N} <: DenseArray{V,N} end # Dense for BLAS
+abstract type AbstractRArray{V,T<:Real,N} <: DenseArray{V,N} end # Dense for Array math
 
 # type alias
 const AbstractRScalar{V,T} = AbstractRArray{V,T,0}
@@ -54,7 +54,7 @@ setclock_internal(::AbstractClock, c::AbstractClock, _) = c
 function rlength end
 function rsize end
 
-# array interface
+# Abstract Arrays interfaces
 Base.IndexStyle(::Type{<:AbstractRArray}) = IndexLinear()
 Base.length(A::AbstractRArray) = length(state(A))
 Base.size(A::AbstractRArray) = size(state(A))
@@ -64,6 +64,11 @@ function Base.show(io::IO, ::MIME"text/plain", A::AbstractRArray)
     print(io, "recorded ")
     return show(io, MIME("text/plain"), state(A))
 end
+# Strided Arrays interfaces
+## strides(A) and stride(A, i::Int) have definded for DenseArray
+Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} =
+    Base.unsafe_convert(Ptr{T}, state(A)) # will in BLAS
+Base.elsize(::Type{<:AbstractRArray{T}}) where {T} = Base.elsize(Array{T})
 
 # static
 """

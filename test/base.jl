@@ -1,4 +1,5 @@
 using RecordedArrays: rsize, rlength, StaticEntry, DynamicEntry
+using Base: elsize
 
 # init test vars
 c = DiscreteClock(1)
@@ -57,6 +58,18 @@ end
     @test size(DV2) == (2,)
     @test size(SV1) == (1,)
     @test size(SV2) == (2,)
+end
+
+@testset "elsize" begin
+    @test elsize(DS1) == 8
+    @test elsize(DS2) == 8
+    @test elsize(DV1) == 8
+    @test elsize(DV2) == 8
+    @test elsize(SV1) == 8
+
+    for A in DynamicRArray{Int8}(c, 1, fill(1), [1], 1:2)
+        @test elsize(A) == 1
+    end
 end
 
 # push! and delateat!

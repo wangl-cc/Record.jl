@@ -12,15 +12,17 @@ const NRArray{T} = Union{Array{T},AbstractRArray{T}}
 
 ## Unary arithmetic operators ##
 @inline +(A::AbstractRArray{<:Number}) = state(A) # do nothing for better performance
+# force reutrn number for AbstractRScalar
 for f in (:-, :conj, :real, :imag, :transpose, :adjoint)
-    @eval @inline ($f)(r::AbstractRArray) = ($f)(state(r))
+    @eval @inline ($f)(r::AbstractRScalar) = ($f)(state(r))
 end
 
 ## Binary arithmetic operators ##
-# +(A, B) and -(A, B) implemented in arraymath, this is + for more than two args
-+(A::NRArray, Bs::NRArray...) = +(state(A), state(Bs)...)
+# +(A, B) and -(A, B) implemented in arraymath
+# this is + for more than two args to avoid allocation by afoldl
+@inline +(A::NRArray, Bs::NRArray...) = +(state(A), state(Bs)...)
 
-# * / \ for Array and Number is in arraymath, this is for Scalar
+# * / \ for Array and Number is in arraymath, there are interfaces for RScalar
 for f in (:/, :\, :*)
     if f !== :/
         @eval @inline ($f)(A::AbstractRScalar, B::NRArray) = $f(state(A), state(B))
@@ -30,26 +32,24 @@ for f in (:/, :\, :*)
     end
 end
 
-# arithmetic operators for number
+# arithmetic operators for Number and RScalar
 for f in (:+, :-, :*, :/, :\, :^)
     @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) = ($f)(state(A), state(B))
     @eval @inline ($f)(A::Number, B::AbstractRScalar) = ($f)(A, state(B))
     @eval @inline ($f)(A::AbstractRScalar, B::Number) = ($f)(state(A), B)
 end
 
+# other arraymath math like matrix * vector was implemented for densearray
+
 ## data movement ##
 # recevse! is forbiden
 if VERSION >= v"1.6"
-    reverse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims=dims)
+    @inline reverse(A::AbstractRArray; dims=:) = reverse!(copy(state(A)); dims=dims)
 else
-    reverse(A::AbstractRVector) = reverse(state(A))
-    reverse(A::AbstractRArray; dims::Integer) = reverse(state(A); dims=dims)
+    # for julia 1.0-1.5, the kwargs dims=: is not allowed
+    @inline reverse(A::AbstractRVector) = reverse(state(A))
+    @inline reverse(A::AbstractRArray; dims::Integer) = reverse(state(A); dims=dims)
 end
-
-# for DenseArray BLAS
-Base.pointer(A::AbstractRArray) = pointer(state(A))
-Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} =
-    Base.unsafe_convert(Ptr{T}, state(A))
 
 ## broadcast
 @inline broadcastable(r::AbstractRArray) = state(r)
