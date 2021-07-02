@@ -9,31 +9,19 @@ end
 c = DiscreteClock(1)
 
 @testset "show: dynamic" begin
-    S, V = DynamicRArray(c, ones(), ones(1))
-    @test stringshow(S) == "recorded 1.0"
-    @test stringshow(V) == "recorded 1-element Vector{Float64}:\n 1.0"
-    @test stringshow(record(S)) ==
-          "record for 0-dimensional dynamic Float64 with time Int64"
-    @test stringshow(record(V)) ==
-          "record for 1-element dynamic Vector{Float64} with time Int64"
+    for A in DynamicRArray(c, ones(), ones(1))
+        @test stringshow(record(A)) == "record for $(summary(A))"
+    end
 end
 
 @testset "show: static" begin
-    S, V = DynamicRArray(c, ones(), ones(1))
-    @test stringshow(S) == "recorded 1.0"
-    @test stringshow(V) == "recorded 1-element Vector{Float64}:\n 1.0"
-    @test stringshow(record(S)) ==
-          "record for 0-dimensional dynamic Float64 with time Int64"
-    @test stringshow(record(V)) ==
-          "record for 1-element dynamic Vector{Float64} with time Int64"
+    for A in StaticRArray(c, ones(1), ones(1)) # the second ones is a placaholder
+        @test stringshow(record(A)) == "record for $(summary(A))"
+    end
 end
 
 @testset "show: test" begin
-    S, V, M = _testa(ones(), ones(1), ones(1, 1))
-    @test stringshow(S) == "recorded 1.0"
-    @test stringshow(V) == "recorded 1-element Vector{Float64}:\n 1.0"
-    @test stringshow(M) == "recorded 1×1 Matrix{Float64}:\n 1.0"
-    @test stringshow(record(S)) == "record for 0-dimensional Float64 with time Int64"
-    @test stringshow(record(V)) == "record for 1-element Vector{Float64} with time Int64"
-    @test stringshow(record(M)) == "record for 1×1 Matrix{Float64} with time Int64"
+    for A in _testa(ones(), ones(1), ones(1, 1))
+        @test stringshow(record(A)) == "record for $(summary(A))"
+    end
 end

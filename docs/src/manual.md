@@ -56,11 +56,15 @@ implemented or any performance loss, leaving me an issue or create a pull
 request on GitHub will be helpful.
 
 However, there are too many functions to implement everyone. Warping your
-`RecordedArray` with `state` is a common solution, like:
+`RecordedArray` with `state` or convert it `convert` are common solution:
+like:
 ```julia
 state(dV)
+convert(Vector{eltype(dV)}, dV)
 ```
-which will return a normal `Array`.
+which will return a normal `Array`. Note, `state(dV)` don't allocate but may be
+unsafe for matrix and higher dimension array because of `unsafe_wrap` and
+`unsafe_convert`.
 
 If you want to mutate `RecordedArray`s, they have the same API as `Array`.
 You can change the value at given index by `dV[i]` (**only for `DynamicRArray`**)

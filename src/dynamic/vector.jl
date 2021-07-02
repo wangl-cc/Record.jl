@@ -4,12 +4,12 @@
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
 """
-struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
+mutable struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
     v::Vector{V}
     t::C
     vs::Vector{Vector{V}}
     ts::Vector{Vector{T}}
-    indmax::Array{I,0}
+    indmax::I
     indmap::Vector{I}
 end
 function DynamicRArray(t::AbstractClock, v::AbstractVector)
@@ -17,17 +17,15 @@ function DynamicRArray(t::AbstractClock, v::AbstractVector)
     vs = map(i -> [i], v)
     ts = map(_ -> [currenttime(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(collect(v), t, vs, ts, fill(n), indmap)
+    return DynamicRVector(collect(v), t, vs, ts, n, indmap)
 end
 
-state(A::DynamicRVector) = A.v
-
-rlength(A::DynamicRVector) = A.indmax[]
+rlength(A::DynamicRVector) = A.indmax
 rsize(A::DynamicRVector) = (rlength(A),)
 
 function Base.push!(A::DynamicRVector{T}, v::T) where {T}
     push!(A.v, v)
-    ind = A.indmax[] += 1
+    ind = A.indmax += 1
     push!(A.indmap, ind)
     push!(A.vs, [v])
     push!(A.ts, [currenttime(A.t)])
@@ -38,7 +36,7 @@ Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
 # only insert for state not in record
 function Base.insert!(A::DynamicRVector{V}, i::Integer, v::V) where {V}
     insert!(A.v, i, v)
-    ind = A.indmax[] += 1
+    ind = A.indmax += 1
     insert!(A.indmap, i, ind)
     push!(A.vs, [v])
     push!(A.ts, [currenttime(A.t)])

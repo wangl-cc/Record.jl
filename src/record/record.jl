@@ -39,24 +39,7 @@ function Base.iterate(r::Record, state=1)
 end
 function Base.show(io::IO, ::MIME"text/plain", r::Record)
     print(io, "record for ")
-    ns = size(r)
-    A = r.array
-    T = typeof(A)
-    if A isa DynamicRArray
-        type = " dynamic "
-    elseif A isa StaticRArray
-        type = " static "
-    else
-        type = " "
-    end
-    if isempty(ns)
-        print(io, "0-dimensional")
-    elseif length(ns) == 1
-        print(io, ns[1], "-element")
-    else
-        join(io, ns, "×")
-    end
-    print(io, type, typeof(state(r.array)), " with time ", timetype(T))
+    summary(io, rarray(r))
     return nothing
 end
 Base.getindex(r::Record, i::Int) = rgetindex(r.array, i)
@@ -274,13 +257,17 @@ elements of Record `r`.
 ```jldoctest
 julia> c = DiscreteClock(3);
 
+
 julia> v = DynamicRArray(c, [1, 1, 1]);
+
 
 julia> for t in c
            v[t] = 2
        end
 
+
 julia> ea, eb, ec = record(v);
+
 
 julia> ue = unione(ea, eb)
 Record Entry

@@ -30,44 +30,55 @@ Get current state of recorded array `A`. API for mathematical operations.
 """
 function state end
 
-@inline state(A::AbstractArray) = A
-@inline state(As::AbstractArray...) = map(state, As)
+# Note:
+# `_state` is a internal API which will be called by other function in this Package
+# state is a export api which will be called by user
+# the return of `_state` should be a vector (for array rank >= 1) or a number (for scalar),
+# but the return of `state` should be a array with the same size
+state(A::AbstractRScalar) = _state(A)
+state(A::AbstractRVector) = _state(A)
+state(A::AbstractRArray{V,T,N}) where {V,T,N} = # maybe unsafe
+    unsafe_wrap(Array{V,N}, Base.unsafe_convert(Ptr{V}, A), _size(A))
 @inline state(As::Tuple) = map(state, As)
 
 """
-    setclock(A::AbstractRArray, c::AbstractClock)
+    setclock!(A::AbstractRArray, c::AbstractClock)
+
+Assign the clock of `A` to `c`.
+Non-mutating setclock for `A`. It will create a deepcopy of `A` besides 
+the clock field, which will be assigned to `c`.
+"""
+setclock!(A::AbstractRArray, c::AbstractClock) = _setclock!(A, c)
+_setclock!(A::AbstractRArray, c::AbstractClock) = A.t = c
+
+"""
+    setclock!(A::AbstractRArray, c::AbstractClock)
 
 Non-mutating setclock for `A`. It will create a deepcopy of `A` besides 
 the clock field, which will be assigned to `c`.
 """
-function setclock(A::AbstractRArray, c::AbstractClock)
-    stackdict = IdDict()
-    flds = ntuple(i -> getfield(A, i), nfields(A)) # split for type stable
-    flds_new = map(fld -> setclock_internal(fld, c, stackdict), flds)
-    return (typeof(A))(flds_new...)
-end
-
-setclock_internal(xi, ::AbstractClock, stackdict) =
-    Base.deepcopy_internal(xi, stackdict)::typeof(xi)
-setclock_internal(::AbstractClock, c::AbstractClock, _) = c
+setclock(A::AbstractRArray, c::AbstractClock) = (Ac = deepcopy(A); setclock!(Ac, c); Ac)
 
 function rlength end
 function rsize end
 
+# internal API
+@inline _state(A::AbstractRArray) = A.v
+@inline _state(A::AbstractArray) = A
+@inline _length(A::AbstractRArray) = length(_state(A))
+@inline _size(A::AbstractRScalar) = ()
+@inline _size(A::AbstractRVector) = (_length(A),)
+@inline _size(A::AbstractRArray) = A.sz
+
 # Abstract Arrays interfaces
 Base.IndexStyle(::Type{<:AbstractRArray}) = IndexLinear()
-Base.length(A::AbstractRArray) = length(state(A))
-Base.size(A::AbstractRArray) = size(state(A))
-Base.getindex(A::AbstractRArray, I::Int...) = getindex(state(A), I...)
-Base.elsize(::Type{<:AbstractRArray{V,T,N}}) where {V,T,N} = Base.elsize(Array{V,N})
-function Base.show(io::IO, ::MIME"text/plain", A::AbstractRArray)
-    print(io, "recorded ")
-    return show(io, MIME("text/plain"), state(A))
-end
+Base.length(A::AbstractRArray) = _length(A)
+Base.size(A::AbstractRArray) = _size(A)
+Base.getindex(A::AbstractRArray, i::Int) = getindex(_state(A), i)
 # Strided Arrays interfaces
 ## strides(A) and stride(A, i::Int) have definded for DenseArray
 Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} =
-    Base.unsafe_convert(Ptr{T}, state(A)) # will in BLAS
+    Base.unsafe_convert(Ptr{T}, _state(A))
 Base.elsize(::Type{<:AbstractRArray{T}}) where {T} = Base.elsize(Array{T})
 
 # static
@@ -90,8 +101,9 @@ Implemented statical arrays:
 ```jldoctest
 julia> c = DiscreteClock(3);
 
+
 julia> v = StaticRArray(c, [0, 1, 2])
-recorded 3-element Vector{Int64}:
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
  0
  1
  2
@@ -101,8 +113,9 @@ julia> for epoch in c
            deleteat!(v, 1)   # delete a element
        end
 
+
 julia> v # there are still three element now
-recorded 3-element Vector{Int64}:
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
  3
  4
  5
@@ -121,21 +134,9 @@ julia> gettime(record(v)[1], 2)[1] # element after deletion is 0
 ```
 """
 abstract type StaticRArray{V,T,N} <: AbstractRArray{V,T,N} end
-function StaticRArray(t::AbstractClock, x1, x2)
-    return StaticRArray(t, x1), StaticRArray(t, x2)
-end
-function StaticRArray(t::AbstractClock, x1, x2, xs...)
-    return StaticRArray(t, x1), StaticRArray(t, x2, xs...)::Tuple...
-end
-function StaticRArray{V}(t::AbstractClock, x) where {V}
-    return StaticRArray(t, convert_array(V, x))
-end
-function StaticRArray{V}(t::AbstractClock, x1, x2) where {V}
-    return StaticRArray{V}(t, x1), StaticRArray{V}(t, x2)
-end
-function StaticRArray{V}(t::AbstractClock, x1, x2, xs...) where {V}
-    return StaticRArray{V}(t, x1), StaticRArray{V}(t, x2, xs...)::Tuple...
-end
+StaticRArray(t::AbstractClock, xs...) = map(x -> StaticRArray(t, x), xs)
+StaticRArray{V}(t::AbstractClock, x) where {V} = StaticRArray(t, convert_array(V, x))
+StaticRArray{V}(t::AbstractClock, xs...) where {V} = map(x -> StaticRArray{V}(t, x), xs)
 
 # dynamic
 """
@@ -158,13 +159,16 @@ Implemented dynamic arrays:
 ```jldoctest
 julia> c = DiscreteClock(3);
 
+
 julia> s, v = DynamicRArray(c, 0, [0, 1]);
 
+
 julia> s # scalar
-recorded 0
+0-dimensional DynamicRScalar{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+0
 
 julia> v # vector
-recorded 2-element Vector{Int64}:
+2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  0
  1
 
@@ -173,11 +177,13 @@ julia> for epoch in c
            v[1] += 1
        end
 
+
 julia> s
-recorded 3
+0-dimensional DynamicRScalar{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+3
 
 julia> v
-recorded 2-element Vector{Int64}:
+2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  3
  1
 
@@ -227,15 +233,13 @@ convert_array(::Type{T}, x::AbstractArray{<:Any,N}) where {T,N} = convert(Array{
 
 # Type for test math API (some types of RArray are not implemented now)
 struct _TestArray{V,N} <: RecordedArrays.AbstractRArray{V,Int,N}
-    A::Array{V,N}
+    v::Vector{V}
+    sz::NTuple{N,Int}
 end
-state(A::_TestArray) = A.A
-state(A::_TestArray{<:Any,0}) = A.A[1]
-_testa(A::Array) = _TestArray(A)
-_testa(x::Number) = _TestArray(x)
+_testa(A::Array) = _TestArray(vec(A), size(A))
 _testa(As::Array...) = map(_testa, As)
 
-rlength(A::_TestArray) = length(A.A)
-rsize(A::_TestArray) = size(A.A)
+rlength(A::_TestArray) = length(A.v)
+rsize(A::_TestArray) = A.sz
 
 # vim:tw=92:ts=4:sw=4:et

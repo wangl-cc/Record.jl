@@ -4,15 +4,23 @@ using Base: elsize
 # init test vars
 c = DiscreteClock(1)
 DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], 1:2)
-SV1, SV2, _ = StaticRArray(c, [1], 1:2, 1:3)
+SV1, SV2 = StaticRArray(c, [1], 1:2)
 
 @testset "create rarray with {V}" begin
-    UDS1, UDS2, UDV1, UDV2 = DynamicRArray{UInt}(c, UInt(1), fill(1), [1], 1:2)
-    USV1, USV2, USV3 = StaticRArray{UInt}(c, UInt[1], 1:2, 1:3)
-    for (D, UD) in Dict(DS1 => UDS1, DV1 => UDV1, SV1 => USV1)
-        for i in 1:nfields(D)
-            xi = getfield(D, i)
-            xi_u = getfield(UD, i)
+    tests = Iterators.flatten((
+        zip(
+            DynamicRArray(c, 1, fill(1), [1], 1:2),
+            DynamicRArray{Float64}(c, 1, fill(1), [1], 1:2),
+        ),
+        zip(
+            StaticRArray(c, [1], 1:2),
+            StaticRArray{Float64}(c, [1], 1:2),
+        ),
+    ))
+    for (A, UA) in tests
+        for i in 1:nfields(A)
+            xi = getfield(A, i)
+            xi_u = getfield(UA, i)
             if xi isa RecordedArrays.AbstractClock
                 @test xi === c
                 @test xi_u === c
@@ -38,7 +46,7 @@ end
                 @test xi_copy !== c
             else
                 @test xi == xi_copy
-                @test xi !== xi_copy
+                !isbits(xi) && @test xi !== xi_copy
             end
         end
     end
@@ -61,8 +69,11 @@ end
 end
 
 @testset "elsize" begin
-    for T in (Int8, Int16, Int32, Int64)
+    for T in (Int8, Int16, Int32, Int64, Float32, Float64)
         for A in DynamicRArray{T}(c, 1, fill(1), [1], 1:2)
+            @test elsize(A) == sizeof(T)
+        end
+        for A in StaticRArray{T}(c, [1], 1:2)
             @test elsize(A) == sizeof(T)
         end
     end

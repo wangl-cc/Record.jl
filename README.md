@@ -29,7 +29,7 @@ julia> using RecordedArrays # load this package
 julia> c = ContinuousClock(3.0); # define a clock
 
 julia> v = DynamicRArray(c, [0, 1]) # create a recorded array with the clock
-recorded 2-element Vector{Int64}:
+2-element DynamicRVector{Int64, Float64, Int64, ContinuousClock{Float64, Nothing}}:
  0
  1
 
@@ -50,13 +50,13 @@ julia> v[1] += 1 # change array's element
 1
 
 julia> push!(v, 1) # push a new element
-recorded 3-element Vector{Int64}:
+3-element DynamicRVector{Int64, Float64, Int64, ContinuousClock{Float64, Nothing}}:
  1
  1
  1
 
 julia> r = record(v) # view recorded changes by creating a record
-record for 3-element dynamic Vector{Int64} with time Float64
+record for 3-element DynamicRVector{Int64, Float64, Int64, ContinuousClock{Float64, Nothing}}
 
 julia> r[1] # show entries of the first element of v, which changed to 1 at `t=1.0`
 Record Entry
@@ -74,8 +74,8 @@ t: 1-element Vector{Float64}:
 v: 1-element Vector{Int64}:
  1
 
- # if you want to calculate the sum of v at each timestamp
-julia> f(t, x...) = t, sum(x); # defined a function calculate the sum 
+# if you want to calculate the sum of v at each timestamp
+julia> f(t, x...) = t, sum(x); # defined a function calculate the sum firstly
 
 julia> selectrecs(r, f, T0) # apply f by selectrecs will return sum of v at each timestamp
 ([0.0, 1.0], [1, 3])
