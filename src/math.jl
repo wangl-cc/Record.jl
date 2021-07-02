@@ -12,6 +12,7 @@ const NRArray{T} = Union{Array{T},AbstractRArray{T}}
 
 ## Unary arithmetic operators ##
 @inline +(A::AbstractRArray{<:Number}) = A # do nothing for better performance
+@inline +(A::AbstractRScalar{<:Number}) = _state(A) # return Number for scalar
 # force reutrn number for AbstractRScalar
 for f in (:-, :conj, :real, :imag, :transpose, :adjoint)
     @eval @inline ($f)(r::AbstractRScalar) = ($f)(_state(r))
