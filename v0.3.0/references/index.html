@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>References · RecordedArrays.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">RecordedArrays.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../manual/">Manual</a></li><li><a class="tocitem" href="../example/">Example</a></li><li class="is-active"><a class="tocitem" href>References</a><ul class="internal"><li><a class="tocitem" href="#Clock"><span>Clock</span></a></li><li><a class="tocitem" href="#Recorded-Arrays"><span>Recorded Arrays</span></a></li><li><a class="tocitem" href="#View-Record"><span>View Record</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>References</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>References</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/master/docs/src/references.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="References"><a class="docs-heading-anchor" href="#References">References</a><a id="References-1"></a><a class="docs-heading-anchor-permalink" href="#References" title="Permalink"></a></h1><h2 id="Clock"><a class="docs-heading-anchor" href="#Clock">Clock</a><a id="Clock-1"></a><a class="docs-heading-anchor-permalink" href="#Clock" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.AbstractClock" href="#RecordedArrays.AbstractClock"><code>RecordedArrays.AbstractClock</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AbstractClock{T&lt;:Real}</code></pre><p>Supertype of clocks with time of type <code>T</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L1-L5">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.DiscreteClock" href="#RecordedArrays.DiscreteClock"><code>RecordedArrays.DiscreteClock</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">DiscreteClock([start], timelist)
+DiscreteClock(stop)</code></pre><p>Clock for discrete-time process, time of which muse be increased with given step and can&#39;t be updated manually. The <code>timelist</code> must be a non-empty and monotonically increasing <code>AbstractVector</code>.  If the <code>start</code> is not specified, the first item of <code>timelist</code> will be deleted and set as <code>start</code>. During iteration, the current time will be updated automatically and returned as iteration item. When the iteration finished without <code>break</code>, <a href="#RecordedArrays.init!"><code>init!</code></a> will be applied.  <code>DiscreteClock(stop)</code> will create a clock with <code>start=0</code> and <code>timelist=Base.OneTo(stop)</code></p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(0:3);
+
+julia&gt; currenttime(c)
+0
+
+julia&gt; [(t, currenttime(c)) for t in c]
+3-element Vector{Tuple{Int64, Int64}}:
+ (1, 1)
+ (2, 2)
+ (3, 3)
+
+julia&gt; currenttime(c)
+0
+
+julia&gt; c = DiscreteClock(3); # similar to DiscreteClock(0:3)
+
+julia&gt; (currenttime(c), collect(c))
+(0, [1, 2, 3])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L37-L72">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.ContinuousClock" href="#RecordedArrays.ContinuousClock"><code>RecordedArrays.ContinuousClock</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">ContinuousClock{T, I&lt;:Union{Nothing, DiscreteClock}} &lt;: AbstractClock{T}
+ContinuousClock(stop, [start=zero(stop)]; [max_epoch=nothing])</code></pre><p>A clock for continuous-time process. Unlike the <a href="#RecordedArrays.DiscreteClock"><code>DiscreteClock</code></a>, during iteration, the current time will not be update automatically, but update by <a href="#RecordedArrays.increase!"><code>increase!</code></a> manually. Besides the epoch of current iteration instead of current time will be returned. If the <code>max_epoch</code> is specified, the iteration will break when epoch reach to the <code>max_epoch</code>, even <code>currenttime(c) &lt; limit(c)</code>, and break in this way the <a href="#RecordedArrays.init!"><code>init!(c)</code></a> will not be applied.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = ContinuousClock(3.0; max_epoch=2);
+
+julia&gt; for epoch in c
+           increase!(c, 1)
+           println(currenttime(c), &#39;	&#39;, epoch)
+       end
+1.0	1
+2.0	2
+
+julia&gt; for epoch in c
+           increase!(c, 1)
+           println(currenttime(c), &#39;	&#39;, epoch)
+       end
+3.0	1
+
+julia&gt; for epoch in c
+           increase!(c, 1)
+           println(currenttime(c), &#39;	&#39;, epoch)
+       end
+1.0	1
+2.0	2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L110-L146">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.currenttime" href="#RecordedArrays.currenttime"><code>RecordedArrays.currenttime</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">currenttime(c::AbstractClock)</code></pre><p>Return current time of clock <code>c</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L8-L12">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.limit" href="#RecordedArrays.limit"><code>RecordedArrays.limit</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">limit(c::AbstractClock)</code></pre><p>Return the limit of clock <code>c</code>. For a ContinuousClock <code>c</code>, the max time might larger than <code>limit(c)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L15-L20">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.start" href="#RecordedArrays.start"><code>RecordedArrays.start</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">start(c::AbstractClock)</code></pre><p>Return the start time of clock <code>c</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L23-L27">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.init!" href="#RecordedArrays.init!"><code>RecordedArrays.init!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">init!(c::AbstractClock)</code></pre><p>Update current time to start time.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L30-L34">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.increase!" href="#RecordedArrays.increase!"><code>RecordedArrays.increase!</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">increase!(c::ContinuousClock, t::Real)</code></pre><p>Update current time of clock <code>c</code> to <code>currenttime(c) + t</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/clock.jl#L186-L190">source</a></section></article><h2 id="Recorded-Arrays"><a class="docs-heading-anchor" href="#Recorded-Arrays">Recorded Arrays</a><a id="Recorded-Arrays-1"></a><a class="docs-heading-anchor-permalink" href="#Recorded-Arrays" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.AbstractRArray" href="#RecordedArrays.AbstractRArray"><code>RecordedArrays.AbstractRArray</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AbstractRArray{V,T,N} &lt;: AbstractArray{V,N}</code></pre><p>Supertype of recorded <code>N</code>-dimensional arrays with elements of type <code>V</code> and time of type <code>T</code>&quot;, whose changes will be recorded automatically. <code>AbstractRArray</code> is a subtype of <code>AbstractArray</code>, so array operations like <code>getindex</code>, <code>setindex!</code>, <code>length</code>, <code>size</code>, mathematical operations like <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> and broadcast on a recorded array <code>A</code> works same as its current state <a href="#RecordedArrays.state"><code>state(A)</code></a>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Avoid to edit recorded arrays out of loop, because clocks will initial automatically during loop.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/abstract.jl#L1-L15">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.StaticRArray" href="#RecordedArrays.StaticRArray"><code>RecordedArrays.StaticRArray</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">StaticRArray{V,T,N} &lt;: AbstractRecord{V,T,N}</code></pre><p>Record type to record changes of arrays whose elements never change but insert or delete can  be created by <code>StaticRArray(t::AbstractClock, xs...)</code> where <code>xs</code> are abstract arrays to be recorded.</p><p>Implemented statical arrays:</p><ul><li><code>StaticRVector</code></li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Elements of StaticRArray <code>A</code> can be delete by <code>deleteat!(A,i)</code>, whose value after deletion is 0.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(3);
+
+
+julia&gt; v = StaticRArray(c, [0, 1, 2])
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
+ 0
+ 1
+ 2
+
+julia&gt; for epoch in c
+           push!(v, epoch+2) # push a element
+           deleteat!(v, 1)   # delete a element
+       end
+
+
+julia&gt; v # there are still three element now
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
+ 3
+ 4
+ 5
+
+julia&gt; record(v)[6] # but six element are recorded
+Record Entry
+t: 2-element Vector{Int64}:
+ 3
+ 3
+v: 2-element Vector{Int64}:
+ 5
+ 5
+
+julia&gt; gettime(record(v)[1], 2)[1] # element after deletion is 0
+0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/abstract.jl#L85-L135">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.DynamicRArray" href="#RecordedArrays.DynamicRArray"><code>RecordedArrays.DynamicRArray</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">DynamicRArray{V,T,N} &lt;: AbstractRecord{V,T,N}</code></pre><p>Recorded array whose elements change overtime can be created by <code>DynamicRArray(t::AbstractClock, xs...)</code> where <code>xs</code> are abstract arrays or numbers (or called scalar) to be recorded.</p><p>Implemented dynamic arrays:</p><ul><li><code>DynamicRScalar</code></li><li><code>DynamicRVector</code></li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>For a recorded dynamical scalar <code>S</code>, use <code>S[1] = v</code> to change its value instead of <code>S = v</code>.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(3);
+
+
+julia&gt; s, v = DynamicRArray(c, 0, [0, 1]);
+
+
+julia&gt; s # scalar
+0-dimensional DynamicRScalar{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+0
+
+julia&gt; v # vector
+2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+ 0
+ 1
+
+julia&gt; for epoch in c
+           s[1] += 1
+           v[1] += 1
+       end
+
+
+julia&gt; s
+0-dimensional DynamicRScalar{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+3
+
+julia&gt; v
+2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+ 3
+ 1
+
+julia&gt; record(s)[1]
+Record Entry
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+
+julia&gt; record(v)[1]
+Record Entry
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+
+julia&gt; record(v)[2]
+Record Entry
+t: 1-element Vector{Int64}:
+ 0
+v: 1-element Vector{Int64}:
+ 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/abstract.jl#L142-L223">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.state" href="#RecordedArrays.state"><code>RecordedArrays.state</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">state(A::AbstractRArray{V,T,N}) -&gt; Array{V,N}</code></pre><p>Get current state of recorded array <code>A</code>. API for mathematical operations.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/abstract.jl#L26-L30">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.setclock" href="#RecordedArrays.setclock"><code>RecordedArrays.setclock</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">setclock!(A::AbstractRArray, c::AbstractClock)</code></pre><p>Non-mutating setclock for <code>A</code>. It will create a deepcopy of <code>A</code> besides  the clock field, which will be assigned to <code>c</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/abstract.jl#L54-L59">source</a></section></article><h2 id="View-Record"><a class="docs-heading-anchor" href="#View-Record">View Record</a><a id="View-Record-1"></a><a class="docs-heading-anchor-permalink" href="#View-Record" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.Record" href="#RecordedArrays.Record"><code>RecordedArrays.Record</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">Record{T&lt;:AbstractRArray}</code></pre><p>Contain a RecordedArray, whose elements are record of each element of given array.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L1-L5">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.record" href="#RecordedArrays.record"><code>RecordedArrays.record</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">record(A::AbstractRArray) -&gt; Record</code></pre><p>Create a <a href="#RecordedArrays.Record"><code>Record</code></a> with RecordedArray <code>A</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L10-L14">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.AbstractEntry" href="#RecordedArrays.AbstractEntry"><code>RecordedArrays.AbstractEntry</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">AbstractEntry{V,T&lt;:Real}</code></pre><p>Supertype of entry, which store changes of specified variable(s) of type <code>V</code> with time of type <code>T</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L48-L53">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.SingleEntry" href="#RecordedArrays.SingleEntry"><code>RecordedArrays.SingleEntry</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">SingleEntry{V,T} &lt;: AbstractEntry{V,T}</code></pre><p>Type to store changes of a specified variable of type <code>V</code> with time of type <code>T</code>, element of <a href="#RecordedArrays.Record"><code>Record</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L174-L179">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.UnionEntry" href="#RecordedArrays.UnionEntry"><code>RecordedArrays.UnionEntry</code></a> — <span class="docstring-category">Type</span></header><section><div><pre><code class="language-julia">UnionEntry{V,T,N} &lt;: AbstractEntry{T,V}</code></pre><p>Type store changes of <code>N</code> variables of type <code>V</code> with time of type <code>T</code>, created by <a href="#RecordedArrays.unione"><code>unione</code></a>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L228-L233">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.gettime" href="#RecordedArrays.gettime"><code>RecordedArrays.gettime</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">gettime(e::Union{Record,AbstractEntry}, t::Real)
+gettime(e::Union{Record,AbstractEntry}, ts)</code></pre><p>Get the value(s) of <code>e</code> at time <code>t</code>, If <code>t</code> is not in <code>ts(e)</code>, return value at time <code>ts(e)[i]</code> where <code>ts(e)[i] &lt; t &lt; ts(e)[i+1]</code>. If a iterator of time <code>ts</code> is given, return the value of each time in <code>ts</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p><code>ts</code> must be monotonically increasing.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(5);
+
+julia&gt; d = DynamicRArray(c, 0);
+
+julia&gt; s = StaticRArray(c, [0]);
+
+julia&gt; for t in c
+           d[1] += 1
+           push!(s, t)
+           t &gt;= 3 &amp;&amp; deleteat!(s, 1)
+       end
+
+julia&gt; ed = record(d)[1]
+Record Entry
+t: 6-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+ 4
+ 5
+v: 6-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+ 4
+ 5
+
+julia&gt; es = record(s)[2]
+Record Entry
+t: 2-element Vector{Int64}:
+ 1
+ 4
+v: 2-element Vector{Int64}:
+ 1
+ 1
+
+julia&gt; gettime(ed, 1.5)
+1
+
+julia&gt; gettime(ed, [5, 6])
+2-element Vector{Int64}:
+ 5
+ 5
+
+julia&gt; gettime(es, [2, 5])
+2-element Vector{Int64}:
+ 1
+ 0</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L88-L154">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.unione" href="#RecordedArrays.unione"><code>RecordedArrays.unione</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">unione(es::AbstractEntry...)
+unione(es::Vector{&lt;:AbstractEntry})
+unione(r::Record)</code></pre><p>Construct the union of given entry <code>es</code>. <code>union(r)</code> construct union all of elements of Record <code>r</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(3);
+
+
+julia&gt; v = DynamicRArray(c, [1, 1, 1]);
+
+
+julia&gt; for t in c
+           v[t] = 2
+       end
+
+
+julia&gt; ea, eb, ec = record(v);
+
+
+julia&gt; ue = unione(ea, eb)
+Record Entry
+t: 3-element Vector{Int64}:
+ 0
+ 1
+ 2
+v: 3×2 Matrix{Int64}:
+ 1  1
+ 2  1
+ 2  2
+
+julia&gt; ue = unione(ue, ec)
+Record Entry
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4×3 Matrix{Int64}:
+ 1  1  1
+ 2  1  1
+ 2  2  1
+ 2  2  2
+
+julia&gt; unione(record(v))
+Record Entry
+t: 4-element Vector{Int64}:
+ 0
+ 1
+ 2
+ 3
+v: 4×3 Matrix{Int64}:
+ 1  1  1
+ 2  1  1
+ 2  2  1
+ 2  2  2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L247-L309">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.getts" href="#RecordedArrays.getts"><code>RecordedArrays.getts</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">getts(e::AbstractEntry{V,T}) -&gt; Vector{T}</code></pre><p>Get time entry of given <code>e</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L67-L71">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.getvs" href="#RecordedArrays.getvs"><code>RecordedArrays.getvs</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">getvs(e::AbstractEntry{V,T}) -&gt; VecOrMat{V}</code></pre><p>Get value entry of given <code>e</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L74-L78">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.toseries" href="#RecordedArrays.toseries"><code>RecordedArrays.toseries</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">toseries(e::AbstractEntry)</code></pre><p>Convert <code>e</code> to the form accepted by <code>plot</code> of <code>Plots.jl</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L157-L161">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.tspan" href="#RecordedArrays.tspan"><code>RecordedArrays.tspan</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">tspan(e::AbstractEntry{V,T}) -&gt; T</code></pre><p>Get last time of given <code>e</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/record.jl#L81-L85">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="RecordedArrays.selectrecs" href="#RecordedArrays.selectrecs"><code>RecordedArrays.selectrecs</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia">selectrecs([f,] r::Union{Record,AbstractEntry}, [ts], [T0], [inds...])</code></pre><p>Select and process values in <code>r</code>, return a tuple of values:</p><ul><li><code>f</code> is a function for process data at each time which should accpect n parameters where n is the number of index and return a tuple. If <code>f</code> is not given, data will not be processed.</li><li><code>ts</code> should be an iterator of real number, this function will get values at each <code>t</code> in <code>ts</code>.  If <code>ts</code> is not given, <code>ts</code> will be a vector contains each time given value changed.</li><li><code>T0</code> is a constant, if <code>T0</code> is given, this function will return <code>ts</code> as first element of returned tuple.</li><li><code>inds</code> are indices, like <code>(i1, i2, ..., in)</code>, only the values at given indices will be selected and processed. If <code>inds</code> is not given, all values will be selected and processed.</li></ul><p><code>vars</code> can also be unpacked, like <code>selectrecs(r, f, ts, T0, inds...)</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia-repl">julia&gt; c = DiscreteClock(10); # create a clock
+
+julia&gt; pos = DynamicRArray(c, [0, 0]); # create a rarray
+
+julia&gt; for t in c # do some changes
+           if  t % 2 == 0
+               pos[1] += 1
+           else
+               pos[2] -= 1
+           end
+       end
+
+julia&gt; r = record(pos); # create a record
+
+julia&gt; selectrecs(r) # select without vars will return all value
+([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
+
+julia&gt; selectrecs(r, T0, 1, 2) # select with T0 and indices
+([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
+
+julia&gt; selectrecs(r, 0:2:10, T0, 1, 2) # select with ts and indices
+(0:2:10, [0, 1, 2, 3, 4, 5], [0, -1, -2, -3, -4, -5])
+
+julia&gt; f(t, x, y) = t, x + y; # define a process function
+
+julia&gt; selectrecs(f, r, T0, 1, 2) # select with a function and indices
+([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
+
+julia&gt; selectrecs(r, T0, 1, 2) do t, x, y # or by the do block directly
+           t, x + y
+       end
+([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/wangl-cc/RecordedArrays.jl/blob/ec7cba420af04fcaa71457f8ed201723ecdec727/src/record/interface.jl#L19-L73">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../example/">« Example</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.3 on <span class="colophon-date" title="Monday 5 July 2021 09:05">Monday 5 July 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
