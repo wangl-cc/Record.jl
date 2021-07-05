@@ -67,10 +67,8 @@ t: 1-element Vector{Float64}:
 v: 1-element Vector{Int64}:
  1
 
-julia> # if you want to calculate the sum of v at each timestamp
-
-julia> f(t, x...) = t, sum(x); # defined a function calculate the sum firstly
-
-julia> selectrecs(r, f, T0) # apply f by selectrecs will return sum of v at each timestamp
+julia> selectrecs(r, T0) do t, v... # calculate the sum of v at each timestamp
+           t, sum(v)
+       end
 ([0.0, 1.0], [1, 3])
 ```
