@@ -2,12 +2,12 @@
 # but they are not same or compatible for all vars
 @recipe function f(r::RecEntry; vars=())
     seriestype --> :path
-    return selectrecs(r, vars)
+    return selectrecs(r, vars...)
 end
 
 @recipe function f(rs::RecEntry...; vars=())
     seriestype --> :path
-    return [selectrecs(r, vars) for r in rs]
+    return [selectrecs(r, vars...) for r in rs]
 end
 
 const T0 = Val(:t)
@@ -17,10 +17,9 @@ const RA_INDEX = Union{Integer,Base.AbstractCartesianIndex}
 const RA_TIME = AbstractArray{<:Real}
 
 """
-    selectrecs(r::Union{Record,AbstractEntry}, [vars])
+    selectrecs([f,] r::Union{Record,AbstractEntry}, [ts], [T0], [inds...])
 
-Select and process values in `r`.
-`vars` can be a Tuple `([f], [ts], [T0], [inds...])` and return a tuple of values:
+Select and process values in `r`, return a tuple of values:
 
 * `f` is a function for process data at each time which should accpect n
   parameters where n is the number of index and return a tuple. If `f` is not
@@ -55,23 +54,24 @@ julia> r = record(pos); # create a record
 julia> selectrecs(r) # select without vars will return all value
 ([0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
 
-julia> selectrecs(r, (T0, 1, 2)) # select with T0 and indices
+julia> selectrecs(r, T0, 1, 2) # select with T0 and indices
 ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5], [0, -1, -1, -2, -2, -3, -3, -4, -4, -5, -5])
 
-julia> selectrecs(r, (0:2:10, T0, 1, 2)) # select with ts and indices
+julia> selectrecs(r, 0:2:10, T0, 1, 2) # select with ts and indices
 (0:2:10, [0, 1, 2, 3, 4, 5], [0, -1, -2, -3, -4, -5])
 
 julia> f(t, x, y) = t, x + y; # define a process function
 
-julia> selectrecs(r, (f, T0, 1, 2)) # select with a function and indices
+julia> selectrecs(f, r, T0, 1, 2) # select with a function and indices
+([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
+
+julia> selectrecs(r, T0, 1, 2) do t, x, y # or by the do block directly
+           t, x + y
+       end
 ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0])
 ```
 """
 function selectrecs end
-# API
-selectrecs(r::RecEntry, t::Tuple) = selectrecs(r, t...)
-
-# without vars
 # select without ts
 function selectrecs(r::RecEntry, ::T0_T, is::Integer...)
     ts, vars = _selectrecs(r, is...)
@@ -98,13 +98,15 @@ selectrecs(r::RecEntry, i1::RA_INDEX) = selectrecs(r, T0, i1)
 selectrecs(r::RecEntry, ts::RA_TIME, i1::RA_INDEX) = selectrecs(r, ts, T0, i1)
 
 # select with function
-function selectrecs(r::RecEntry, f::Base.Callable, vars...)
+function selectrecs(f, r::RecEntry, vars...)
     series = selectrecs(r, vars...)::Tuple
     vt = map(f, series...)
     return vt2tv(vt)
 end
+# this methods is for plot, use the above one
+@inline selectrecs(r::RecEntry, f::Base.Callable, vars...) = selectrecs(f, r, vars...)
 
-_getindex_tuple(r::Record) = (r...,)
+_getindex_tuple(r::Record) = (r...,)# without words will return all
 _getindex_tuple(r::Record, is...) = map(i -> r[i], is)
 _getindex_tuple(e::SingleEntry) = (e,)
 _getindex_tuple(e::SingleEntry, ::Vararg{Integer,N}) where {N} = ntuple(i -> e, Val(N))
@@ -113,7 +115,7 @@ _getindex_tuple(u::UnionEntry, is...) = map(i -> u.es[i], is)
 
 # type stable convert vector of tuple to tuple to vector
 @generated function vt2tv(vt)
-    Ts = vt.parameters[1].parameters
+    Ts = vt.parameters[1].parameters # types of each elements in tuple
     return quote
         tv = ($(map(T -> :(Vector{$T}(undef, length(vt))), Ts)...),)
         @simd for j in 1:length(vt)
