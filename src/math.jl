@@ -1,9 +1,6 @@
 # overload mathematical operations
-import Base: +, -, *, /, \, ^, conj, real, imag, reverse
+import Base: +, -, *, /, \, ^, conj, real, imag
 import Base: adjoint, transpose
-import Base: broadcastable
-
-import LinearAlgebra: dot
 
 using LinearAlgebra: Adjoint, Transpose, AdjointAbsVec, TransposeAbsVec, AdjOrTransAbsVec
 
