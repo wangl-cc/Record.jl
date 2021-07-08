@@ -44,9 +44,7 @@ state(A::AbstractRArray{V,T,N}) where {V,T,N} = # maybe unsafe
 """
     setclock!(A::AbstractRArray, c::AbstractClock)
 
-Assign the clock of `A` to `c`.
-Non-mutating setclock for `A`. It will create a deepcopy of `A` besides 
-the clock field, which will be assigned to `c`.
+Assign the clock of `A` to `c`. Type of `c` should be the same as old one.
 """
 setclock!(A::AbstractRArray, c::AbstractClock) = _setclock!(A, c)
 _setclock!(A::AbstractRArray, c::AbstractClock) = A.t = c
