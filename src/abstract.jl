@@ -101,7 +101,7 @@ julia> c = DiscreteClock(3);
 
 
 julia> v = StaticRArray(c, [0, 1, 2])
-3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  0
  1
  2
@@ -113,7 +113,7 @@ julia> for epoch in c
 
 
 julia> v # there are still three element now
-3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}, Int64}:
+3-element StaticRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  3
  4
  5
@@ -166,7 +166,7 @@ julia> s # scalar
 0
 
 julia> v # vector
-2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+2-element DynamicRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  0
  1
 
@@ -181,7 +181,7 @@ julia> s
 3
 
 julia> v
-2-element DynamicRVector{Int64, Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
+2-element DynamicRVector{Int64, Int64, DiscreteClock{Int64, Base.OneTo{Int64}}}:
  3
  1
 

@@ -4,13 +4,13 @@
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
 """
-mutable struct DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
+mutable struct DynamicRVector{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
     v::Vector{V}
     t::C
     vs::Vector{Vector{V}}
     ts::Vector{Vector{T}}
-    indmax::I
-    indmap::Vector{I}
+    indmax::Int
+    indmap::Vector{Int}
 end
 function DynamicRArray(t::AbstractClock, v::AbstractVector)
     n = length(v)

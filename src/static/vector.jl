@@ -1,18 +1,18 @@
 """
-    StaticRVector{V,T,C<:AbstractClock{T}, I} <: StaticRArray{V,T,1}
+    StaticRVector{V,T,C<:AbstractClock{T}} <: StaticRArray{V,T,1}
 
 Implementation of recorded static vector, created by
 `StaticRArray(c::AbstractClock, v::AbstractVector)`.
 """
-mutable struct StaticRVector{V,T,C<:AbstractClock{T},I} <: StaticRArray{V,T,1}
+mutable struct StaticRVector{V,T,C<:AbstractClock{T}} <: StaticRArray{V,T,1}
     v::Vector{V}
     v_all::Vector{V}
     delete::Vector{Bool}
     t::C
     s::Vector{T}
     e::Vector{T}
-    indmax::I
-    indmap::Vector{I}
+    indmax::Int
+    indmap::Vector{Int}
 end
 function StaticRArray(t::AbstractClock, v::AbstractVector)
     v = collect(v)
