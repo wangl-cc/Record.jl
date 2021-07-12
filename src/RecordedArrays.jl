@@ -12,6 +12,8 @@ export LinearSearch, BinarySearch # search methods
 
 include("clock.jl")
 
+include("utils.jl")
+
 include("abstract.jl")
 
 include("record/record.jl")
@@ -23,6 +25,8 @@ include("math.jl")
 include("dynamic/scalar.jl")
 
 include("dynamic/vector.jl")
+
+include("dynamic/array.jl")
 
 include("static/vector.jl")
 

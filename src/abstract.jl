@@ -59,12 +59,16 @@ setclock(A::AbstractRArray, c::AbstractClock) = (Ac = deepcopy(A); setclock!(Ac,
 
 function rlength end
 function rsize end
+raxes(A::AbstractRArray) = map(Base.oneto, rsize(A))
+function rcheckbounds(A::AbstractRArray, I...)
+    return Base.checkbounds_indices(Bool, raxes(A), I)
+end
 
 # internal API
 @inline _state(A::AbstractRArray) = A.v
 @inline _state(A::AbstractArray) = A
 @inline _length(A::AbstractRArray) = length(_state(A))
-@inline _size(A::AbstractRScalar) = ()
+@inline _size(::AbstractRScalar) = ()
 @inline _size(A::AbstractRVector) = (_length(A),)
 @inline _size(A::AbstractRArray) = A.sz
 

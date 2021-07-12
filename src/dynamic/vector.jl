@@ -4,63 +4,78 @@
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
 """
-mutable struct DynamicRVector{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
-    v::Vector{V}
-    t::C
-    vs::Vector{Vector{V}}
-    ts::Vector{Vector{T}}
-    indmax::Int
+mutable struct DynamicRVector{Tv,Tt,Tc} <: DynamicRArray{Tv,Tt,1}
+    v::Vector{Tv}
+    t::Tc
+    V::Vector{Vector{Tv}}
+    T::Vector{Vector{Tt}}
+    rlen::Int
     indmap::Vector{Int}
+    function DynamicRVector(
+            v::Vector{Tv},
+            t::Tc,
+            V::Vector{Vector{Tv}},
+            T::Vector{Vector{Tt}},
+            rlen::Int,
+            indmap::Vector{Int}
+        ) where {Tv,Tt,Tc<:AbstractClock{Tt}}
+        checksize(v, indmap)
+        checksize((rlen,), V, T)
+        for (vi, ti) in zip(V, T)
+            checksize(vi, ti)
+        end
+        return new{Tv,Tt,Tc}(v, t, V, T, rlen, indmap)
+    end
 end
 function DynamicRArray(t::AbstractClock, v::AbstractVector)
     n = length(v)
-    vs = map(i -> [i], v)
-    ts = map(_ -> [currenttime(t)], 1:n)
+    V = map(i -> [i], v)
+    T = map(_ -> [currenttime(t)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(collect(v), t, vs, ts, n, indmap)
+    return DynamicRVector(collect(v), t, V, T, n, indmap)
 end
 
-rlength(A::DynamicRVector) = A.indmax
+rlength(A::DynamicRVector) = A.rlen
 rsize(A::DynamicRVector) = (rlength(A),)
 
 function Base.push!(A::DynamicRVector{T}, v::T) where {T}
     push!(A.v, v)
-    ind = A.indmax += 1
+    ind = A.rlen += 1
     push!(A.indmap, ind)
-    push!(A.vs, [v])
-    push!(A.ts, [currenttime(A.t)])
+    push!(A.V, [v])
+    push!(A.T, [currenttime(A.t)])
     return A
 end
 Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
 
 # only insert for state not in record
-function Base.insert!(A::DynamicRVector{V}, i::Integer, v::V) where {V}
+function Base.insert!(A::DynamicRVector{T}, i::Integer, v::T) where {T}
     insert!(A.v, i, v)
-    ind = A.indmax += 1
+    ind = A.rlen += 1
     insert!(A.indmap, i, ind)
-    push!(A.vs, [v])
-    push!(A.ts, [currenttime(A.t)])
+    push!(A.V, [v])
+    push!(A.T, [currenttime(A.t)])
     return A
 end
 Base.insert!(A::DynamicRVector{T}, i::Integer, v) where {T} = insert!(A, i, convert(T, v))
 
-function Base.setindex!(A::DynamicRVector, v, i::Int)
-    @boundscheck i <= length(A) || throw(BoundsError(A, i))
-    A.v[i] = v
-    ind = A.indmap[i]
-    push!(A.vs[ind], v)
-    push!(A.ts[ind], currenttime(A.t))
+function Base.deleteat!(A::DynamicRVector, i::Integer)
+    @boundscheck checkbounds(A, i)
+    @inbounds deleteat!(A.v, i)
+    @inbounds deleteat!(A.indmap, i)
     return A
 end
 
-function Base.deleteat!(A::DynamicRVector, i::Integer)
-    @boundscheck i <= length(A) || throw(BoundsError(A, i))
-    deleteat!(A.v, i)
-    deleteat!(A.indmap, i)
+function Base.setindex!(A::DynamicRVector, v, i::Int)
+    @boundscheck checkbounds(A, i)
+    @inbounds A.v[i] = v
+    @inbounds ind = A.indmap[i]
+    push!(A.V[ind], v)
+    push!(A.T[ind], currenttime(A.t))
     return A
 end
 
 function rgetindex(A::DynamicRVector, i::Int)
     @boundscheck i <= rlength(A) || throw(BoundsError(A, i))
-    return DynamicEntry(A.ts[i], A.vs[i])
+    return DynamicEntry(A.T[i], A.V[i])
 end
