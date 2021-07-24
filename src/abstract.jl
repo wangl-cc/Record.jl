@@ -1,12 +1,8 @@
 """
-    AbstractRArray{V,T,N} <: AbstractArray{V,N}
+    AbstractRArray{V,T,N} <: DenseArray{V,N}
 
 Supertype of recorded `N`-dimensional arrays with elements of type `V`
 and time of type `T`", whose changes will be recorded automatically.
-`AbstractRArray` is a subtype of `AbstractArray`, so array operations
-like `getindex`, `setindex!`, `length`, `size`, mathematical operations
-like `+`, `-`, `*`, `/` and broadcast on a recorded array `A` works same as
-its current state [`state(A)`](@ref state).
 
 !!! note
 
@@ -27,6 +23,11 @@ timetype(::Type{<:AbstractRArray{<:Any,T}}) where {T} = T
     state(A::AbstractRArray{V,T,N}) -> Array{V,N}
 
 Get current state of recorded array `A`. API for mathematical operations.
+
+!!! note
+
+    `state` for `AbstractRArray{V,T,N}` where `N >= 2` is unsafe because of
+    `unsafe_wrap` and `unsafe_convert`.
 """
 function state end
 
@@ -52,7 +53,7 @@ _setclock!(A::AbstractRArray, c::AbstractClock) = A.t = c
 """
     setclock!(A::AbstractRArray, c::AbstractClock)
 
-Non-mutating setclock for `A`. It will create a deepcopy of `A` besides 
+Non-mutating setclock for `A`. It will create a deepcopy of `A` besides
 the clock field, which will be assigned to `c`.
 """
 setclock(A::AbstractRArray, c::AbstractClock) = (Ac = deepcopy(A); setclock!(Ac, c); Ac)
@@ -70,7 +71,7 @@ end
 @inline _length(A::AbstractRArray) = length(_state(A))
 @inline _size(::AbstractRScalar) = ()
 @inline _size(A::AbstractRVector) = (_length(A),)
-@inline _size(A::AbstractRArray) = A.sz
+@inline _size(A::AbstractRArray) = convert(Tuple, A.sz)
 
 # Abstract Arrays interfaces
 Base.IndexStyle(::Type{<:AbstractRArray}) = IndexLinear()

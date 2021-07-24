@@ -5,8 +5,9 @@ end
 @inline Size(A::AbstractArray) = Size(size(A))
 
 Base.length(::Size{N}) where {N} = N
+Base.convert(::Type{T}, sz::Size) where {T<:Tuple} = convert(T, sz.sz)
 
-# The below two methods is a modifaction of MArray
+# The below two methods is a modifaction of `MArray` in `StaticArrays.jl`
 # https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/MArray.jl#L80
 function Base.getindex(sz::Size{N}, i::Integer) where {N}
     @boundscheck 1 <= i <= N || throw(BoundsError(sz, i))

@@ -13,19 +13,22 @@ mutable struct DynamicRSArray{Tv,Tt,N,Tc} <: DynamicRArray{Tv,Tt,N}
             rsz::Size{N},
             indmap::IndexMap{N},
         ) where {Tv,Tt,N,Tc<:AbstractClock{Tt}}
-        checksize(sz, v, indmap)
+        checksize(sz, indmap)
+        length(v) == prod(sz.sz) ||
+            throw(ArgumentError("size of v is mismatch"))
         bounds = map(Base.oneto, rsz.sz)
         for (ind, (ti, vi)) in dok
             Base.checkbounds_indices(Bool, bounds, ind) ||
                 throw(ArgumentError("index in dok is out of bounds"))
             checksize(ti, vi)
         end
-        # return new{Tv,Tt,N,Tc}(v, sz, t, dok, rsz, indmap)
+        return new{Tv,Tt,N,Tc}(v, sz, t, dok, rsz, indmap)
     end
 end
 
 function DynamicRArray(t::AbstractClock, A::AbstractArray)
     v = similar(A, length(A))
+    copyto!(v, A)
     sz = Size(A)
     dok = Dict{NTuple{ndims(A),Int},Tuple{Vector{eltype(t)},Vector{eltype(A)}}}()
     for (i, ind) in enumerate(IndexMap(sz))

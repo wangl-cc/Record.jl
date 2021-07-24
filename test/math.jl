@@ -27,8 +27,7 @@ M = rand(ComplexF64, 2, 2)    # matrix
 A = rand(ComplexF64, 2, 2, 2) # 3-rank array
 
 c = DiscreteClock(1)
-tS, tV = DynamicRArray(c, S, V)
-tM, tA = RecordedArrays._testa(M, A) # test arrays
+tS, tV, tM = DynamicRArray(c, S, V, M, A)
 
 @testset "Unary Operations: $f" for f in (:+, :-, :conj, :real, :imag)
     @eval begin
