@@ -23,7 +23,7 @@ struct IndexMap{N} <: AbstractArray{Int,N}
     Is::NTuple{N,Vector{Int}}
 end
 IndexMap(axes::NTuple{N,AbstractVector{Int}}) where {N} = IndexMap(map(collect, axes))
-IndexMap(sz::NTuple{N,Int}) where {N} = IndexMap(map(Base.oneto, sz))
+IndexMap(sz::NTuple{N,Int}) where {N} = IndexMap(map(Base.OneTo, sz))
 IndexMap(sz::Size{N}) where {N} = IndexMap(sz.sz)
 
 Base.size(indmap::IndexMap) = map(length, indmap.Is)
