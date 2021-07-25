@@ -35,8 +35,7 @@ function DynamicRArray(t::AbstractClock, v::AbstractVector)
     return DynamicRVector(collect(v), t, V, T, n, indmap)
 end
 
-rlength(A::DynamicRVector) = A.rlen
-rsize(A::DynamicRVector) = (rlength(A),)
+_rlength(A::DynamicRVector) = A.rlen
 
 function Base.push!(A::DynamicRVector{T}, v::T) where {T}
     push!(A.v, v)

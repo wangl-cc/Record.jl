@@ -16,7 +16,7 @@ mutable struct DynamicRSArray{Tv,Tt,N,Tc} <: DynamicRArray{Tv,Tt,N}
         checksize(sz, indmap)
         length(v) == prod(sz.sz) ||
             throw(ArgumentError("size of v is mismatch"))
-        bounds = map(Base.oneto, rsz.sz)
+        bounds = map(Base.OneTo, rsz)
         for (ind, (ti, vi)) in dok
             Base.checkbounds_indices(Bool, bounds, ind) ||
                 throw(ArgumentError("index in dok is out of bounds"))
@@ -25,7 +25,6 @@ mutable struct DynamicRSArray{Tv,Tt,N,Tc} <: DynamicRArray{Tv,Tt,N}
         return new{Tv,Tt,N,Tc}(v, sz, t, dok, rsz, indmap)
     end
 end
-
 function DynamicRArray(t::AbstractClock, A::AbstractArray)
     v = similar(A, length(A))
     copyto!(v, A)
@@ -38,6 +37,9 @@ function DynamicRArray(t::AbstractClock, A::AbstractArray)
     indmap = IndexMap(axes(A))
     return DynamicRSArray(v, sz, t, dok, rsz, indmap)
 end
+
+_rlength(A::DynamicRSArray) = prod(rsize(A))
+_rsize(A::DynamicRSArray) = A.sz
 
 function Base.setindex!(A::DynamicRSArray, v, i::Int)
     @boundscheck checkbounds(A, i)

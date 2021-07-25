@@ -30,8 +30,7 @@ DynamicRArray(t::AbstractClock, v::Number) =
 DynamicRArray(t::AbstractClock, v::Array{<:Any,0}) =
     DynamicRArray(t, v[])
 
-rlength(::DynamicRScalar) = 1
-rsize(::DynamicRScalar) = ()
+_rlength(::DynamicRScalar) = 1
 
 function Base.setindex!(A::DynamicRScalar, v, i::Int)
     @boundscheck checkbounds(A, i)

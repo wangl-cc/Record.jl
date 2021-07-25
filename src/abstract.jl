@@ -58,8 +58,10 @@ the clock field, which will be assigned to `c`.
 """
 setclock(A::AbstractRArray, c::AbstractClock) = (Ac = deepcopy(A); setclock!(Ac, c); Ac)
 
-function rlength end
-function rsize end
+rlength(A::AbstractRArray) = convert(Int, _rlength(A))
+rsize(::AbstractRScalar) = ()
+rsize(A::AbstractRVector) = (rlength(A),)
+rsize(A::AbstractRArray{V,T,N}) where {V,T,N} = convert(NTuple{N,Int}, _rsize(A))
 raxes(A::AbstractRArray) = map(Base.OneTo, rsize(A))
 function rcheckbounds(A::AbstractRArray, I...)
     return Base.checkbounds_indices(Bool, raxes(A), I)
@@ -233,16 +235,4 @@ convert_array(::Type{T}, x::T) where {T} = x
 convert_array(::Type{T}, x) where {T} = convert(T, x)
 convert_array(::Type{T}, x::Array{T}) where {T} = x
 convert_array(::Type{T}, x::AbstractArray{<:Any,N}) where {T,N} = convert(Array{T,N}, x)
-
-# Type for test math API (some types of RArray are not implemented now)
-struct _TestArray{V,N} <: RecordedArrays.AbstractRArray{V,Int,N}
-    v::Vector{V}
-    sz::NTuple{N,Int}
-end
-_testa(A::Array) = _TestArray(vec(A), size(A))
-_testa(As::Array...) = map(_testa, As)
-
-rlength(A::_TestArray) = length(A.v)
-rsize(A::_TestArray) = A.sz
-
 # vim:tw=92:ts=4:sw=4:et

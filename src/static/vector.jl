@@ -38,8 +38,7 @@ function StaticRArray(t::AbstractClock, v::AbstractVector)
     return StaticRVector(v, t, copy(v), delete, s, e, n, collect(1:n))
 end
 
-rlength(A::StaticRVector) = A.rlen
-rsize(A::StaticRVector) = (rlength(A),)
+_rlength(A::StaticRVector) = A.rlen
 
 function Base.push!(A::StaticRVector{T}, v::T) where {T}
     push!(A.v, v)

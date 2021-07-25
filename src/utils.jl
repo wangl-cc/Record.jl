@@ -4,8 +4,10 @@ end
 @inline Size(is::Int...) = Size(is)
 @inline Size(A::AbstractArray) = Size(size(A))
 
-Base.length(::Size{N}) where {N} = N
-Base.convert(::Type{T}, sz::Size) where {T<:Tuple} = convert(T, sz.sz)
+@inline Base.length(::Size{N}) where {N} = N
+@inline Base.convert(::Type{T}, sz::Size) where {T<:Tuple} = convert(T, sz.sz)
+@inline Base.map(f, sz::Size) = map(f, sz.sz)
+@inline Base.:(==)(sz1::Size, sz2::Size) = sz1.sz == sz2.sz
 
 # The below two methods is a modifaction of `MArray` in `StaticArrays.jl`
 # https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/MArray.jl#L80

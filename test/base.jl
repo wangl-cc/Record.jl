@@ -1,23 +1,26 @@
 using RecordedArrays: rsize, rlength, StaticEntry, DynamicEntry
 using Base: elsize
 
+const DA_ARGS = (1, ones(), [1], 1:2, ones(1,1), ones(1,1,1))
+const SA_ARGS = ([1], 1:2)
+
 # init test vars
 c = DiscreteClock(1)
-DS1, DS2, DV1, DV2 = DynamicRArray(c, 1, fill(1), [1], 1:2)
-SV1, SV2 = StaticRArray(c, [1], 1:2)
+const DA_TUPLE = DS1, DS2, DV1, DV2, DM1, DA1 = DynamicRArray(c, DA_ARGS...)
+const SA_TUPLE = SV1, SV2 = StaticRArray(c, SA_ARGS...)
 
 @testset "create rarray with {V}" begin
-    tests = Iterators.flatten((
+    testset = Iterators.flatten((# Tuple
         zip(
-            DynamicRArray(c, 1, fill(1), [1], 1:2),
-            DynamicRArray{Float64}(c, 1, fill(1), [1], 1:2),
+            DA_TUPLE,
+            DynamicRArray{Float64}(c, DA_ARGS...),
         ),
         zip(
-            StaticRArray(c, [1], 1:2),
-            StaticRArray{Float64}(c, [1], 1:2),
+            SA_TUPLE,
+            StaticRArray{Float64}(c, SA_ARGS...),
         ),
     ))
-    for (A, UA) in tests
+    for (A, UA) in testset
         for i in 1:nfields(A)
             xi = getfield(A, i)
             xi_u = getfield(UA, i)
@@ -34,11 +37,12 @@ end
 @testset "setclock" begin
     cn = DiscreteClock(1)
     @test cn !== c
-    for D in (DS1, DV1, SV1)
-        D_copy = setclock(D, cn)
-        for i in 1:nfields(D_copy)
-            xi = getfield(D, i)
-            xi_copy = getfield(D_copy, i)
+    testset = Iterators.flatten((DA_TUPLE, SA_TUPLE))
+    for A in testset
+        A_copy = setclock(A, cn)
+        for i in 1:nfields(A_copy)
+            xi = getfield(A, i)
+            xi_copy = getfield(A_copy, i)
             if xi isa RecordedArrays.AbstractClock
                 @test xi === c
                 @test xi !== cn
@@ -59,6 +63,8 @@ end
     @test length(DV2) == 2
     @test length(SV1) == 1
     @test length(SV2) == 2
+    @test length(DM1) == 1
+    @test length(DA1) == 1
 
     @test size(DS1) == ()
     @test size(DS2) == ()
@@ -66,20 +72,23 @@ end
     @test size(DV2) == (2,)
     @test size(SV1) == (1,)
     @test size(SV2) == (2,)
+    @test size(DM1) == (1, 1)
+    @test size(DA1) == (1, 1, 1)
 end
 
 @testset "elsize" begin
     for T in (Int8, Int16, Int32, Int64, Float32, Float64)
-        for A in DynamicRArray{T}(c, 1, fill(1), [1], 1:2)
-            @test elsize(A) == sizeof(T)
+        for DA in DynamicRArray{T}(c, DA_ARGS...)
+            @test elsize(DA) == sizeof(T)
         end
-        for A in StaticRArray{T}(c, [1], 1:2)
-            @test elsize(A) == sizeof(T)
+        for SA in StaticRArray{T}(c, SA_ARGS...)
+            @test elsize(SA) == sizeof(T)
         end
     end
 end
 
-# push! and delateat!
+# TODO: all test below for SRArray
+# setindex!, push! and delateat!
 for _ in c
     DS1[1] += 1
     DS2[1] += 1
