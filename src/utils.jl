@@ -1,6 +1,5 @@
 mutable struct Size{N}
-    sz::NTuple{N,Int}
-end
+    sz::NTuple{N,Int} end
 @inline Size(is::Int...) = Size(is)
 @inline Size(A::AbstractArray) = Size(size(A))
 
@@ -32,7 +31,23 @@ Base.size(indmap::IndexMap) = map(length, indmap.Is)
 
 function Base.getindex(indmap::IndexMap{N}, I::Vararg{Int,N}) where {N}
     @boundscheck checkbounds(indmap, I...)
-    return map(getindex, indmap.Is, I)
+    return @inbounds map(getindex, indmap.Is, I)
+end
+
+function pushdim!(indmap::IndexMap{N}, dim::Int, v::Int) where {N}
+    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
+    push!(indmap.Is[dim], v)
+    return indmap
+end
+function insertdim!(indmap::IndexMap{N}, dim::Int, i::Int, v::Int) where {N}
+    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
+    insert!(indmap.Is[dim], i, v)
+    return indmap
+end
+function deletedim!(indmap::IndexMap{N}, dim::Int, i::Int) where {N}
+    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
+    deleteat!(indmap.Is[dim], i)
+    return indmap
 end
 
 function checksize(::Type{Bool}, sz::Tuple, As::AbstractArray...)
