@@ -35,17 +35,14 @@ function Base.getindex(indmap::IndexMap{N}, I::Vararg{Int,N}) where {N}
 end
 
 function pushdim!(indmap::IndexMap{N}, dim::Int, v::Int) where {N}
-    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
     push!(indmap.Is[dim], v)
     return indmap
 end
 function insertdim!(indmap::IndexMap{N}, dim::Int, i::Int, v::Int) where {N}
-    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
     insert!(indmap.Is[dim], i, v)
     return indmap
 end
 function deletedim!(indmap::IndexMap{N}, dim::Int, i::Int) where {N}
-    @boundscheck 1 <= dim <= N || throw(ArgumentError("dim must be 1 to N"))
     deleteat!(indmap.Is[dim], i)
     return indmap
 end
