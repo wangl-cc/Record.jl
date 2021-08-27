@@ -6,7 +6,7 @@ using BenchmarkTools
 # don't work now
 filters = Regex[
     r"Int32|Int64",                 # Int64 <-> Int32
-    r"Array{\w+,\s?1}|Vector{\w+}", # Array{X,1} <-> Vector{X} 
+    r"Array{\w+,\s?1}|Vector{\w+}", # Array{X,1} <-> Vector{X}
     r"Array{\w+,\s?2}|Matrix{\w+}", # Array{X,2} <-> Matrix{X}
 ]
 
@@ -19,6 +19,10 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
         @testset "show" begin
             include("show.jl")
         end
+    end
+
+    @testset "Utilities" begin
+        include("utils.jl")
     end
 
     @testset "Clock" begin

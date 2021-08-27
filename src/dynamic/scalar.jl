@@ -10,32 +10,31 @@ or `DynamicRArray(t::AbstractClock, A::AbstractArray{T,0})`.
     Although this is an array type, Mathematical operations on it work like `Number` for convenience.
 ```
 """
-mutable struct DynamicRScalar{V,T,C<:AbstractClock{T}} <: DynamicRArray{V,T,0}
+mutable struct DynamicRScalar{V,T,C} <: DynamicRArray{V,T,0}
     v::V
-    t::C
-    vs::Vector{V}
-    ts::Vector{T}
+    c::C
+    record::DynamicEntry{V,T}
+    function DynamicRScalar(
+            v::V,
+            c::C,
+            record::DynamicEntry{V,T},
+        ) where {V,T,C<:AbstractClock{T}}
+        new{V,T,C}(v, c, record)
+    end
 end
-DynamicRArray(t::AbstractClock, v::Number) =
-    DynamicRScalar(v, t, [v], [currenttime(t)])
-DynamicRArray(t::AbstractClock, v::Array{<:Any,0}) =
-    DynamicRArray(t, v[])
-
-Base.length(::DynamicRScalar) = 1
-Base.size(::DynamicRScalar) = ()
-
-rlength(::DynamicRScalar) = 1
-rsize(::DynamicRScalar) = ()
+DynamicRArray(c::AbstractClock, v::Number) =
+    DynamicRScalar(v, c, DynamicEntry(v, c))
+DynamicRArray(c::AbstractClock, v::Array{<:Any,0}) =
+    DynamicRArray(c, v[])
 
 function Base.setindex!(A::DynamicRScalar, v, i::Int)
-    @boundscheck i == 1 || throw(BoundsError(A, i))
+    @boundscheck checkbounds(A, i)
     A.v = v
-    push!(A.vs, v)
-    push!(A.ts, currenttime(A.t))
+    store!(A.record, v, currenttime(A.c))
     return A
 end
 
 function rgetindex(A::DynamicRScalar, i::Integer=1)
-    @boundscheck i == 1 || throw(BoundsError(A, i))
-    return DynamicEntry(A.ts, A.vs)
+    @boundscheck rcheckbounds(A, i)
+    return A.record
 end

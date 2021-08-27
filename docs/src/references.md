@@ -23,10 +23,10 @@ state
 setclock
 ```
 
-## View Record
+## View AbstractRecord
 
 ```@docs
-RecordedArrays.Record
+RecordedArrays.AbstractRecord
 record
 RecordedArrays.AbstractEntry
 RecordedArrays.SingleEntry
