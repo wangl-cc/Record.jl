@@ -106,8 +106,8 @@ end
 # this methods is for plot, use the above one
 @inline selectrecs(r::RecEntry, f::Base.Callable, vars...) = selectrecs(f, r, vars...)
 
-_getindex_tuple(r::Record) = (r...,)# without words will return all
-_getindex_tuple(r::Record, is...) = map(i -> r[i], is)
+_getindex_tuple(r::AbstractRecord) = (r...,)# without words will return all
+_getindex_tuple(r::AbstractRecord, is...) = map(i -> r[i], is)
 _getindex_tuple(e::SingleEntry) = (e,)
 _getindex_tuple(e::SingleEntry, ::Vararg{Integer,N}) where {N} = ntuple(i -> e, Val(N))
 _getindex_tuple(u::UnionEntry) = u.es

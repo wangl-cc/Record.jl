@@ -1,3 +1,4 @@
+# Size
 mutable struct Size{N}
     sz::NTuple{N,Int} end
 @inline Size(is::Int...) = Size(is)
@@ -20,6 +21,7 @@ function Base.setindex!(sz::Size{N}, v, i::Integer) where {N}
     return GC.@preserve sz unsafe_store!(Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)), convert(Int, v), i)
 end
 
+# IndexMap
 struct IndexMap{N} <: AbstractArray{Int,N}
     Is::NTuple{N,Vector{Int}}
 end

@@ -1,48 +1,39 @@
 """
-    DynamicRVector{V,T,I,C<:AbstractClock{T}} <: DynamicRArray{V,T,1}
+    DynamicRVector{V,T,C} <: DynamicRArray{V,T,1}
 
 Implementation of recorded dynamics vector, created by
 `DynamicRArray(c::AbstractClock, v::AbstractVector)`
 """
-mutable struct DynamicRVector{Tv,Tt,Tc} <: DynamicRArray{Tv,Tt,1}
-    v::Vector{Tv}
-    t::Tc
-    V::Vector{Vector{Tv}}
-    T::Vector{Vector{Tt}}
-    rlen::Int
+mutable struct DynamicRVector{V,T,C} <: DynamicRArray{V,T,1}
+    v::Vector{V}
+    c::C
+    record::Vector{DynamicEntry{V,T}}
     indmap::Vector{Int}
     function DynamicRVector(
-            v::Vector{Tv},
-            t::Tc,
-            V::Vector{Vector{Tv}},
-            T::Vector{Vector{Tt}},
-            rlen::Int,
+            v::Vector{V},
+            c::C,
+            record::Vector{DynamicEntry{V,T}},
             indmap::Vector{Int}
-        ) where {Tv,Tt,Tc<:AbstractClock{Tt}}
+        ) where {V,T,C<:AbstractClock{T}}
         checksize(v, indmap)
-        checksize((rlen,), V, T)
-        for (vi, ti) in zip(V, T)
-            checksize(vi, ti)
-        end
-        return new{Tv,Tt,Tc}(v, t, V, T, rlen, indmap)
+        return new{V,T,C}(v, c, record, indmap)
     end
 end
-function DynamicRArray(t::AbstractClock, v::AbstractVector)
+function DynamicRArray(c::AbstractClock, v::AbstractVector)
     n = length(v)
     V = map(i -> [i], v)
-    T = map(_ -> [currenttime(t)], 1:n)
+    T = map(_ -> [currenttime(c)], 1:n)
     indmap = collect(1:n)
-    return DynamicRVector(collect(v), t, V, T, n, indmap)
+    return DynamicRVector(collect(v), c, V, T, indmap)
 end
 
-_rlength(A::DynamicRVector) = A.rlen
+_rlength(A::DynamicRVector) = length(A.record)
 
 function Base.push!(A::DynamicRVector{T}, v::T) where {T}
     push!(A.v, v)
-    ind = A.rlen += 1
+    ind = lastindex(A.record) + 1
     push!(A.indmap, ind)
-    push!(A.V, [v])
-    push!(A.T, [currenttime(A.t)])
+    push!(A.record, DynamicEntry(v, A.c))
     return A
 end
 Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
@@ -50,18 +41,17 @@ Base.push!(A::DynamicRVector{T}, v) where {T} = push!(A, convert(T, v))
 # only insert for state not in record
 function Base.insert!(A::DynamicRVector{T}, i::Integer, v::T) where {T}
     insert!(A.v, i, v)
-    ind = A.rlen += 1
+    ind = lastindex(A.record) + 1
     insert!(A.indmap, i, ind)
-    push!(A.V, [v])
-    push!(A.T, [currenttime(A.t)])
+    push!(A.record, DynamicEntry(v, A.c))
     return A
 end
 Base.insert!(A::DynamicRVector{T}, i::Integer, v) where {T} = insert!(A, i, convert(T, v))
 
 function Base.deleteat!(A::DynamicRVector, i::Integer)
     @boundscheck checkbounds(A, i)
-    @inbounds deleteat!(A.v, i)
     @inbounds deleteat!(A.indmap, i)
+    @inbounds deleteat!(A.record, i)
     return A
 end
 

@@ -6,7 +6,7 @@ export DiscreteClock, ContinuousClock, currenttime, limit, start, init!, increas
 export DynamicRArray, StaticRArray, state, setclock # rarray
 export DynamicRScalar, DynamicRVector 
 export StaticRVector
-export record, rarray, gettime, selectrecs, T0 # record and common
+export record, gettime, selectrecs, T0 # record and common
 export tspan, getts, getvs, toseries, unione, gettime! # entry
 export LinearSearch, BinarySearch # search methods
 
@@ -16,17 +16,23 @@ include("utils.jl")
 
 include("abstract.jl")
 
-include("record/record.jl")
+include("entry.jl")
 
-include("record/interface.jl")
+include("record.jl")
+
+include("selectrecs.jl")
 
 include("math.jl")
+
+include("dynamic/abstract.jl")
 
 include("dynamic/scalar.jl")
 
 include("dynamic/vector.jl")
 
 include("dynamic/array.jl")
+
+include("static/abstract.jl")
 
 include("static/vector.jl")
 

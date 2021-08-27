@@ -45,6 +45,6 @@ function Base.setindex!(A::DynamicRSArray, v, i::Int)
     @boundscheck checkbounds(A, i)
     A.v[i] = v
     ind = A.indmap[i]
-    push!(A.V[ind], v)
-    push!(A.T[ind], currenttime(A.t))
+    push!(A.dok[ind][1], v)
+    push!(A.dok[ind][2], currenttime(A.t))
 end

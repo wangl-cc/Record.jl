@@ -90,9 +90,9 @@ The implemented `RecordedArray` and API to mutate `RecordedArrays`:
 
 See [example](@ref Example).
 
-## Accessing and Processing `Record`
+## Accessing and Processing `AbstractRecord`
 
-It's recommended that accessing recorded data by create a `Record` by
+It's recommended that accessing recorded data by create a `AbstractRecord` by
 [`record`](@ref):
 ```julia
 r = record(dV)
@@ -102,17 +102,17 @@ by [`selectrecs(r, i)`](@ref selectrecs), where `r[i]` will return a `Entry`
 and `selectrecs(r, i)` return a tuple of vector.
 Besides the state of `dV` at given time `t` can be accessed by
 [`gettime(r, t)`](@ref gettime).
-More about `Record`, see reference.
+More about `AbstractRecord`, see reference.
 
 ## Plotting
 
-Plotting is provided by recipes to `Plots.jl`. For a `Record` or a `Entry`,
+Plotting is provided by recipes to `Plots.jl`. For a `AbstractRecord` or a `Entry`,
 calling `plot(r; vars)` will generate a plot, where `vars` will pass to
 [`selectrecs`](@ref).
 
 ### Tips about plotting
 
-Plotting changing values of each element of a `Record` `r` can simply call
+Plotting changing values of each element of a `AbstractRecord` `r` can simply call
 `plot(r...; vars=T0)`.
 
 Plotting the `r` without `vars` will generate only one path, thus if
