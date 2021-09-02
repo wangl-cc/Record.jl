@@ -45,22 +45,54 @@ end
 Base.sizehint!(r::VectorRecord, sz::Integer) = sizehint!(r.es, sz)
 record(r::VectorRecord) = r.es
 
-function Base.push!(r::VectorRecord{V,T,E}, v::V) where {V,T,E}
-    push!(r.es, E(r.c, v)) # create a entry with clock and value and push it into es
-    push!(r.indmap, lastindex(r.es)) # The index of entry is lastindex(es)
+function Base.push!(r::VectorRecord, v)
+    E = eltype(r)
+    push!(r.es, E(r.c, v))
+    push!(r.indmap, lastindex(r.es))
     return r
+end
+function Base.append!(r::VectorRecord, vs)
+    len = length(r.es)
+    E = eltype(r)
+    append!(r.es, map(v -> E(r.c, v), vs)) # create a entry with clock and value and push it into es
+    append!(r.indmap, len+1:len+length(vs)) # The index of entry is lastindex(es)
+    return r
+end
+function Base.insert!(r::VectorRecord, i::Integer, v)
+    E = eltype(r)
+    push!(r.es, E(r.c, v))
+    insert!(r.indmap, i, lastindex(r.es))
 end
 function Base.deleteat!(r::VectorRecord, inds...)
     for i in inds
-        deleteat!(r[i])
+        del!(r[i], r.c)
     end
     deleteat!(r.indmap, inds) # delete the index of deleted entry from index map
     return r
 end
+function Base.resize!(r::VectorRecord, nl::Integer)
+    len = length(r)
+    if nl > len
+        E = eltype(r)
+        append!(r.es, map(_ -> E(), len+1:nl))
+        append!(r.indmap, len+1:nl)
+    elseif nl != len
+        if nl < 0
+            throw(ArgumentError("new length must be ≥ 0"))
+        end
+        for i in nl+1:len
+            del!(r[i], r.c)
+        end
+        Base._deleteend!(r.indmap, len-nl)
+    end
+    return r
+end
+
+const DOK{T,N} = Dict{NTuple{N,Int},T}
 
 struct DokRecord{V,T,C,E,N} <: AbstractRecord{V,T,C,E,N}
     c::C
-    dok::Dict{NTuple{N,Int},E}
+    dok::DOK{E,N}
     sz::Size{N}
     rsz::Size{N}
     indmap::IndexMap{N}

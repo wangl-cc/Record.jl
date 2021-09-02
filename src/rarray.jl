@@ -69,14 +69,24 @@ function Base.push!(A::AbstractRVector, v)
     push!(_record(A), v)
     return A
 end
+function Base.append!(A::AbstractRVector, vs)
+    append!(_state(A), vs)
+    append!(_state(A), vs)
+    return A
+end
 function Base.insert!(A::AbstractRVector, i::Integer, v)
     insert!(_state(A), i, v)
-    push!(_record(A), v)
+    insert!(_record(A), i, v)
     return A
 end
 function Base.deleteat!(A::AbstractRVector, i::Integer)
     deleteat!(_state(A), i)
     deleteat!(_record(A), i)
+    return A
+end
+function Base.resize!(A::AbstractRVector, nl::Integer)
+    resize!(_state(A), nl)
+    resize!(_record(A), nl)
     return A
 end
 # Array
