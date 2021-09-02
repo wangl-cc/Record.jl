@@ -6,28 +6,32 @@ with timestamps of type `T`.
 """
 abstract type AbstractEntry{V,T<:Real} end
 
+missval(::Type{E}) where {E<:AbstractEntry} = E()
+
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
     summary(io, e)
-    println(io, " with timestamps:")
     ts = getts(e)
-    for t in @view ts[1:end-1]
-        println(t)
-    end
-    print(ts[end])
+    isempty(ts) && return nothing
+    print(io, " with timestamps:\n ")
+    join(io, ts, "\n ")
     return nothing
 end
 
 # Tools
 """
-    store!(e::AbstractEntry, v, t)
+    store!(e::AbstractEntry, v, t::Union{Real,AbstractClock})
+
+Store a entry with value `v` at time `t`.
 """
-store!
+store!(e::AbstractEntry, v, c::AbstractClock) = store!(e, v, currenttime(c))
 
 """
-    del!(e::AbstractEntry, t)
+    del!(e::AbstractEntry, t::Union{Real,AbstractClock})
+
+Delete the entry `e` at time `t`.
 """
-del!
+del!(e::AbstractEntry, c::AbstractClock) = del!(e, currenttime(c))
 
 """
     getts(e::AbstractEntry{V,T}) -> Vector{T}
@@ -94,7 +98,7 @@ _gettime_itr(::AbstractSearch, ::AbstractEntry, ::Real, v, ::Nothing) = v, nothi
 
 Entry type to store changing history of a variable whose value changing overtime.
 """
-struct DynamicEntry{V,T} <: AbstractEntry{V,T}
+struct DynamicEntry{V,T<:Real} <: AbstractEntry{V,T}
     vs::Vector{V}
     ts::Vector{T}
     function DynamicEntry(vs::Vector{V}, ts::Vector{T}) where {V,T}
@@ -102,12 +106,19 @@ struct DynamicEntry{V,T} <: AbstractEntry{V,T}
         issorted(ts) || throw(ArgumentError("ts must be monotonically increasing"))
         return new{V,T}(vs, ts)
     end
-    function DynamicEntry(v::V, c::C) where {V,T,C<:AbstractClock{T}}
-        return new{V,T}([v], [currenttime(c)])
+    function DynamicEntry(v::V, t::T) where {V,T}
+        return new{V,T}([v], [t])
+    end
+    function DynamicEntry{V,T}() where {V,T}
+        return new{V,T}(V[], T[])
     end
 end
+DynamicEntry(v, c::AbstractClock) = DynamicEntry(v, currenttime(c))
+DynamicEntry{V,T}(v, t::Union{AbstractClock{T},T}) where {V,T} =
+    DynamicEntry(convert(V, v), t)
 
-store!(e::DynamicEntry, t, v) = (push!(getvs(e), v); push!(getts(e), t); e)
+store!(e::DynamicEntry, v, t::Real) = (push!(getvs(e), v); push!(getts(e), t); e)
+del!(e::DynamicEntry, ::Real) = e
 
 getts(e::DynamicEntry) = e.ts
 getvs(e::DynamicEntry) = e.vs
@@ -127,7 +138,7 @@ function gettime(::BinarySearch, e::DynamicEntry{V}, t::Real) where {V}
     return match == 0 ? zero(V) : getvs(e)[match]
 end
 
-_initstate(e::DynamicEntry) = 1, length(e)
+_initstate(e::DynamicEntry) = 1, length(getvs(e))
 
 function _gettime_itr(
     ::LinearSearch,
@@ -170,25 +181,37 @@ end
 
 Entry type to store changing history of a variable whose value not changing overtime.
 """
-mutable struct StaticEntry{V,T} <: AbstractEntry{V,T}
+mutable struct StaticEntry{V,T<:Real} <: AbstractEntry{V,T}
+    init::Bool         # initialized or not
     v::V               # value
     s::T               # start time
     delete::Bool       # deleted or not
     e::T               # end time
     function StaticEntry(v::V, t::T) where {V,T}
-        return new{V,T}(v, t, false) # e.e is not assigned
+        return new{V,T}(true, v, t, false) # e.e is not assigned
+    end
+    function StaticEntry{V,T}() where {V,T}
+        return new{V,T}(false) # most of fields are not assigned
     end
 end
 StaticEntry(v, c::AbstractClock) = StaticEntry(v, currenttime(c))
+StaticEntry{V,T}(v, t::Union{AbstractClock{T},T}) where {V,T} =
+    StaticEntry(convert(V, v), t)
 
-del!(e::StaticEntry, t) = (e.delete = true; e.e = t)
+function store!(e::StaticEntry, v, t::Real)
+    e.init && error("the StaticEntry have be initialized")
+    e.v = v
+    e.s = t
+    e.delete = false
+    return e
+end
+del!(e::StaticEntry, t::Real) = (e.delete = true; e.e = t)
 
 getts(e::StaticEntry) = e.delete ? [e.s, e.e] : [e.s]
 getvs(e::StaticEntry) = e.delete ? [e.v, e.v] : [e.v]
 
 function gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V}
-    return t < e.s ? zero(V) :
-           t <= e.e ? e.v : zero(V)
+    return t < e.s ? zero(V) : t <= e.e ? e.v : zero(V)
 end
 
 _initstate(::StaticEntry) = true

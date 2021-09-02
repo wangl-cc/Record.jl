@@ -1,11 +1,11 @@
 # This API is inspired ny `plot` API of DifferentialEquations.jl
 # but they are not same or compatible for all vars
-@recipe function f(r::RecEntry; vars=())
+@recipe function f(r::AbstractRecord; vars=())
     seriestype --> :path
     return selectrecs(r, vars...)
 end
 
-@recipe function f(rs::RecEntry...; vars=())
+@recipe function f(rs::AbstractRecord...; vars=())
     seriestype --> :path
     return [selectrecs(r, vars...) for r in rs]
 end
@@ -73,45 +73,41 @@ julia> selectrecs(r, T0, 1, 2) do t, x, y # or by the do block directly
 """
 function selectrecs end
 # select without ts
-function selectrecs(r::RecEntry, ::T0_T, is::Integer...)
+function selectrecs(r::AbstractRecord, ::T0_T, is::Integer...)
     ts, vars = _selectrecs(r, is...)
     return ts, vars...
 end
-selectrecs(r::RecEntry, is::RA_INDEX...) = _selectrecs(r, is...)[2]
-function _selectrecs(r::RecEntry, is::RA_INDEX...)
+selectrecs(r::AbstractRecord, is::RA_INDEX...) = _selectrecs(r, is...)[2]
+function _selectrecs(r::AbstractRecord, is::RA_INDEX...)
     es = _getindex_tuple(r, is...)
     ts = sort(union(map(getts, es)...))
     return ts, map(e -> gettime(e, ts), es)
 end
 
 # select with ts
-selectrecs(r::RecEntry, ts::RA_TIME, ::T0_T, is::RA_INDEX...) =
+selectrecs(r::AbstractRecord, ts::RA_TIME, ::T0_T, is::RA_INDEX...) =
     ts, _selectrecs(r, ts, is...)...
-selectrecs(r::RecEntry, ts::RA_TIME, is::RA_INDEX...) = _selectrecs(r, ts, is...)
-function _selectrecs(r::RecEntry, ts::RA_TIME, is::RA_INDEX...)
+selectrecs(r::AbstractRecord, ts::RA_TIME, is::RA_INDEX...) = _selectrecs(r, ts, is...)
+function _selectrecs(r::AbstractRecord, ts::RA_TIME, is::RA_INDEX...)
     es = _getindex_tuple(r, is...)
     return map(e -> gettime(e, ts), es)
 end
 
 # select with only one index
-selectrecs(r::RecEntry, i1::RA_INDEX) = selectrecs(r, T0, i1)
-selectrecs(r::RecEntry, ts::RA_TIME, i1::RA_INDEX) = selectrecs(r, ts, T0, i1)
+selectrecs(r::AbstractRecord, i1::RA_INDEX) = selectrecs(r, T0, i1)
+selectrecs(r::AbstractRecord, ts::RA_TIME, i1::RA_INDEX) = selectrecs(r, ts, T0, i1)
 
 # select with function
-function selectrecs(f, r::RecEntry, vars...)
+function selectrecs(f, r::AbstractRecord, vars...)
     series = selectrecs(r, vars...)::Tuple
     vt = map(f, series...)
     return vt2tv(vt)
 end
 # this methods is for plot, use the above one
-@inline selectrecs(r::RecEntry, f::Base.Callable, vars...) = selectrecs(f, r, vars...)
+@inline selectrecs(r::AbstractRecord, f::Base.Callable, vars...) = selectrecs(f, r, vars...)
 
 _getindex_tuple(r::AbstractRecord) = (r...,)# without words will return all
 _getindex_tuple(r::AbstractRecord, is...) = map(i -> r[i], is)
-_getindex_tuple(e::SingleEntry) = (e,)
-_getindex_tuple(e::SingleEntry, ::Vararg{Integer,N}) where {N} = ntuple(i -> e, Val(N))
-_getindex_tuple(u::UnionEntry) = u.es
-_getindex_tuple(u::UnionEntry, is...) = map(i -> u.es[i], is)
 
 # type stable convert vector of tuple to tuple to vector
 @generated function vt2tv(vt)

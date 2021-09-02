@@ -4,7 +4,7 @@ using Base.Iterators: IteratorSize, HasShape, HasLength, SizeUnknown
     c1 = DiscreteClock(3)
     c2 = DiscreteClock(0:3)
     c3 = DiscreteClock(0, 1:3)
-    
+
     @testset "IteratorSize" begin
         @test IteratorSize(c1) == HasLength()
         @test IteratorSize(c2) == HasLength()
@@ -34,7 +34,7 @@ end
     c1 = ContinuousClock(3.0)
     c2 = ContinuousClock(3.0; max_epoch=2)
     c3 = ContinuousClock(3.0, 1.0)
-    
+
     @testset "IteratorSize" begin
         @test IteratorSize(c1) == SizeUnknown()
         @test IteratorSize(c2) == SizeUnknown()
@@ -57,4 +57,3 @@ end
     init!(c2)
     init!(c3)
 end
-

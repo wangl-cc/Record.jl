@@ -1,7 +1,8 @@
 # Size
 mutable struct Size{N}
-    sz::NTuple{N,Int} end
-@inline Size(is::Int...) = Size(is)
+    sz::NTuple{N,Int}
+end
+@inline Size(I::Int...) = Size(I)
 @inline Size(A::AbstractArray) = Size(size(A))
 
 @inline Base.length(::Size{N}) where {N} = N
@@ -13,12 +14,19 @@ mutable struct Size{N}
 # https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/MArray.jl#L80
 function Base.getindex(sz::Size{N}, i::Integer) where {N}
     @boundscheck 1 <= i <= N || throw(BoundsError(sz, i))
-    return GC.@preserve sz unsafe_load(Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)), i)
+    return GC.@preserve sz unsafe_load(
+        Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)),
+        i,
+    )
 end
 
 function Base.setindex!(sz::Size{N}, v, i::Integer) where {N}
     @boundscheck 1 <= i <= N || throw(BoundsError(sz, i))
-    return GC.@preserve sz unsafe_store!(Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)), convert(Int, v), i)
+    return GC.@preserve sz unsafe_store!(
+        Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)),
+        convert(Int, v),
+        i,
+    )
 end
 
 # IndexMap
@@ -36,28 +44,19 @@ function Base.getindex(indmap::IndexMap{N}, I::Vararg{Int,N}) where {N}
     return @inbounds map(getindex, indmap.Is, I)
 end
 
-function pushdim!(indmap::IndexMap{N}, dim::Int, v::Int) where {N}
-    push!(indmap.Is[dim], v)
+function pushdim!(indmap::IndexMap, dim::Integer, ind::Integer)
+    push!(indmap.Is[dim], ind)
     return indmap
 end
-function insertdim!(indmap::IndexMap{N}, dim::Int, i::Int, v::Int) where {N}
-    insert!(indmap.Is[dim], i, v)
+function pushdim!(indmap::IndexMap, dim::Integer, inds)
+    append!(indmap.Is[dim], inds)
     return indmap
 end
-function deletedim!(indmap::IndexMap{N}, dim::Int, i::Int) where {N}
-    deleteat!(indmap.Is[dim], i)
+function deletedim!(indmap::IndexMap, dim::Integer, inds)
+    deleteat!(indmap.Is[dim], inds)
     return indmap
 end
-
-function checksize(::Type{Bool}, sz::Tuple, As::AbstractArray...)
-    for A in As
-        sz == size(A) || return false
-    end
-    return true
+function insertdim!(indmap::IndexMap, dim::Integer, i::Integer, ind::Integer)
+    insert!(indmap.Is[dim], i, ind)
+    return indmap
 end
-@inline checksize(::Type{Bool}, sz::Size, As::AbstractArray...) =
-    checksize(Bool, sz.sz, As...)
-@inline checksize(::Type{Bool}, A::AbstractArray, As::AbstractArray...) =
-    checksize(Bool, size(A), As...)
-checksize(As...) = checksize(Bool, As...) ||
-    throw(ArgumentError("length of args mismatch"))

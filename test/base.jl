@@ -1,7 +1,7 @@
 using RecordedArrays: rsize, rlength, StaticEntry, DynamicEntry
 using Base: elsize
 
-const DA_ARGS = (1, ones(), [1], 1:2, ones(1,1), ones(1,1,1))
+const DA_ARGS = (1, ones(), [1], 1:2, ones(1, 1), ones(1, 1, 1))
 const SA_ARGS = ([1], 1:2)
 
 # init test vars
@@ -11,14 +11,8 @@ const SA_TUPLE = SV1, SV2 = StaticRArray(c, SA_ARGS...)
 
 @testset "create rarray with {V}" begin
     testset = Iterators.flatten((# Tuple
-        zip(
-            DA_TUPLE,
-            DynamicRArray{Float64}(c, DA_ARGS...),
-        ),
-        zip(
-            SA_TUPLE,
-            StaticRArray{Float64}(c, SA_ARGS...),
-        ),
+        zip(DA_TUPLE, DynamicRArray{Float64}(c, DA_ARGS...)),
+        zip(SA_TUPLE, StaticRArray{Float64}(c, SA_ARGS...)),
     ))
     for (A, UA) in testset
         for i in 1:nfields(A)

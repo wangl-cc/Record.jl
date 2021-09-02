@@ -2,19 +2,30 @@ module RecordedArrays
 
 using RecipesBase
 
-export DiscreteClock, ContinuousClock, currenttime, limit, start, init!, increase! # clock
-export DynamicRArray, StaticRArray, state, setclock # rarray
-export DynamicRScalar, DynamicRVector 
-export StaticRVector
-export record, gettime, selectrecs, T0 # record and common
-export tspan, getts, getvs, toseries, unione, gettime! # entry
-export LinearSearch, BinarySearch # search methods
+# Clock
+export DiscreteClock, ContinuousClock
+export currenttime, limit, start, init!, increase!
+
+# utils
+export Size, IndexMap
+
+# Entry
+export StaticEntry, DynamicEntry
+export store!, del!, getts, getvs, tspan
+export LinearSearch, BinarySearch, gettime, gettime!
+
+# Record
+export ScalarRecord, VectorRecord, DokRecord
+export selectrecs, T0
+
+# RArray
+export RScalar, RVector, RArray
+export rarray, record, state
+export pushdim!, deletedim!
 
 include("clock.jl")
 
 include("utils.jl")
-
-include("abstract.jl")
 
 include("entry.jl")
 
@@ -22,19 +33,7 @@ include("record.jl")
 
 include("selectrecs.jl")
 
-include("math.jl")
-
-include("dynamic/abstract.jl")
-
-include("dynamic/scalar.jl")
-
-include("dynamic/vector.jl")
-
-include("dynamic/array.jl")
-
-include("static/abstract.jl")
-
-include("static/vector.jl")
+include("rarray.jl")
 
 end
 # vim:tw=92:ts=4:sw=4:et
