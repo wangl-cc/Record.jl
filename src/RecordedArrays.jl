@@ -35,5 +35,7 @@ include("selectrecs.jl")
 
 include("rarray.jl")
 
+include("resize.jl")
+
 end
 # vim:tw=92:ts=4:sw=4:et

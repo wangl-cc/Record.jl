@@ -20,15 +20,19 @@ const AbstractRVector{V,R} = AbstractRArray{V,R,1}
 # Abstract Arrays interfaces
 Base.IndexStyle(::Type{<:AbstractRArray}) = IndexLinear()
 Base.length(A::AbstractRArray) = length(_state(A))
-Base.size(A::AbstractRArray) = convert(NTuple{ndims(A),Int}, _size(A))
-Base.size(A::AbstractRArray, dim::Integer) = _size(A)[dim]::Int
-Base.getindex(A::AbstractRArray, i::Int) = getindex(_state(A), i)
-function Base.setindex!(A::AbstractRArray, v, i::Int)
+Base.size(A::AbstractRArray) = convert(NTuple{ndims(A),Int}, _size(_record(A)))
+Base.size(A::AbstractRArray, dim::Integer) = _size(_record(A))[dim]::Int
+Base.getindex(A::AbstractRArray, I...) = getindex(_state(A), I...)
+function Base.setindex!(A::AbstractRArray, v, I...)
     @boundscheck checkbounds(A, i)
-    @inbounds A.state[i] = v
-    @inbounds _record(A)[i] = v
+    @inbounds _state(A)[I...] = v
+    @inbounds _record(A)[I...] = v
     return v
 end
+Base.copyto!(dst::AbstractRArray, src) = copyto!(_state(dst), src)
+
+_growend!(A::AbstractRArray, delta::Integer) = Base._growend!(_state(A), delta)
+_deleteend!(A::AbstractRArray, delta::Integer) = Base._deleteend!(_state(A), delta)
 # Strided Arrays interfaces
 ## strides(A) and stride(A, i::Int) have definded for DenseArray
 Base.unsafe_convert(::Type{Ptr{T}}, A::AbstractRArray{T}) where {T} =
@@ -58,133 +62,31 @@ showdim(io::IO, ::AbstractArray{<:Any,0}) = print(io, "0-dimensional")
 showdim(io::IO, A::AbstractVector) = print(io, length(A), "-element")
 showdim(io::IO, A::AbstractArray) where {N} = join(io, size(A), '×')
 
+# create RArrays
+"""
+"""
 rarray(::Type{E}, c::AbstractClock, As...) where {E<:AbstractEntry} =
     map(A -> rarray(E, c, A), As)
-
-# Resize interfaces
-# Vector
-Base.sizehint!(A::AbstractRVector, sz::Integer) = sizehint!(_state(A), sz)
-function Base.push!(A::AbstractRVector, v)
-    push!(_state(A), v)
-    push!(_record(A), v)
-    return A
+# E with V
+function rarray(
+    ::Type{E},
+    c::AbstractClock{T},
+    A::AbstractArray
+) where {V,T<:Real,E<:AbstractEntry{V}}
+    return rarray(E{T}, c, A)
 end
-function Base.append!(A::AbstractRVector, vs)
-    append!(_state(A), vs)
-    append!(_state(A), vs)
-    return A
+rarray(::Type{E}, c::AbstractClock{T}, A) where {V,T<:Real,E<:AbstractEntry{V}} =
+    rarray(E{T}, c, fill(A))
+# E without V or T
+function rarray(
+    ::Type{E},
+    c::AbstractClock{T},
+    A::AbstractArray{V}
+) where {V,T<:Real,E<:AbstractEntry}
+    return rarray(E{V,T}, c, A)
 end
-function Base.insert!(A::AbstractRVector, i::Integer, v)
-    insert!(_state(A), i, v)
-    insert!(_record(A), i, v)
-    return A
-end
-function Base.deleteat!(A::AbstractRVector, i::Integer)
-    deleteat!(_state(A), i)
-    deleteat!(_record(A), i)
-    return A
-end
-function Base.resize!(A::AbstractRVector, nl::Integer)
-    resize!(_state(A), nl)
-    resize!(_record(A), nl)
-    return A
-end
-# Array
-Base.sizehint!(A::AbstractRArray{V,R,N}, sz::Vararg{Integer,N}) where {V,R,N} =
-    sizehint!(_state(A), prod(sz))
-function pushdim!(A::AbstractRArray, dim::Integer, n::Integer)
-    # grow state and move element
-    blk_len, vblk_num, batch_num = _blkinfo(A, dim)
-    blk_num = vblk_num + n
-    v = _state(A)
-    blk_type = zeros(Bool, blk_num)
-    blk_type[vblk_num+1:blk_num] .= true
-    delta = blk_len * n * batch_num
-    ind = length(v)
-    Base._growend!(v, delta)
-    _moveblkend!(v, ind, blk_len, blk_type, batch_num, delta)
-    # change record dim
-    pushdim!(_record(A), dim, n)
-    return A
-end
-function deletedim!(A::AbstractRArray, dim::Integer, inds)
-    # grow state and move element
-    n = length(inds)
-    blk_len, blk_num, batch_num = _blkinfo(A, dim)
-    v = _state(A)
-    blk_type = zeros(Bool, blk_num)
-    for ind in inds # if inds is a Integer, broadcast will raise a error
-        blk_type[ind] = true
-    end
-    delta = blk_len * n * batch_num
-    _moveblkbegin!(v, blk_len, blk_type, batch_num, delta)
-    Base._deleteend!(v, delta)
-    # change record dim
-    deletedim!(_record(A), dim, inds)
-    return A
-end
-
-function _moveblkbegin!(
-    v::Vector,
-    blk_len::Integer,
-    blk_type::AbstractVector{Bool},
-    batch_num::Integer,
-    delta::Integer,
-)
-    blk_num = length(blk_type)
-    ind = 1
-    _delta = 0
-    for i in 1:batch_num , j in 1:blk_num
-        if @inbounds blk_type[j]
-            _delta += blk_len
-        else
-            if _delta != 0 
-                for k in ind:(ind+blk_len-1)
-                    v[k] = v[k+_delta]
-                end
-            end
-            ind += blk_len
-        end
-    end
-    _delta != delta && error("given delta don't equal to the real delta")
-    return v
-end
-function _moveblkend!(
-    v::Vector,
-    ind::Integer,
-    blk_len::Integer,
-    blk_type::AbstractVector{Bool},
-    batch_num::Integer,
-    delta::Integer
-)
-    blk_num = length(blk_type)
-    for i in batch_num:-1:1, j in blk_num:-1:1
-        if @inbounds blk_type[j]
-            delta -= blk_len
-            delta == 0 && break
-        else
-            for k in ind:-1:(ind-blk_len+1)
-                v[k+delta] = v[k]
-            end
-            ind -= blk_len
-        end
-    end
-    return v
-end
-
-function _blkinfo(A::AbstractArray, dim::Integer)
-    dim > ndims(A) && throw(ArgumentError("dim must less than ndims(A)"))
-    blk_len = 1
-    sz = size(A)
-    for i in 1:(dim-1)
-        blk_len *= sz[i]
-    end
-    batch_num = 1
-    for i in (dim+1):ndims(A)
-        batch_num *= sz[i]
-    end
-    return blk_len, sz[dim], batch_num
-end
+rarray(::Type{E}, c::AbstractClock{T}, A::V) where {V,T<:Real,E<:AbstractEntry} =
+    rarray(E{V,T}, c, fill(A))
 
 """
     state(A::AbstractRArray{V,R,N}) -> Array{V,N}
@@ -201,9 +103,9 @@ state
 # Note:
 # `_state` is a internal API which will be called by other function
 # state is a export api which will be called by user
-# the return of `_state` should be a vector (for array) or a number (for scalar),
+# the return of `_state` should be a vector (for array) or a scalar (for scalar),
 # but the return of `state` should be a array with the same dimensions
-state(A::AbstractRScalar) = _state(A)
+state(A::AbstractRScalar) = @inbounds _state(A)[1]
 state(A::AbstractRVector) = _state(A)
 state(A::AbstractRArray{V,T,N}) where {V,T,N} = # may unsafe
     unsafe_wrap(Array{V,N}, Base.unsafe_convert(Ptr{V}, A), size(A))
@@ -213,14 +115,7 @@ state(A::AbstractRArray{V,T,N}) where {V,T,N} = # may unsafe
 
 Get the record of given Array `A`.
 """
-record(A::AbstractRArray) = record(_record(A))
-
-"""
-    setclock!(A::AbstractRArray, c::AbstractClock)
-
-Assign the clock of `A` to `c`. Type of `c` should be the same as old one.
-"""
-setclock!(A::AbstractRArray, c::AbstractClock) = _setclock!(A.record, c)
+record(A::AbstractRArray) = _record(_record(A))
 
 """
     setclock(A::AbstractRArray, c::AbstractClock)
@@ -228,7 +123,8 @@ setclock!(A::AbstractRArray, c::AbstractClock) = _setclock!(A.record, c)
 Non-mutating setclock for `A`, which will create a deepcopy of `A`, then 
 assigned the clock field to `c`.
 """
-setclock(A::AbstractRArray, c::AbstractClock) = (Ac = deepcopy(A); setclock!(Ac, c); Ac)
+setclock(A::T, c::AbstractClock) where {T<:AbstractRArray} =
+    T(copy(_state(A)), setclock(_record(A), c))
 
 # internal methods
 # core interfaces for RArray
@@ -240,10 +136,10 @@ const URArray{T} = Union{Array{T},AbstractRArray{T}}
 
 ## Unary arithmetic operators ##
 @inline +(A::AbstractRArray{<:Number}) = A # do nothing for better performance
-@inline +(A::AbstractRScalar) = _state(A) # return Number for scalar
+@inline +(A::AbstractRScalar) = @inbounds _state(A)[1] # return Number for scalar
 # force reutrn number for AbstractRScalar
 for f in (:-, :conj, :real, :imag, :transpose, :adjoint)
-    @eval @inline ($f)(r::AbstractRScalar) = ($f)(_state(r))
+    @eval @inline ($f)(r::AbstractRScalar) = ($f)(@inbounds _state(r)[1])
 end
 
 ## Binary arithmetic operators ##
@@ -255,42 +151,44 @@ end
 # * / \ for Array and Number is in arraymath, there are interfaces for RScalar
 for f in (:/, :\, :*)
     if f !== :/
-        @eval @inline ($f)(A::AbstractRScalar, B::URArray) = $f(_state(A), B)
+        @eval @inline ($f)(A::AbstractRScalar, B::URArray) =
+            $f(@inbounds _state(A)[1], B)
     end
     if f !== :\
-        @eval @inline ($f)(A::URArray, B::AbstractRScalar) = $f(A, _state(B))
+        @eval @inline ($f)(A::URArray, B::AbstractRScalar) =
+            $f(A, @inbounds _state(B)[1])
     end
 end
 
 # arithmetic operators for Number and RScalar
 for f in (:+, :-, :*, :/, :\, :^)
-    @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) = ($f)(_state(A), _state(B))
-    @eval @inline ($f)(A::Number, B::AbstractRScalar) = ($f)(A, _state(B))
-    @eval @inline ($f)(A::AbstractRScalar, B::Number) = ($f)(_state(A), B)
+    @eval @inline ($f)(A::AbstractRScalar, B::AbstractRScalar) =
+        @inbounds ($f)(_state(A)[1], _state(B)[1])
+    @eval @inline ($f)(A::Number, B::AbstractRScalar) =
+        @inbounds ($f)(A, _state(B)[1])
+    @eval @inline ($f)(A::AbstractRScalar, B::Number) =
+        @inbounds ($f)(_state(A)[1], B)
 end
 
 # RArrays
+const AbstractScalar{T} = AbstractArray{T,0}
 struct RScalar{V,R} <: AbstractRArray{V,R,0}
     state::Array{V,0}
     record::R
 end
 function RScalar(::Type{E}, c::AbstractClock, v::Array{<:Number,0}) where {E<:AbstractEntry}
-    return RScalar(v, ScalarRecord(c, E(v, c)))
-end
-function RScalar(::Type{E}, c::AbstractClock, v::Number) where {E<:AbstractEntry}
-    return RScalar(E, c, fill(v))
+    return RScalar(v, ScalarRecord(c, E(v[1], c)))
 end
 function rarray(
     ::Type{E},
     c::AbstractClock,
-    v::Union{Number,Array{<:Number,0}},
-) where {E<:AbstractEntry}
+    v::AbstractScalar,
+) where {V,T<:Real,E<:AbstractEntry{V,T}}
     return RScalar(E, c, v)
 end
 
-_state(A::RScalar) = @inbounds A.state[1]
+_state(A::RScalar) = A.state
 _record(A::RScalar) = A.record
-_size(::RScalar) = ()
 
 struct RVector{V,R} <: AbstractRArray{V,R,1}
     state::Vector{V}
@@ -306,14 +204,13 @@ end
 function rarray(
     ::Type{E},
     c::AbstractClock,
-    v::AbstractVector
-) where {E<:AbstractEntry}
+    v::AbstractVector,
+) where {V,T<:Real,E<:AbstractEntry{V,T}}
     return RVector(E, c, v)
 end
 
 _state(A::RVector) = A.state
 _record(A::RVector) = A.record
-_size(A::RVector) = Size(length(_state(A)))
 
 struct RArray{V,R,N} <: AbstractRArray{V,R,N}
     state::Vector{V}
@@ -321,15 +218,15 @@ struct RArray{V,R,N} <: AbstractRArray{V,R,N}
     function RArray(
         state::Vector{V},
         record::R,
-    ) where {V,T,C,E<:AbstractEntry{V,T},N,R<:AbstractRecord{V,T,C,E,N}}
+    ) where {V,C,E<:AbstractEntry,N,R<:AbstractRecord{C,E,N}}
         return new{V,R,N}(state, record)
     end
 end
-function RArray(::Type{E}, c::AbstractClock{T}, A::AbstractArray{V}) where {V,T,E<:AbstractEntry}
+function RArray(::Type{E}, c::AbstractClock, A::AbstractArray) where {V,T,E<:AbstractEntry{V,T}}
     state = similar(vec(A))
     copyto!(state, A)
     sz = Size(A)
-    dok = Dict{NTuple{ndims(A),Int},E{V,T}}()
+    dok = Dict{NTuple{ndims(A),Int},E}()
     for (i, ind) in enumerate(IndexMap(sz))
         dok[ind] = E(state[i], c)
     end
@@ -340,8 +237,8 @@ end
 function rarray(
     ::Type{E},
     c::AbstractClock,
-    v::AbstractArray
-) where {E<:AbstractEntry}
+    v::AbstractArray,
+) where {V,T<:Real,E<:AbstractEntry{V,T}}
     return RArray(E, c, v)
 end
 
@@ -349,4 +246,3 @@ const RMatrix{V,R} = RArray{V,R,2}
 
 _state(A::RArray) = A.state
 _record(A::RArray) = A.record
-_size(A::RArray) = _size(_record(A))

@@ -6,25 +6,17 @@ const SA_ARGS = ([1], 1:2)
 
 # init test vars
 c = DiscreteClock(1)
-const DA_TUPLE = DS1, DS2, DV1, DV2, DM1, DA1 = DynamicRArray(c, DA_ARGS...)
-const SA_TUPLE = SV1, SV2 = StaticRArray(c, SA_ARGS...)
+const DA_TUPLE = DS1, DS2, DV1, DV2, DM1, DA1 = rarray(DynamicEntry, c, DA_ARGS...)
+const SA_TUPLE = SV1, SV2 = rarray(StaticEntry, c, SA_ARGS...)
 
 @testset "create rarray with {V}" begin
     testset = Iterators.flatten((# Tuple
-        zip(DA_TUPLE, DynamicRArray{Float64}(c, DA_ARGS...)),
-        zip(SA_TUPLE, StaticRArray{Float64}(c, SA_ARGS...)),
+        zip(DA_TUPLE, rarray(DynamicEntry{UInt}, c, DA_ARGS...)),
+        zip(SA_TUPLE, rarray(DynamicEntry{UInt}, c, SA_ARGS...)),
     ))
     for (A, UA) in testset
-        for i in 1:nfields(A)
-            xi = getfield(A, i)
-            xi_u = getfield(UA, i)
-            if xi isa RecordedArrays.AbstractClock
-                @test xi === c
-                @test xi_u === c
-            else
-                @test xi == xi_u
-            end
-        end
+        @test A == UA
+        @test record(A) == record(UA)
     end
 end
 

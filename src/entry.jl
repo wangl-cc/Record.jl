@@ -6,7 +6,7 @@ with timestamps of type `T`.
 """
 abstract type AbstractEntry{V,T<:Real} end
 
-missval(::Type{E}) where {E<:AbstractEntry} = E()
+Base.zero(::Type{E}) where {E<:AbstractEntry} = E()
 
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
@@ -29,7 +29,8 @@ store!(e::AbstractEntry, v, c::AbstractClock) = store!(e, v, currenttime(c))
 """
     del!(e::AbstractEntry, t::Union{Real,AbstractClock})
 
-Delete the entry `e` at time `t`.
+Delete the entry `e` at time `t`. If an AbstractClock `c` is given,
+`t = currenttime(c)`.
 """
 del!(e::AbstractEntry, c::AbstractClock) = del!(e, currenttime(c))
 
@@ -101,21 +102,14 @@ Entry type to store changing history of a variable whose value changing overtime
 struct DynamicEntry{V,T<:Real} <: AbstractEntry{V,T}
     vs::Vector{V}
     ts::Vector{T}
-    function DynamicEntry(vs::Vector{V}, ts::Vector{T}) where {V,T}
-        length(vs) != length(ts) && throw(ArgumentError("ts and vs must be same length."))
-        issorted(ts) || throw(ArgumentError("ts must be monotonically increasing"))
-        return new{V,T}(vs, ts)
-    end
-    function DynamicEntry(v::V, t::T) where {V,T}
+    function DynamicEntry{V,T}(v::V, t::T) where {V,T}
         return new{V,T}([v], [t])
     end
     function DynamicEntry{V,T}() where {V,T}
         return new{V,T}(V[], T[])
     end
 end
-DynamicEntry(v, c::AbstractClock) = DynamicEntry(v, currenttime(c))
-DynamicEntry{V,T}(v, t::Union{AbstractClock{T},T}) where {V,T} =
-    DynamicEntry(convert(V, v), t)
+DynamicEntry{V,T}(v, t) where {V,T} = DynamicEntry{V,T}(convert(V, v), convert(T, t))
 
 store!(e::DynamicEntry, v, t::Real) = (push!(getvs(e), v); push!(getts(e), t); e)
 del!(e::DynamicEntry, ::Real) = e
@@ -187,16 +181,14 @@ mutable struct StaticEntry{V,T<:Real} <: AbstractEntry{V,T}
     s::T               # start time
     delete::Bool       # deleted or not
     e::T               # end time
-    function StaticEntry(v::V, t::T) where {V,T}
+    function StaticEntry{V,T}(v::V, t::T) where {V,T}
         return new{V,T}(true, v, t, false) # e.e is not assigned
     end
     function StaticEntry{V,T}() where {V,T}
         return new{V,T}(false) # most of fields are not assigned
     end
 end
-StaticEntry(v, c::AbstractClock) = StaticEntry(v, currenttime(c))
-StaticEntry{V,T}(v, t::Union{AbstractClock{T},T}) where {V,T} =
-    StaticEntry(convert(V, v), t)
+StaticEntry{V,T}(v, t) where {V,T} = StaticEntry{V,T}(convert(V, v), convert(T, t))
 
 function store!(e::StaticEntry, v, t::Real)
     e.init && error("the StaticEntry have be initialized")

@@ -37,6 +37,10 @@ DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recu
         include("math.jl")
     end
 
+    @testset "Resize" begin
+        include("resize.jl")
+    end
+
     @testset "Changes" begin
         include("change.jl")
     end

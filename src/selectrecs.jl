@@ -29,9 +29,8 @@ Select and process values in `r`, return a tuple of values:
   time given value changed.
 * `T0` is a constant, if `T0` is given, this function will return `ts` as first
   element of returned tuple.
-* `inds` are indices, like `(i1, i2, ..., in)`, only the values at given indices
-  will be selected and processed. If `inds` is not given, all values will be
-  selected and processed.
+* `inds` are indices, only the values at given indices will be selected and
+  processed. If `inds` is not given, all values will be selected and processed.
 
 `vars` can also be unpacked, like `selectrecs(r, f, ts, T0, inds...)`.
 
