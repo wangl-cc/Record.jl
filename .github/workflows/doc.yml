@@ -10,7 +10,7 @@ on:
       - "src/**"
       - "docs/**"
       - "Project.toml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/doc.yml"
 
 jobs:
   docs:
@@ -23,5 +23,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-
-# vim:ts=2:sw=2
