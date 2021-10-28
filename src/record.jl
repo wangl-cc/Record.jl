@@ -1,67 +1,85 @@
-abstract type AbstractRecord{C<:AbstractClock,E<:AbstractEntry,N} <:
-    AbstractArray{E,N} end
+abstract type AbstractRecord{E<:AbstractEntry,N,C<:AbstractClock} <:
+              ResizingTools.AbstractRNArray{E,N} end
+const Record = AbstractRecord
 
-Base.size(r::AbstractRecord) = convert(NTuple{ndims(r),Int}, _size(r))
-function Base.getindex(r::AbstractRecord{C,E,N}, I::Vararg{Int,N}) where {C,E,N}
-    @boundscheck checkbounds(r, I...)
-    ind = _mapind(r, I...)
-    e = _record(r, ind...)
-    return e
+function Base.getindex(r::AbstractRecord{E,N,C}, I::Vararg{Int,N}) where {E,N,C}
+    Base.@_propagate_inbounds_meta
+    I′ = to_entryind(r, I...)
+    return getentry(r, I′...)
 end
-function Base.setindex!(r::AbstractRecord{C,E,N}, v, I::Vararg{Int,N}) where {C,E,N}
-    e = r[I...]
+function Base.setindex!(r::AbstractRecord{E,N,C}, v, I::Vararg{Int,N}) where {E,N,C}
+    Base.@_propagate_inbounds_meta
+    I′ = to_entryind(r, I...)
+    e = getentry!(r, I′...)
     store!(e, v, r.c)
     return r
 end
 
-delat!(r::AbstractRecord, c::AbstractClock, args...) =
-    delat!(r, currenttime(c), args...)
+delat!(r::AbstractRecord{<:DynamicEntry}, ::Any...) = r
+function delat!(r::AbstractRecord, inds...)
+    t = currenttime(getclock(r))
+    for entry in r[inds...]
+        del!(entry, t)
+    end
+    return r
+end
 
-struct ScalarRecord{C<:AbstractClock,E<:AbstractEntry} <: AbstractRecord{C,E,0}
+newentry(r::AbstractRecord{E}) where {E} = Base.Fix2(E, getclock(r))
+newentry(r::AbstractRecord{E}, v) where {E} = E(v, getclock(r))
+
+const AbstractScalar{T} = AbstractArray{T,0}
+struct ScalarRecord{E<:AbstractEntry,C<:AbstractClock} <: AbstractRecord{E,0,C}
     c::C
     e::E
 end
+Record{E}(c::AbstractClock, v::AbstractScalar) where {E<:AbstractEntry} =
+    ScalarRecord(c, E(v[1], c))
+Record{E}(c::AbstractClock, v::Number) where {E<:AbstractEntry} = ScalarRecord(c, E(v, c))
 
-_size(::ScalarRecord) = Size()
-_record(r::ScalarRecord) = r.e
-_clock(r::ScalarRecord) = r.c
-_mapind(::ScalarRecord) = ()
+Base.parent(r::ScalarRecord) = r.e
+ResizingTools.getsize(::ScalarRecord) = ()
+to_entryind(::ScalarRecord) = ()
+getentry(r::ScalarRecord) = r.e
+getentry!(r::ScalarRecord) = r.e
+getclock(r::ScalarRecord) = r.c
 
-struct VectorRecord{C<:AbstractClock,E<:AbstractEntry} <: AbstractRecord{C,E,1}
+struct VectorRecord{E<:AbstractEntry,C<:AbstractClock} <: AbstractRecord{E,1,C}
     c::C
     es::Vector{E}
-    indmap::Vector{Int}
+    im::Vector{Int}
+end
+function Record{E}(c::AbstractClock, state::AbstractVector) where {E<:AbstractEntry}
+    es = map(v -> E(v, c), state)
+    im = collect(Base.OneTo(state))
+    return VectorRecord(c, es, im)
 end
 
-_size(r::VectorRecord) = Size(r.indmap)
-_record(r::VectorRecord) = r.es
-_record(r::VectorRecord, i::Int) = @inbounds r.es[i]
-_clock(r::VectorRecord) = r.c
-_mapind(r::VectorRecord, i::Int) = @inbounds (r.indmap[i],)
+Base.parent(r::VectorRecord) = r.es
+ResizingTools.getsize(r::VectorRecord) = (length(r.im),)
+Base.@propagate_inbounds to_entryind(r::VectorRecord, I::Int) = (r.im[I],)
+Base.@propagate_inbounds getentry(r::VectorRecord, i′::Int) = r.es[i′] # i′ is parent index
+Base.@propagate_inbounds getentry!(r::VectorRecord, i′::Int) = r.es[i′] # i′ is parent index
+getclock(r::VectorRecord) = r.c
 
 Base.sizehint!(r::VectorRecord, sz::Integer) = sizehint!(r.es, sz)
-
 function Base.push!(r::VectorRecord, v)
-    E = eltype(r)
-    push!(r.es, E(r.c, v))
-    push!(r.indmap, lastindex(r.es))
+    push!(r.es, newentry(r, v))
+    push!(r.im, lastindex(r.es))
     return r
 end
 function Base.append!(r::VectorRecord, vs)
     len = length(r.es)
-    E = eltype(r)
-    append!(r.es, map(v -> E(r.c, v), vs)) # create a entry with clock and value and push it into es
-    append!(r.indmap, len+1:len+length(vs)) # The index of entry is lastindex(es)
+    append!(r.es, map(newentry(r), vs))
+    append!(r.im, len+1:len+length(vs))
     return r
 end
 function Base.insert!(r::VectorRecord, i::Integer, v)
-    E = eltype(r)
-    push!(r.es, E(r.c, v))
-    insert!(r.indmap, i, lastindex(r.es))
+    push!(r.es, newentry(r, v))
+    insert!(r.im, i, lastindex(r.es))
 end
 function Base.deleteat!(r::VectorRecord, inds)
-    delat!(r, r.c, inds)
-    deleteat!(r.indmap, inds) # delete the index of deleted entry from index map
+    delat!(r, inds)
+    deleteat!(r.im, inds)
     return r
 end
 function Base.resize!(r::VectorRecord, nl::Integer)
@@ -69,67 +87,87 @@ function Base.resize!(r::VectorRecord, nl::Integer)
     if nl > len
         E = eltype(r)
         append!(r.es, map(_ -> E(), len+1:nl))
-        append!(r.indmap, len+1:nl)
+        append!(r.im, len+1:nl)
     elseif nl != len
         if nl < 0
             throw(ArgumentError("new length must be ≥ 0"))
         end
-        delat!(r, r.c, nl+1:len)
-        Base._deleteend!(r.indmap, len-nl)
+        delat!(r, nl+1:len)
+        resize!(r.im, len - nl)
     end
     return r
 end
 
-function delat!(v::VectorRecord, t::Real, inds)
-    for ind in inds
-        del!(v[ind], t)
-    end
-end
-delat!(v::VectorRecord{C,E}, ::Real, ::Any) where {C,E<:DynamicEntry} = v
-
-struct DokRecord{C<:AbstractClock,E<:AbstractEntry,N} <: AbstractRecord{C,E,N}
+struct DokRecord{E<:AbstractEntry,N,C<:AbstractClock} <: AbstractRecord{E,N,C}
     c::C
-    dok::DOKSpraseArray{E,N}
+    dok::DOKSparseArray{E,N}
     sz::Size{N}
-    indmap::IndexMap{N}
+    im::Indices{N}
 end
-function DokRecord(
-    c::C,
-    dok::Dict{NTuple{N,Int},E},
-    sz::Size{N},
-    rsz::Size{N},
-    indmap::IndexMap{N},
-) where {C<:AbstractClock,E<:AbstractEntry,N}
-    return DokRecord{C,E,N}(c, DOKSpraseArray(dok, rsz), sz, indmap)
+function Record{E}(c::AbstractClock, A::AbstractArray) where {E<:AbstractEntry}
+    sz = Size(A)
+    dok = Dict{NTuple{ndims(A),Int},E}()
+    for (i, ind) in enumerate(Indices(sz))
+        dok[ind] = E(state[i], c)
+    end
+    dok_array = DOKSparseArray(dok, size(A))
+    im = Indices(A)
+    return DokRecord(c, dok_array, sz, im)
 end
+Base.parent(r::DokRecord) = r.dok
+ResizingTools.getsize(r::DokRecord) = r.sz
+ResizingTools.size_type(::Type{T}) where {T<:DokRecord} = Size{ndims(T)}
 
-_size(r::DokRecord) = r.sz
-_record(r::DokRecord) = r.dok
-_clock(r::DokRecord) = r.c
-_mapind(r::DokRecord{C,E,N}, I::Vararg{Int,N}) where {C,E,N} = r.indmap[I...]
-_record(r::DokRecord{C,E,N}, I::Vararg{Int,N}) where {C,E,N} = get!(r.dok, I, E())
-Base.sizehint!(r::DokRecord, sz::Integer) = sizehint!(r.dok, sz)
+to_entryind(r::DokRecord{E,N}, I::Vararg{Int,N}) where {E,N} =
+    (Base.@_propagate_inbounds_meta; r.im[I...])
+getentry(r::DokRecord) = r.dok
+getentry(r::DokRecord{E,N}, I::Vararg{Int,N}) where {E,N} = get(parent(r), I, E())
+getentry!(r::DokRecord{E,N}, I::Vararg{Int,N}) where {E,N} = get!(parent(r), I, E())
+getclock(r::DokRecord) = r.c
 
-function pushdim!(r::DokRecord, d::Integer, n::Integer)
-    ind = _size(r)[d] += n
-    pushdim!(r.indmap, d, ind-n+1:ind)
-    pushdim!(r.dok, d, n)
-    return r
-end
-function deletedim!(r::DokRecord, d::Integer, inds)
-    delat!(r.dok, r.c, d, inds)
-    _size(r)[d] -= length(inds)
-    deletedim!(r.indmap, d, inds)
-    return r
-end
-
-function delat!(r::DokRecord, t::Real, d::Integer, inds)
-    _inds = map(ind -> r.indmap(ind), inds)
-    for (k, e) in _dok(_record(r))
-        k[d] in _inds && del!(e, t)
+function ResizingTools.pre_resize!(r::DokRecord{E,N}, inds::Vararg{Any,N}) where {E,N}
+    sz = size(r)
+    nsz = to_dims(inds)
+    psz = size(parent(r))
+    for ind in CartesianIndices(r)
+        # del entries that are no longer in the new size
+        _checkindices(inds, ind.I) || delat!(r, ind)
+    end
+    for i in 1:N # change im
+        diff = nsz[i] - sz[i]
+        if diff > 0
+            append!(r.im[i], psz[i]-diff:psz[i])
+        elseif diff < 0
+            resize!(r.im[i], (inds[i],))
+        end
     end
     return r
 end
-delat!(A::DokRecord{C,E}, ::Real, ::Integer, ::Any) where {C,E<:DynamicEntry} = A
+function ResizingTools.pre_resize!(r::DokRecord, d::Integer, I)
+    n = size(r, d)
+    nn = to_dims(I)
+    pn = size(parent(r))
+    for ind in CartesianIndices(r)
+        # del entries that are no longer in the new size
+        _checkindices(I, ind[d]) || delat!(r, ind)
+    end
+    diff = nn - n
+    if diff > 0
+        append!(r.im[d], pn[d]-diff:pn[d])
+    elseif diff < 0
+        resize!(r.im[d], (I,))
+    end
+    return r
+end
+
+_checkindices(inds::Tuple, I::Dims) = all(map(_checkindex, inds, I))
+_checkindex(ind, i::Int) = checkindex(Bool, ind, i)
+_checkindex(ind::Integer, i::Int) = checkindex(Bool, Base.OneTo(ind), i)
+
+ResizingTools.to_parentinds(r::DokRecord, Is::Tuple) =
+    map(_to_parentind, size(r), size(parent(r)), Is)
+
+_to_parentind(::Int, pn::Int, ::Any) = pn
+_to_parentind(n::Int, pn::Int, nn::Int) = (d = nn - n; d > 0 ? pn + d : pn)
 
 Base.show(io::IO, ::MIME"text/plain", r::AbstractRecord) = summary(io, r)

@@ -4,11 +4,15 @@ authors = ["Long Wang <wangl.cc@outlook.com>"]
 version = "0.3.0"
 
 [deps]
+ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+ResizingTools = "112dcb92-135b-4fff-bdeb-bacebdb79ec0"
+Static = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
 
 [compat]
 RecipesBase = "1.1"
-julia = "1.0"
+ResizingTools = "0.3.3"
+julia = "1.2"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"

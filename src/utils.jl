@@ -1,94 +1,76 @@
-# Size
-mutable struct Size{N}
-    sz::NTuple{N,Int}
-end
-@inline Size(I::Int...) = Size(I)
-@inline Size(A::AbstractArray) = Size(size(A))
+"""
+    Indices(sz::Dims{N}) -> R
+    Indices(sz::Size{N}) -> R
+    Indices(sz::NTuple{N,AbstractVector{Int}}) -> R
 
-const USize{N} = Union{Size{N},NTuple{Integer,N}}
-_totuple(sz::Size) = sz.sz
-_totuple(sz::Tuple{Vararg{Integer}}) = sz
+A `CartesianIndices` like type with mutable and disconnected region.
 
-@inline Base.length(::Size{N}) where {N} = N
-@inline Base.convert(::Type{T}, sz::Size) where {T<:Tuple} = convert(T, sz.sz)
-@inline Base.map(f, sz::Size) = map(f, _totuple(sz))
-@inline Base.map(f, sz1::USize, sz2::Usize) = map(f, _totuple(sz1), _totuple(sz2))
-for op in (:(==), :(<),)
-    @eval @inline Base.$op(sz1::USize, sz2::USize) = $op(_totuple(sz1), _totuple(sz2))
-end
-_resize!(sz::Size{N}, nsz::NTuple{N,Int}) where {N} = sz.sz = nsz
+# Examples
+```jldoctest
+julia> im = Indices((2, 2))
+2×2 Indices{2}:
+ (1, 1)  (1, 2)
+ (2, 1)  (2, 2)
 
-# The below two methods is a modifaction of `MArray` in `StaticArrays.jl`
-# https://github.com/JuliaArrays/StaticArrays.jl/blob/master/src/MArray.jl#L80
-function Base.getindex(sz::Size{N}, i::Int) where {N}
-    @boundscheck 1 <= i <= N || throw(BoundsError(sz, i))
-    return GC.@preserve sz unsafe_load(
-        Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)),
-        i,
-    )
+julia> foreach(println, im)
+(1, 1)
+(2, 1)
+(1, 2)
+(2, 2)
+```
+"""
+struct Indices{N} <: AbstractArray{CartesianIndex{N},N}
+    indices::NTuple{N,Vector{Int}}
 end
+Indices(indices::NTuple{N,AbstractVector{Int}}) where {N} = Indices(map(collect, indices))
+Indices(sz::Dims{N}) where {N} = Indices(map(Base.OneTo, sz))
+Indices(sz::Size{N}) where {N} = Indices(sz.sz)
 
-function Base.setindex!(sz::Size{N}, v, i::Int) where {N}
-    @boundscheck 1 <= i <= N || throw(BoundsError(sz, i))
-    return GC.@preserve sz unsafe_store!(
-        Base.unsafe_convert(Ptr{Int}, pointer_from_objref(sz)),
-        convert(Int, v),
-        i,
-    )
-end
+Base.size(im::Indices) = map(length, im.indices)
 
-# IndexMap
-struct IndexMap{N} <: AbstractArray{Int,N}
-    Is::NTuple{N,Vector{Int}}
-end
-IndexMap(axes::NTuple{N,AbstractVector{Int}}) where {N} = IndexMap(map(collect, axes))
-IndexMap(sz::NTuple{N,Int}) where {N} = IndexMap(map(Base.OneTo, sz))
-IndexMap(sz::Size{N}) where {N} = IndexMap(sz.sz)
-
-Base.size(indmap::IndexMap) = map(length, indmap.Is)
-
-function Base.getindex(indmap::IndexMap{N}, I::Vararg{Int,N}) where {N}
-    @boundscheck checkbounds(indmap, I...)
-    return @inbounds map(getindex, indmap.Is, I)
-end
-
-function pushdim!(indmap::IndexMap, dim::Integer, ind::Integer)
-    push!(indmap.Is[dim], ind)
-    return indmap
-end
-function pushdim!(indmap::IndexMap, dim::Integer, inds)
-    append!(indmap.Is[dim], inds)
-    return indmap
-end
-function deletedim!(indmap::IndexMap, dim::Integer, inds)
-    deleteat!(indmap.Is[dim], inds)
-    return indmap
-end
-function insertdim!(indmap::IndexMap, dim::Integer, i::Integer, ind::Integer)
-    insert!(indmap.Is[dim], i, ind)
-    return indmap
-end
+Base.@propagate_inbounds Base.getindex(im::Indices{N}, I::Vararg{Int,N}) where {N} =
+    CartesianIndex(map(getindex, im.indices, I))
 
 # DOKArray
-struct DOKSpraseArray{T,N} <: AbstractArray{T,N}
-    dok::Dict{NTuple{N,Int},T}
+const DOK{T,N} = Dict{Dims{N},T}
+ResizingTools.isresizable(::Type{<:DOK}) = True()
+
+struct DOKSparseArray{T,N} <: ResizingTools.AbstractRNArray{T,N}
+    dok::DOK{T,N}
     sz::Size{N}
 end
-_dok(A::DOKSpraseArray) = A.dok
 
-Base.size(A::DOKSpraseArray{T,N}) where {T,N} = convert(NTuple{N,Int}, A.sz)
-Base.size(A::DOKSpraseArray, d::Integer) = A.sz[d]
-function Base.getindex(A::DOKSpraseArray{T,N}, I::Vararg{Int,N}) where {T,N}
+Base.parent(A::DOKSparseArray) = A.dok
+ArrayInterface.parent_type(::Type{<:DOKSparseArray{T,N}}) where {T,N} = DOK{T,N}
+ResizingTools.getsize(A::DOKSparseArray{T,N}) where {T,N} = A.sz
+ResizingTools.size_type(::Type{<:DOKSparseArray{T,N}}) where {T,N} = Size{N}
+
+function Base.getindex(A::DOKSparseArray{T,N}, I::Vararg{Int,N}) where {T,N}
     @boundscheck checkbounds(A, I...)
     return get(A.dok, I, zero(T))
 end
+# this methods not used in this package
+function Base.setindex!(A::DOKSparseArray{T,N}, v, I::Vararg{Int,N}) where {T,N}
+    @boundscheck checkbounds(A, I...)
+    return A[I] = v
+end
+
 # Tools
-function Base.get!(A::DOKSpraseArray{T,N}, I::NTuple{N,Int}, v::T) where {T,N}
+function Base.get!(A::DOKSparseArray{T,N}, I::Dims{N}, v::T) where {T,N}
     @boundscheck checkbounds(A, I...)
     return get!(A.dok, I, v)
 end
-Base.sizehint!(A::DOKSpraseArray, sz::Integer) = sizehint!(A, sz)
-function Base.resize!(A::DOKSpraseArray{T,N}, sz::Vararg{Integer,N}) where {T,N}
-    A.sz <= sz && throw(ArgumentError("new size must large than the old one"))
-    return _resize!(A.sz, sz)
+Base.get(A::DOKSparseArray{T,N}, I::Dims{N}, default::T) where {T,N} =
+    get(parent(A), I, default)
+function ResizingTools.resize_buffer!(A::DOKSparseArray{T,N}, sz::Vararg{Any,N}) where {T,N}
+    sz′ = to_dims(sz)
+    @boundscheck all(map(<=, size(A), sz′)) && throw(ArgumentError("new size must large than the old one"))
+    setsize!(A, sz′)
+    return A
+end
+function ResizingTools.resize_buffer_dim!(A::DOKSparseArray, d::Int, n)
+    n′ = to_dims(n)
+    @boundscheck ResizingTools.check_dimbounds(A, d, n′)
+    setsize!(A, d, n′)
+    return A
 end
