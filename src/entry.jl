@@ -8,6 +8,18 @@ abstract type AbstractEntry{V,T<:Real} end
 
 Base.zero(::Type{E}) where {E<:AbstractEntry} = E()
 
+return_type(::Type{E}, v, t) where {E<:AbstractEntry} =
+    _return_type(E, _typeof(v), _typeof(t))
+
+_typeof(::T) where {T} = T
+_typeof(::Type{T}) where {T} = T
+_typeof(::AbstractArray{T}) where {T} = T
+_typeof(::AbstractClock{T}) where {T} = T
+
+_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,E<:AbstractEntry} = E{V,T}
+_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,E<:AbstractEntry{VE}} = E{VE,T}
+_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,TE,E<:AbstractEntry{VE,TE}} = E{VE,TE}
+
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
     summary(io, e)
@@ -29,29 +41,29 @@ store!(e::AbstractEntry, v, c::AbstractClock) = store!(e, v, currenttime(c))
 """
     del!(e::AbstractEntry, t::Union{Real,AbstractClock})
 
-Delete the entry `e` at time `t`. If an AbstractClock `c` is given,
-`t = currenttime(c)`.
+Marks a entry `e` deleted at time `t`.
+If an AbstractClock `c` is given, `t = currenttime(c)`.
 """
 del!(e::AbstractEntry, c::AbstractClock) = del!(e, currenttime(c))
 
 """
     getts(e::AbstractEntry{V,T}) -> Vector{T}
 
-Get timestamps of given entry `e`.
+Get timestamps of an entry `e`.
 """
 getts
 
 """
     getvs(e::AbstractEntry{V,T}) -> Vector{V}
 
-Get values at each timestamp of given entry `e`.
+Get values at each timestamp of an entry `e`.
 """
 getvs
 
 """
     tspan(e::AbstractEntry{V,T}) -> T
 
-Get last time of given `e`.
+Get last time of an entry `e`.
 """
 tspan(e::AbstractEntry) = (ts = getts(e); ts[end] - ts[1])
 
@@ -80,9 +92,8 @@ the index `i` of a target time `t`, which can be `LinearSearch` or `BinarySearch
 ```
 """
 gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t)
-function gettime(alg::AbstractSearch, e::AbstractEntry{V}, ts) where {V}
-    return gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
-end
+gettime(alg::AbstractSearch, e::AbstractEntry{V}, ts) where {V} =
+    gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
 function gettime!(alg::AbstractSearch, dst, e::AbstractEntry{V}, ts) where {V}
     state = _initstate(e)
     v = zero(V)
@@ -110,6 +121,11 @@ struct DynamicEntry{V,T<:Real} <: AbstractEntry{V,T}
     end
 end
 DynamicEntry{V,T}(v, t) where {V,T} = DynamicEntry{V,T}(convert(V, v), convert(T, t))
+DynamicEntry{V}(v, t::T) where {V,T} = DynamicEntry{V,T}(v, t)
+DynamicEntry(v::V, t::T) where {V,T} = DynamicEntry{V,T}(v, t)
+DynamicEntry{V,T}(v, c::AbstractClock) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
+DynamicEntry{V}(v, c::AbstractClock{T}) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
+DynamicEntry(v::V, c::AbstractClock{T}) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
 
 store!(e::DynamicEntry, v, t::Real) = (push!(getvs(e), v); push!(getts(e), t); e)
 del!(e::DynamicEntry, ::Real) = e
@@ -189,22 +205,33 @@ mutable struct StaticEntry{V,T<:Real} <: AbstractEntry{V,T}
     end
 end
 StaticEntry{V,T}(v, t) where {V,T} = StaticEntry{V,T}(convert(V, v), convert(T, t))
+StaticEntry{V}(v, t::T) where {V,T} = StaticEntry{V,T}(v, t)
+StaticEntry(v::V, t::T) where {V,T} = StaticEntry{V,T}(v, t)
+StaticEntry{V,T}(v, c::AbstractClock) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
+StaticEntry{V}(v, c::AbstractClock{T}) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
+StaticEntry(v::V, c::AbstractClock{T}) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
 
 function store!(e::StaticEntry, v, t::Real)
-    e.init && error("the StaticEntry have be initialized")
+    e.init && error("the StaticEntry has be initialized")
+    e.init = true
     e.v = v
     e.s = t
     e.delete = false
     return e
 end
-del!(e::StaticEntry, t::Real) = (e.delete = true; e.e = t)
+function del!(e::StaticEntry, t::Real)
+    e.init && e.delete && error("the StaticEntry has be deleted")
+    e.delete = true
+    e.e = t
+    return e
+end
 
 getts(e::StaticEntry) = e.delete ? [e.s, e.e] : [e.s]
 getvs(e::StaticEntry) = e.delete ? [e.v, e.v] : [e.v]
 
-function gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V}
-    return t < e.s ? zero(V) : t <= e.e ? e.v : zero(V)
-end
+gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V} =
+    t < e.s  ? zero(V) :
+    t <= e.e ? e.v : zero(V)
 
 _initstate(::StaticEntry) = true
 

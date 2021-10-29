@@ -1,14 +1,14 @@
 """
-    Indices(sz::Dims{N}) -> R
-    Indices(sz::Size{N}) -> R
-    Indices(sz::NTuple{N,AbstractVector{Int}}) -> R
+    MCIndices(sz::Dims{N}) -> R
+    MCIndices(sz::Size{N}) -> R
+    MCIndices(sz::NTuple{N,AbstractVector{Int}}) -> R
 
-A `CartesianIndices` like type with mutable and disconnected region.
+A `CartesianIndices` like type defines mutable and disconnected region `R`.
 
 # Examples
 ```jldoctest
-julia> im = Indices((2, 2))
-2×2 Indices{2}:
+julia> im = MCIndices((2, 2))
+2×2 MCIndices{2}:
  (1, 1)  (1, 2)
  (2, 1)  (2, 2)
 
@@ -19,21 +19,20 @@ julia> foreach(println, im)
 (2, 2)
 ```
 """
-struct Indices{N} <: AbstractArray{CartesianIndex{N},N}
+struct MCIndices{N} <: AbstractArray{Dims{N},N}
     indices::NTuple{N,Vector{Int}}
 end
-Indices(indices::NTuple{N,AbstractVector{Int}}) where {N} = Indices(map(collect, indices))
-Indices(sz::Dims{N}) where {N} = Indices(map(Base.OneTo, sz))
-Indices(sz::Size{N}) where {N} = Indices(sz.sz)
+MCIndices(indices::NTuple{N,AbstractVector{Int}}) where {N} = MCIndices(map(collect, indices))
+MCIndices(A::AbstractArray) = MCIndices(axes(A))
 
-Base.size(im::Indices) = map(length, im.indices)
+Base.size(im::MCIndices) = map(length, im.indices)
 
-Base.@propagate_inbounds Base.getindex(im::Indices{N}, I::Vararg{Int,N}) where {N} =
-    CartesianIndex(map(getindex, im.indices, I))
+Base.@propagate_inbounds getdim(im::MCIndices, i::Int) = im.indices[i]
+Base.@propagate_inbounds Base.getindex(im::MCIndices{N}, I::Vararg{Int,N}) where {N} =
+    map(getindex, im.indices, I)::Dims{N}
 
 # DOKArray
 const DOK{T,N} = Dict{Dims{N},T}
-ResizingTools.isresizable(::Type{<:DOK}) = True()
 
 struct DOKSparseArray{T,N} <: ResizingTools.AbstractRNArray{T,N}
     dok::DOK{T,N}
@@ -42,6 +41,8 @@ end
 
 Base.parent(A::DOKSparseArray) = A.dok
 ArrayInterface.parent_type(::Type{<:DOKSparseArray{T,N}}) where {T,N} = DOK{T,N}
+ResizingTools.isresizable(::Type{<:DOKSparseArray}) = true
+ResizingTools.has_resize_buffer(::Type{<:DOKSparseArray}) = true
 ResizingTools.getsize(A::DOKSparseArray{T,N}) where {T,N} = A.sz
 ResizingTools.size_type(::Type{<:DOKSparseArray{T,N}}) where {T,N} = Size{N}
 
@@ -62,15 +63,17 @@ function Base.get!(A::DOKSparseArray{T,N}, I::Dims{N}, v::T) where {T,N}
 end
 Base.get(A::DOKSparseArray{T,N}, I::Dims{N}, default::T) where {T,N} =
     get(parent(A), I, default)
+
+# these two methods don't create elements, the elements are created by setindex!
 function ResizingTools.resize_buffer!(A::DOKSparseArray{T,N}, sz::Vararg{Any,N}) where {T,N}
     sz′ = to_dims(sz)
-    @boundscheck all(map(<=, size(A), sz′)) && throw(ArgumentError("new size must large than the old one"))
+    @boundscheck all(map(<=, size(A), sz′)) || throw(ArgumentError("new size must large than the old one"))
     setsize!(A, sz′)
     return A
 end
 function ResizingTools.resize_buffer_dim!(A::DOKSparseArray, d::Int, n)
     n′ = to_dims(n)
-    @boundscheck ResizingTools.check_dimbounds(A, d, n′)
+    @boundscheck size(A, d) <= n′ || throw(ArgumentError("new size must large than the old one"))
     setsize!(A, d, n′)
     return A
 end

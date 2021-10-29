@@ -1,8 +1,8 @@
 """
-    AbstractRecArray{V,R,N}
+    AbstractRecArray{T,N}
 
-Supertype of recorded `N`-dimensional arrays with elements of type `V`
-and record of type `R`", whose changes will be recorded automatically.
+Supertype of recorded `N`-dimensional arrays with elements of type `T`,
+whose changes will be recorded automatically.
 
 !!! note
 
@@ -15,24 +15,28 @@ const AbstractRecScalar{T} = AbstractRecArray{T,0}
 const AbstractRecVector{T} = AbstractRecArray{T,1}
 
 # array interface
-Base.IndexStyle(::Type{T<:AbstractRecArray}) where {T} = IndexLinear()
+Base.IndexStyle(::Type{<:AbstractRecArray}) = IndexLinear()
 Base.@propagate_inbounds Base.getindex(A::AbstractRecArray, i::Int) = parent(A)[i]
 Base.@propagate_inbounds Base.setindex!(A::AbstractRecArray, v, i::Int) =
     (getrecord(A)[i] = v; parent(A)[i] = v)
 ## elsize and unsafe_convert have defined for AbstractRDArray in ResizingTools
 
 # parent interface
-Base.parent(A::AbstractRecArray) = _state(A)
-ArrayInterface.parent_type(::Type{T}) where {T<:AbstractRecArray} = Vector{eltype(T)}
+ArrayInterface.parent_type(::Type{A}) where {A<:AbstractRecArray} = Vector{eltype(A)}
 # size interface
-ResizingTools.getsize(A) = getsize(getrecord(A))
+ResizingTools.getsize(A::AbstractRecArray) = getsize(getrecord(A))
 # This a trick, setsize! is used to resize its another parent
 # Besides, the size of RArray is stored in record,
 # so overriding setsize! also avoids changing size twice
-ResizingTools.setsize!(A::AbstractArray{T,N}, sz::NTuple{N,Any}) where {T,N} =
+ResizingTools.setsize!(A::AbstractRecArray{T,N}, sz::NTuple{N,Any}) where {T,N} =
     resize!(getrecord(A), sz)
-ResizingTools.setsize!(A::AbstractArray, d::Integer, n) =
+ResizingTools.setsize!(A::AbstractRecArray, d::Integer, n) =
     resize!(getrecord(A), d, n)
+
+# this methods may be unsafe because of the state
+ResizingTools.copyto_parent!(dst::AbstractRecArray, src::AbstractArray, dinds...) =
+    copyto!(view(state(dst), dinds...), src)
+
 # showarg
 function Base.showarg(io::IO, ::A, toplevel) where {T,N,A<:AbstractRecArray{T,N}}
     toplevel || print(io, "::")
@@ -42,40 +46,34 @@ function Base.showarg(io::IO, ::A, toplevel) where {T,N,A<:AbstractRecArray{T,N}
     return nothing
 end
 
-# resize!
-
 """
-    state(A::AbstractRArray{V,R,N}) -> Array{V,N}
+    state(A::AbstractRecArray{T,N}) -> Array{T,N}
+    state(x::RecordedNumber{T}) -> T
 
-Get current state of recorded array `A`. API for mathematical operations.
+Get current state of a recorded array `A` or a recorded number `x`.
 
 !!! note
 
-    `state` for `AbstractRArray{V,T,N}` where `N >= 2` might be unsafe because of
+    `state` for `AbstractRecArray{V,T,N}` where `N >= 2` may be unsafe because of
     `unsafe_wrap` and `unsafe_convert`.
 """
 state
 
 # Note:
-# `_state` is a internal API which will be called by other function
-# state is a export api which will be called by user
-# the return of `_state` should be a vector
+# `parent` is an internal API called by other function
+# `state` is an export api called by user
+# the return of `parent` should be a vector
 # but the return of `state` should be a array with the same dimensions
-@inline state(A::AbstractRecVector) = _state(A)
-@inline state(A::AbstractRecArray{V,T,N}) where {V,T,N} = # may unsafe
-    unsafe_wrap(Array{V,N}, Base.unsafe_convert(Ptr{V}, A), size(A))
+@inline state(A::AbstractRecVector) = parent(A)
+@inline state(A::AbstractRecArray{T,N}) where {T,N} = # may be unsafe
+    unsafe_wrap(Array{T,N}, Base.unsafe_convert(Ptr{T}, A), size(A))
 
 """
-    getentries(A::AbstractRArray)
+    getentries(A::AbstractRecArray)
 
-Get the array of entries of given Array `A`.
+Get entries of a recorded array `A`.
 """
-getentries(A::AbstractRecArray) = getrecord(getentries(A))
-
-# internal methods
-# core interfaces for RArray
-@inline _state(A::AbstractArray) = A
-@inline _length(A::AbstractRecArray) = length(_state(A))
+getentries(A::AbstractRecArray) = parent(getrecord(A))
 
 """
     recorded(E, c::AbstractClock, A)
@@ -84,66 +82,50 @@ Create a recorded array (or number) with entry of type `E` and clock `c`.
 """
 recorded
 
-# E with V
-recorded(::Type{E}, c::AbstractClock{T}, A::AbstractArray) where {V,T,E<:AbstractEntry{V}} =
-    recorded(E{T}, c, A)
-# E without V or T
-recorded(::Type{E}, c::AbstractClock{T}, A::AbstractArray{V}) where {V,T,E<:AbstractEntry} =
-    recorded(E{V,T}, c, A)
-
-
 # RArrays
-struct RArray{V,R,N} <: AbstractRecArray{V,R,N}
-    state::Vector{V}
+struct RArray{T,N,R} <: AbstractRecArray{T,N}
+    state::Vector{T}
     record::R
-    function RArray(
-        state::Vector{V},
-        record::R,
-    ) where {V,C,E<:AbstractEntry,N,R<:AbstractRecord{C,E,N}}
-        return new{V,R,N}(state, record)
-    end
 end
-function recorded(
-    ::Type{E},
-    c::AbstractClock,
-    A::AbstractArray,
-) where {V,T<:Real,E<:AbstractEntry{V,T}}
+RArray(state::Vector{T}, record::R) where {T,E,N,R<:AbstractRecord{E,N}} =
+    RArray{T,N,R}(state, record)
+function recorded(::Type{E}, c::AbstractClock, A::AbstractArray) where {E<:AbstractEntry}
     state = similar(vec(A))
     copyto!(state, A)
-    return RArray(state, Record{E}(c, state))
+    return RArray(state, Record{E}(c, A))
 end
 
-const RVector{V,R} = RArray{V,R,1}
-const RMatrix{V,R} = RArray{V,R,2}
+const RVector{V,R} = RArray{V,1,R}
+const RMatrix{V,R} = RArray{V,2,R}
 
-_state(A::RArray) = A.state
+Base.parent(A::RArray) = A.state
 getrecord(A::RArray) = A.record
 
 # linear resize! and sizehint!
 # cartisian resize! and sizehint! defined in ResizingTools
-Base.sizehint!(A::AbstractRecVector, sz::Integer) = sizehint!(_state(A), sz)
+Base.sizehint!(A::AbstractRecVector, sz::Integer) = sizehint!(parent(A), sz)
 function Base.push!(A::AbstractRecVector, v)
-    push!(_state(A), v)
+    push!(parent(A), v)
     push!(getrecord(A), v)
     return A
 end
 function Base.append!(A::AbstractRecVector, vs)
-    append!(_state(A), vs)
-    append!(_state(A), vs)
+    append!(parent(A), vs)
+    append!(getrecord(A), vs)
     return A
 end
 function Base.insert!(A::AbstractRecVector, i::Integer, v)
-    insert!(_state(A), i, v)
+    insert!(parent(A), i, v)
     insert!(getrecord(A), i, v)
     return A
 end
 function Base.deleteat!(A::AbstractRecVector, inds)
-    deleteat!(_state(A), inds)
+    deleteat!(parent(A), inds)
     deleteat!(getrecord(A), inds)
     return A
 end
 function Base.resize!(A::AbstractRecVector, nl::Integer)
-    resize!(_state(A), nl)
+    resize!(parent(A), nl)
     resize!(getrecord(A), nl)
     return A
 end

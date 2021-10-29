@@ -16,7 +16,7 @@ increase!
 ## Recorded Arrays
 
 ```@docs
-RecordedArrays.AbstractRArray
+RecordedArrays.AbstractRecArray
 RecordedArrays.StaticRArray
 RecordedArrays.DynamicRArray
 state

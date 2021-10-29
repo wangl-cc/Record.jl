@@ -10,20 +10,20 @@ using Static
 export DiscreteClock, ContinuousClock
 export currenttime, limit, start, init!, increase!
 
-# utils
-export Size, Indices
-
 # Entry
 export StaticEntry, DynamicEntry
 export store!, del!, getts, getvs, tspan
 export LinearSearch, BinarySearch, gettime, gettime!
 
-# Record
-export ScalarRecord, VectorRecord, DokRecord
+# utils
+export Size, MCIndices, DOKSparseArray
 
-# RArray
-export recorded, RArray
-export getrecord, getentries, state
+# Record
+export Record, ScalarRecord, VectorRecord, DOKRecord
+
+# RNumber, RArray
+export RArray, RNumber, RReal
+export recorded, getentries, state
 
 include("clock.jl")
 
