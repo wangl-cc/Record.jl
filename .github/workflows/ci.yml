@@ -8,7 +8,6 @@ on:
     paths:
       - "src/**"
       - "test/**"
-      - "docs/src/**" # doctest
       - "Project.toml"
       - ".github/workflows/ci.yml"
   pull_request:
@@ -22,7 +21,7 @@ jobs:
   build:
     name: Build and Test
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       matrix:
         version:
