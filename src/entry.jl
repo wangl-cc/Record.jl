@@ -17,8 +17,8 @@ _typeof(::AbstractArray{T}) where {T} = T
 _typeof(::AbstractClock{T}) where {T} = T
 
 _return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,E<:AbstractEntry} = E{V,T}
-_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,E<:AbstractEntry{VE}} = E{VE,T}
-_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,TE,E<:AbstractEntry{VE,TE}} = E{VE,TE}
+_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,E<:AbstractEntry{VE}} = E{T}
+_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,TE<:Real,E<:AbstractEntry{VE,TE}} = E
 
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
@@ -123,7 +123,8 @@ end
 DynamicEntry{V,T}(v, t) where {V,T} = DynamicEntry{V,T}(convert(V, v), convert(T, t))
 DynamicEntry{V}(v, t::T) where {V,T} = DynamicEntry{V,T}(v, t)
 DynamicEntry(v::V, t::T) where {V,T} = DynamicEntry{V,T}(v, t)
-DynamicEntry{V,T}(v, c::AbstractClock) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
+DynamicEntry{V,T}(v, c::C) where {V,T,C<:AbstractClock} =
+    DynamicEntry{V,T}(v, currenttime(c))
 DynamicEntry{V}(v, c::AbstractClock{T}) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
 DynamicEntry(v::V, c::AbstractClock{T}) where {V,T} = DynamicEntry{V,T}(v, currenttime(c))
 
@@ -207,7 +208,7 @@ end
 StaticEntry{V,T}(v, t) where {V,T} = StaticEntry{V,T}(convert(V, v), convert(T, t))
 StaticEntry{V}(v, t::T) where {V,T} = StaticEntry{V,T}(v, t)
 StaticEntry(v::V, t::T) where {V,T} = StaticEntry{V,T}(v, t)
-StaticEntry{V,T}(v, c::AbstractClock) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
+StaticEntry{V,T}(v, c::C) where {V,T,C<:AbstractClock} = StaticEntry{V,T}(v, currenttime(c))
 StaticEntry{V}(v, c::AbstractClock{T}) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
 StaticEntry(v::V, c::AbstractClock{T}) where {V,T} = StaticEntry{V,T}(v, currenttime(c))
 

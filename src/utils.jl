@@ -61,8 +61,10 @@ function Base.get!(A::DOKSparseArray{T,N}, I::Dims{N}, v::T) where {T,N}
     @boundscheck checkbounds(A, I...)
     return get!(A.dok, I, v)
 end
-Base.get(A::DOKSparseArray{T,N}, I::Dims{N}, default::T) where {T,N} =
+Base.get(A::DOKSparseArray{T,N}, I::Dims{N}, default) where {T,N} =
     get(parent(A), I, default)
+Base.get(A::DOKSparseArray{T,0}, I::Tuple{}, default) where {T} =
+    get(parent(A), I, default) # to avoid ambiguities
 
 # these two methods don't create elements, the elements are created by setindex!
 function ResizingTools.resize_buffer!(A::DOKSparseArray{T,N}, sz::Vararg{Any,N}) where {T,N}

@@ -53,7 +53,9 @@ end
         @test [(increase!(c3, 1); (i, currenttime(c3))) for i in c3] == collect(zip(1:2, 2.0:3.0))
     end
 
-    init!(c1)
-    init!(c2)
-    init!(c3)
+    @testset "auto-initialize" begin
+        @test currenttime(c1) == start(c1)
+        @test currenttime(c2) != start(c2)
+        @test currenttime(c3) == start(c3)
+    end
 end

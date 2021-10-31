@@ -40,6 +40,9 @@ Temporary Items
 # Local History for Visual Studio Code
 .history/
 
+# Coverage file for Visual Studio Code
+lcov.info
+
 # ============================== vim =============================== #
 # ============= github/gitignore/Global/Vim.gitignore ============== #
 

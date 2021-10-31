@@ -2,6 +2,9 @@ abstract type AbstractRecord{E<:AbstractEntry,N,C<:AbstractClock} <:
               ResizingTools.AbstractRNArray{E,N} end
 const Record = AbstractRecord
 
+newentry(r::AbstractRecord{E}) where {E} = Base.Fix2(E, currenttime(getclock(r)))
+newentry(r::AbstractRecord{E}, v) where {E} = E(v, currenttime(getclock(r)))
+
 function Base.getindex(r::AbstractRecord{E,N,C}, I::Vararg{Int,N}) where {E,N,C}
     Base.@_propagate_inbounds_meta
     I′ = to_entryind(r, I...)
@@ -29,9 +32,6 @@ function _delall!(es, t::Real)
     end
     return es
 end
-
-newentry(r::AbstractRecord{E}) where {E} = Base.Fix2(E, getclock(r))
-newentry(r::AbstractRecord{E}, v) where {E} = E(v, getclock(r))
 
 const AbstractScalar{T} = AbstractArray{T,0}
 struct ScalarRecord{E<:AbstractEntry,C<:AbstractClock} <: AbstractRecord{E,0,C}
@@ -69,12 +69,59 @@ Base.@propagate_inbounds getentry(r::VectorRecord, i′::Int) = r.es[i′] # i�
 Base.@propagate_inbounds getentry!(r::VectorRecord, i′::Int) = r.es[i′] # i′ is parent index
 getclock(r::VectorRecord) = r.c
 
+# set has_resize_buffer false to avoid resize buffer too early
+ResizingTools.has_resize_buffer(::Type{<:VectorRecord}) = false
+function ResizingTools.resize_buffer!(A::Vector{E}, I) where {E<:AbstractEntry}
+    nl = to_dims(I)
+    diff = nl - length(A)
+    @boundscheck 0 <= diff || throw(ArgumentError("new length must be large than old one"))
+    if diff > 0
+        append!(A, map(_ -> E(), length(A)+1:nl))
+    end
+    return A
+end
+function ResizingTools.resize_buffer_dim!(A::Vector{E}, d::Int, I) where {E<:AbstractEntry}
+    @boundscheck d == 1 || throw(BoundsError())
+    return ResizingTools.resize_buffer!(A, I)
+end
+
+# for vector record, del entries is in setsize
+ResizingTools.setsize!(r::VectorRecord, (I,)::Tuple{Any}) = _setsize!(r, I)
+function ResizingTools.setsize!(r::VectorRecord, d::Int, I)
+    @boundscheck d == 1 || throw(BoundsError(r))
+    return _setsize!(r, I)
+end
+
+function _setsize!(r::VectorRecord, I)
+    len = length(r)
+    nlen = to_dims(I)
+    plen = length(parent(r))
+    diff = nlen - len
+    delat!(r, _del_ind(len, I))
+    if diff > 0
+        append!(r.im, plen-diff+1:plen)
+    elseif diff < 0
+        resize!(r.im, (I,))
+    end
+    return r
+end
+_del_ind(len::Int, ind::Integer) = Int(ind):len
+_del_ind(len::Int, ind::Base.LogicalIndex) = Base.OneTo(len)[not(ind)]
+
+ResizingTools.to_parentinds(r::VectorRecord, (I,)::Tuple{Any}) =
+    (_to_parentind(length(r), length(parent(r)), I),)
+function ResizingTools.to_parentinds(r::VectorRecord, d::Int, I)
+    @boundscheck d == 1 || throw(BoundsError(r))
+    return 1, _to_parentind(length(r), length(parent(r)), I)
+end
+
 Base.sizehint!(r::VectorRecord, sz::Integer) = sizehint!(r.es, sz)
 function Base.push!(r::VectorRecord, v)
     push!(r.es, newentry(r, v))
     push!(r.im, lastindex(r.es))
     return r
 end
+Base.append!(r::VectorRecord{E}, v::V) where {V,E<:AbstractEntry{V}} = push!(r, v)
 function Base.append!(r::VectorRecord, vs)
     len = length(r.es)
     append!(r.es, map(newentry(r), vs))

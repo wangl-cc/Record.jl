@@ -43,6 +43,7 @@ A `Union` of recorded numbers with type `T`.
     `x = v`.
 """
 const RecordedNumber{T} = Union{RNumber{T},RReal{T}}
+const RN = RecordedNumber
 
 """
     getentries(x::RecordedNumber)
@@ -73,13 +74,9 @@ Base.convert(::Type{T}, n::RecordedNumber) where {T<:Number} = convert(T, state(
 Base.convert(::Type{T}, n::RecordedNumber) where {P,T<:RecordedNumber{P}} =
     convert(P, state(n))
 
-Base.promote_rule(
-    ::Type{<:RecordedNumber{S}},
-    ::Type{<:RecordedNumber{T}},
-) where {S<:Number,T<:Number} = promote_type(S, T)
-Base.promote_rule(::Type{<:RecordedNumber{S}}, ::Type{T}) where {S<:Number,T<:Number} =
+Base.promote_rule(::Type{<:RN{S}}, ::Type{<:RN{T}}) where {S<:Number,T<:Number} =
     promote_type(S, T)
-Base.promote_rule(::Type{S}, ::Type{<:RecordedNumber{T}}) where {S<:Number,T<:Number} =
+Base.promote_rule(::Type{<:RN{S}}, ::Type{T}) where {S<:Number,T<:Number} =
     promote_type(S, T)
 
 Base.show(io::IO, ::MIME"text/plain", x::RecordedNumber) = show(io, state(x))

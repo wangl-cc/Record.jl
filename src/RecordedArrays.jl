@@ -3,6 +3,7 @@ module RecordedArrays
 using RecipesBase
 using ResizingTools
 using ResizingTools: AbstractRDArray, to_parentinds
+using FunctionIndices
 using ArrayInterface
 using Static
 

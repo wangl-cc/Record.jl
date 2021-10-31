@@ -5,9 +5,6 @@ Supertype of clocks with time of type `T`.
 """
 abstract type AbstractClock{T<:Real} end
 
-Base.convert(::Type{T}, x::AbstractClock{T}) where {T<:Real} = currenttime(x)
-Base.convert(::Type{T}, x::AbstractClock) where {T<:Real} = convert(T, currenttime(x))
-
 """
     currenttime(c::AbstractClock)
 
