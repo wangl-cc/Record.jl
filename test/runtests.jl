@@ -33,8 +33,12 @@ using RecordedArrays
         include("entry.jl")
     end
 
-    @testset "Resize" begin
-        include("resize.jl")
+    @testset "RArray" begin
+        include("rarray.jl")
+    end
+
+    @testset "RNumber" begin
+        include("rnumber.jl")
     end
 end
 

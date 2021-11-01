@@ -1,5 +1,3 @@
-import Base: +, -, *, /, \, ^, conj, real, imag
-
 mutable struct RNumber{T<:Number,R} <: Number
     v::T
     record::R
@@ -93,11 +91,16 @@ end
     return parent(x)
 end
 
-for op in (:+, :-, :conj, :real, :imag)
+for op in (:+, :-, :conj, :real, :imag, :float)
     @eval @inline Base.$op(x::RecordedNumber) = $op(parent(x))
 end
 
 for op in (:+, :-, :*, :/, :\, :^)
     @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}) where {T} =
         $op(parent(x), parent(y))
+end
+
+for op in (:div, :rem)
+    @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}, r::RoundingMode) where {T} =
+        $op(parent(x), parent(y), r)
 end

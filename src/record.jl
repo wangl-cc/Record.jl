@@ -120,9 +120,7 @@ function Base.resize!(r::VectorRecord, nl::Integer)
         append!(r.es, map(_ -> E(), len+1:nl))
         append!(r.im, len+1:nl)
     elseif nl != len
-        if nl < 0
-            throw(ArgumentError("new length must be ≥ 0"))
-        end
+        nl < 0 && throw(ArgumentError("new length must be ≥ 0"))
         delat!(r, nl+1:len)
         resize!(r.im, len - nl)
     end
@@ -137,7 +135,7 @@ struct DOKRecord{E<:AbstractEntry,N,C<:AbstractClock} <: AbstractRecord{E,N,C}
 end
 function Record{E}(c::AbstractClock, A::AbstractArray) where {E<:AbstractEntry}
     sz = Size(A)
-    dok = Dict{NTuple{ndims(A),Int},return_type(E,eltype(A),c)}()
+    dok = Dict{NTuple{ndims(A),Int},return_type(E,A,c)}()
     sizehint!(dok, prod(size(A)))
     for (i, ind) in enumerate(MCIndices(A))
         dok[ind] = E(A[i], c)
@@ -153,7 +151,6 @@ ResizingTools.size_type(::Type{T}) where {T<:DOKRecord} = Size{ndims(T)}
 
 to_entryind(r::DOKRecord{E,N}, I::Vararg{Int,N}) where {E,N} =
     (Base.@_propagate_inbounds_meta; r.im[I...])
-getentry(r::DOKRecord) = r.dok
 getentry(r::DOKRecord{E,N}, I::Vararg{Int,N}) where {E,N} = get(parent(r), I, E())
 getentry!(r::DOKRecord{E,N}, I::Vararg{Int,N}) where {E,N} = get!(parent(r), I, E())
 getclock(r::DOKRecord) = r.c

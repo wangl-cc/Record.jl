@@ -17,7 +17,10 @@ export store!, del!, getts, getvs, tspan
 export LinearSearch, BinarySearch, gettime, gettime!
 
 # utils
-export Size, MCIndices, DOKSparseArray
+export MCIndices, DOKSparseArray
+
+# extra (Size from ResizingTools, not from FunctionIndices)
+export Size, not
 
 # Record
 export Record, ScalarRecord, VectorRecord, DOKRecord
@@ -25,6 +28,7 @@ export Record, ScalarRecord, VectorRecord, DOKRecord
 # RNumber, RArray
 export RArray, RNumber, RReal
 export recorded, getentries, state
+export isnum, issubtype
 
 include("clock.jl")
 

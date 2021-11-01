@@ -53,7 +53,7 @@ end
 # this methods not used in this package
 function Base.setindex!(A::DOKSparseArray{T,N}, v, I::Vararg{Int,N}) where {T,N}
     @boundscheck checkbounds(A, I...)
-    return A[I] = v
+    return A.dok[()] = v
 end
 
 # Tools

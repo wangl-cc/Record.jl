@@ -16,3 +16,10 @@ using RecordedArrays: getdim
         @test length(im.indices[i]) == 4
     end
 end
+
+@testset "DOKSparseArray" begin
+    s = DOKSparseArray(Dict{Tuple{},Int}(()=>1), Size())
+    @test s[] == 1
+    s[] = 2
+    @test get(s, (), 1) == 2
+end

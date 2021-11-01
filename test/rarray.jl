@@ -1,0 +1,148 @@
+using RecordedArrays: getentries
+
+@testset "Scalar" begin
+    c = DiscreteClock(10)
+    s = recorded(DynamicEntry, c, fill(0))
+    @test size(s) == ()
+    for t in c
+        s[] = t
+        @test s[] == t
+    end
+    e1 = getentries(s)
+    @test getts(e1) == 0:10
+    @test getvs(e1) == 0:10
+end
+
+@testset "Vector" begin
+    @testset "Static" begin
+        c = ContinuousClock(10)
+        v = recorded(StaticEntry, c, [1])
+        increase!(c, 1) # t = 1
+        resize!(v, 2)[2] = 2
+        increase!(c, 1) # t = 2
+        @test push!(v, 3) == 1:3
+        increase!(c, 1) # t = 3
+        @test resize!(v, (Bool[0,0,1],)) == [3]
+        increase!(c, 1) # t = 4
+        resize!(v, (3,))
+        v[2:3] = 4:5 # this a setindex!
+        increase!(c, 1) # t = 5
+        @test deleteat!(v, 2) == [3, 5]
+        increase!(c, 1) # t = 6
+        @test insert!(v, 2, 6) == [3, 6, 5]
+        increase!(c, 1) # t = 7
+        @test append!(v, [7]) == [3, 6, 5, 7]
+        increase!(c, 1) # t = 8
+        @test append!(v, 8) == [3, 6, 5, 7, 8]
+        increase!(c, 1) # t = 9
+        @test resize!(v, 1, Bool[1,0,0,0,1]) == [3, 8]
+        increase!(c, 1) # t = 10
+        @test resize!(v, 1) == [3]
+        es = getentries(v)
+        @test getts(es[1]) == [0, 3]
+        @test getts(es[2]) == [1, 3]
+        @test getts(es[3]) == [2]
+        @test getts(es[4]) == [4, 5]
+        @test getts(es[5]) == [4, 9]
+        @test getts(es[6]) == [6, 9]
+        @test getts(es[7]) == [7, 9]
+        @test getts(es[8]) == [8, 10]
+    end
+    @testset "Dynamic" begin
+        c = ContinuousClock(10)
+        v = recorded(DynamicEntry, c, [1])
+        increase!(c, 1) # t = 1
+        resize!(v, 2)[:] = 2:3
+        @test v == 2:3
+        increase!(c, 1) # t = 2
+        v[2] = 4
+        @test v == [2, 4]
+        increase!(c, 1) # t = 3
+        @test resize!(v, (1,)) == [2]
+        increase!(c, 1) # t = 4
+        v[1] = 5
+        increase!(c, 1) # t = 5
+        resize!(v, (3,))[2:3] = 6:7
+        @test v == 5:7
+        es = getentries(v)
+        @test getts(es[1]) == [0, 1, 4]
+        @test getts(es[2]) == [1, 2]
+        @test getts(es[3]) == [5]
+        @test getts(es[4]) == [5]
+        @test getvs(es[1]) == [1, 2, 5]
+        @test getvs(es[2]) == [3, 4]
+        @test getvs(es[3]) == [6]
+        @test getvs(es[4]) == [7]
+    end
+end
+
+@testset "Matrix" begin
+    @testset "Static" begin
+        c = ContinuousClock(10)
+        m = recorded(StaticEntry, c, fill(1, 1, 1))
+        increase!(c, 1) # t = 1
+        resize!(m, (2, 2))[2:4] = 2:4
+        increase!(c, 1) # t = 2
+        resize!(m, 2, 3)[5:6] = 5:6
+        @test vec(m) == 1:6
+        increase!(c, 1) # t = 3
+        @test resize!(m, (:, 2:3)) == reshape(3:6, 2, 2)
+        increase!(c, 1) # t = 4
+        @test resize!(m, 1, 1) == [3 5]
+        increase!(c, 1) # t = 5
+        resize!(m, 1, 3)[not(1), :] = reshape(7:10, 2, 2)
+        increase!(c, 1) # t = 6
+        resize!(m, 2, 3)[:, 3] = reshape(11:13, 1, 3)
+        @test m == [3  5 11
+                    7  9 12
+                    8 10 13]
+        increase!(c, 1) # t = 7
+        @test resize!(m, (not(2), not(2))) |> vec == [3, 8, 11, 13]
+        es = getentries(m)
+        @test getts(es[1, 1]) == [0, 3] # 1
+        @test getts(es[2, 1]) == [1, 3] # 2
+        @test getts(es[1, 2]) == [1]    # 3
+        @test getts(es[2, 2]) == [1, 4] # 4
+        @test getts(es[1, 3]) == [2, 7] # 5
+        @test getts(es[2, 3]) == [2, 4] # 6
+        @test getts(es[3, 2]) == [5, 7] # 7
+        @test getts(es[4, 2]) == [5]    # 8
+        @test getts(es[3, 3]) == [5, 7] # 9
+        @test getts(es[4, 3]) == [5, 7] # 10
+        @test getts(es[1, 4]) == [6]    # 11
+        @test getts(es[3, 4]) == [6, 7] # 12
+        @test getts(es[4, 4]) == [6]    # 13
+    end
+    @testset "DynamicEntry" begin
+        c = ContinuousClock(10)
+        m = recorded(DynamicEntry, c, fill(1, 1, 1))
+        increase!(c, 1) # t = 1
+        resize!(m, (2, 2))[2:4] = 2:4
+        increase!(c, 1) # t = 2
+        m[1] = 5
+        increase!(c, 1) # t = 3
+        resize!(m, 2, 3)[5:6] = 6:7
+        increase!(c, 1) # t = 4
+        m[2, 3] = 8
+        increase!(c, 1) # t = 5
+        resize!(m, (:, not(2))) |> vec == [5, 2, 6, 8]
+        increase!(c, 1) # t = 6
+        m[2] = 9
+        increase!(c, 1) # t = 7
+        m[3] = 10
+        @test m[:] == [5, 9, 10, 8]
+        es = getentries(m)
+        @test getts(es[1, 1]) == [0, 2]
+        @test getts(es[2, 1]) == [1, 6]
+        @test getts(es[1, 2]) == [1]
+        @test getts(es[2, 2]) == [1]
+        @test getts(es[1, 3]) == [3, 7]
+        @test getts(es[2, 3]) == [3, 4]
+        @test getvs(es[1, 1]) == [1, 5]
+        @test getvs(es[2, 1]) == [2, 9]
+        @test getvs(es[1, 2]) == [3]
+        @test getvs(es[2, 2]) == [4]
+        @test getvs(es[1, 3]) == [6, 10]
+        @test getvs(es[2, 3]) == [7, 8]
+    end
+end
