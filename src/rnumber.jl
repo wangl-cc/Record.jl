@@ -99,8 +99,3 @@ for op in (:+, :-, :*, :/, :\, :^)
     @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}) where {T} =
         $op(parent(x), parent(y))
 end
-
-for op in (:div, :rem)
-    @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}, r::RoundingMode) where {T} =
-        $op(parent(x), parent(y), r)
-end
