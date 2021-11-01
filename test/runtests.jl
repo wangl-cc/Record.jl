@@ -16,7 +16,13 @@ using RecordedArrays
                 end
                 return true
             end
-            @test length(ambiguities) == 0
+            if !isempty(ambiguities)
+                for amb in ambiguities
+                    println(amb[1])
+                    println(amb[2])
+                end
+            end
+            @test isempty(ambiguities)
         end
         Aqua.test_all(RecordedArrays; ambiguities=false, deps_compat=false)
     end
