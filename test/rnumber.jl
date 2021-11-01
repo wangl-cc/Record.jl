@@ -20,6 +20,19 @@ y = recorded(DynamicEntry, c, 1.0+1.0im)
 @test promote_type(RNumber{Float64}, RReal{Int}) == Float64
 @test promote_type(RNumber{Float64}, RNumber{Int}) == Float64
 
+@test x + x == 2
+@test y + y == 2 + 2im
+@test x - x == 0
+@test y - y == 0
+@test x * x == 1
+@test y * y == 2im
+@test x / x == 1
+@test y / y == 1
+@test x \ x == 1
+@test y \ y == 1
+@test x ^ x == 1
+@test y ^ y == (1 + im) ^ (1 + im)
+
 @test convert(Int, x) == 1
 @test convert(RNumber{Int}, x) == 1
 
@@ -102,7 +115,7 @@ push!(ys, y)
 
 increase!(c, 1) # t = 9
 
-x[] = x ÷ x
+x[] = x / x
 y[] = y[1]' + y[1, 1]
 
 @test x == 1
