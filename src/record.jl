@@ -69,51 +69,27 @@ Base.@propagate_inbounds getentry(r::VectorRecord, i′::Int) = r.es[i′] # i�
 Base.@propagate_inbounds getentry!(r::VectorRecord, i′::Int) = r.es[i′] # i′ is parent index
 getclock(r::VectorRecord) = r.c
 
-# set has_resize_buffer false to avoid resize buffer too early
-ResizingTools.has_resize_buffer(::Type{<:VectorRecord}) = false
-function ResizingTools.resize_buffer!(A::Vector{E}, I) where {E<:AbstractEntry}
+function ResizingTools.resize_buffer!(A::VectorRecord{E}, I) where {E<:AbstractEntry}
+    len = length(A)
     nl = to_dims(I)
-    diff = nl - length(A)
-    @boundscheck 0 <= diff || throw(ArgumentError("new length must be large than old one"))
+    pl = length(parent(A))
+    diff = nl - len
     if diff > 0
-        append!(A, map(_ -> E(), length(A)+1:nl))
+        append!(A.im, pl+1:pl+diff)
+        append!(A.es, map(_-> E(), 1:diff))
+    elseif diff < 0
+        delat!(A, _del_ind(len, I))
+        resize!(A.im, (I,))
     end
     return A
 end
-function ResizingTools.resize_buffer_dim!(A::Vector{E}, d::Int, I) where {E<:AbstractEntry}
+function ResizingTools.resize_buffer_dim!(A::VectorRecord, d::Int, I)
     @boundscheck d == 1 || throw(BoundsError())
     return ResizingTools.resize_buffer!(A, I)
 end
 
-# for vector record, del entries is in setsize
-ResizingTools.setsize!(r::VectorRecord, (I,)::Tuple{Any}) = _setsize!(r, I)
-function ResizingTools.setsize!(r::VectorRecord, d::Int, I)
-    @boundscheck d == 1 || throw(BoundsError(r))
-    return _setsize!(r, I)
-end
-
-function _setsize!(r::VectorRecord, I)
-    len = length(r)
-    nlen = to_dims(I)
-    plen = length(parent(r))
-    diff = nlen - len
-    delat!(r, _del_ind(len, I))
-    if diff > 0
-        append!(r.im, plen-diff+1:plen)
-    elseif diff < 0
-        resize!(r.im, (I,))
-    end
-    return r
-end
 _del_ind(len::Int, ind::Integer) = Int(ind):len
 _del_ind(len::Int, ind::Base.LogicalIndex) = Base.OneTo(len)[not(ind)]
-
-ResizingTools.to_parentinds(r::VectorRecord, (I,)::Tuple{Any}) =
-    (_to_parentind(length(r), length(parent(r)), I),)
-function ResizingTools.to_parentinds(r::VectorRecord, d::Int, I)
-    @boundscheck d == 1 || throw(BoundsError(r))
-    return 1, _to_parentind(length(r), length(parent(r)), I)
-end
 
 Base.sizehint!(r::VectorRecord, sz::Integer) = sizehint!(r.es, sz)
 function Base.push!(r::VectorRecord, v)
