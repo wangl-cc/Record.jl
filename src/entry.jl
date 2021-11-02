@@ -7,6 +7,7 @@ with timestamps of type `T`.
 abstract type AbstractEntry{V,T<:Real} end
 
 Base.zero(::Type{E}) where {E<:AbstractEntry} = E()
+Base.valtype(::Type{E}) where {V,E<:AbstractEntry{V}} = V
 
 return_type(::Type{E}, v, t) where {E<:AbstractEntry} =
     _return_type(E, _typeof(v), _typeof(t))
@@ -29,6 +30,9 @@ function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
     join(io, ts, "\n ")
     return nothing
 end
+
+# Recipes
+@recipe f(::Type{E}, e::E) where {E<:AbstractEntry} = getts(e), getvs(e)
 
 # Tools
 """
@@ -91,10 +95,11 @@ the index `i` of a target time `t`, which can be `LinearSearch` or `BinarySearch
 ```jldoctest
 ```
 """
-gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t)
+gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t) # t or ts
 gettime(alg::AbstractSearch, e::AbstractEntry{V}, ts) where {V} =
-    gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
+    @inbounds gettime!(alg, Vector{V}(undef, length(ts)), e, ts)
 function gettime!(alg::AbstractSearch, dst, e::AbstractEntry{V}, ts) where {V}
+    Base.@_propagate_inbounds_meta
     state = _initstate(e)
     v = zero(V)
     for (i, t) in enumerate(ts)
@@ -104,6 +109,35 @@ function gettime!(alg::AbstractSearch, dst, e::AbstractEntry{V}, ts) where {V}
     return dst
 end
 _gettime_itr(::AbstractSearch, ::AbstractEntry, ::Real, v, ::Nothing) = v, nothing
+
+"""
+    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, t::Real)
+    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, ts)
+"""
+gettime(es::AbstractArray{<:AbstractEntry}, t) = gettime(BinarySearch(), es, t) # t or ts
+function gettime(alg::AbstractSearch, es::AbstractArray{<:AbstractEntry}, t::Real)
+    ret = similar(es, valtype(eltype(es)))
+    @inbounds for i in 1:length(es)
+        if isassigned(es, i)
+            ret[i] = gettime(alg, es[i], t)
+        else
+            ret[i] = zero(eltype(ret))
+        end
+    end
+    return ret
+end
+function gettime(alg::AbstractSearch, es::AbstractArray{<:AbstractEntry}, ts)
+    tlen = length(ts)
+    ret = Array{valtype(eltype(es))}(undef, tlen, size(es)...)
+    @inbounds for i in 1:length(es)
+        if isassigned(es, i)
+            gettime!(alg, view(ret, (i-1)*tlen+1:i*tlen), es[i], ts)
+        else
+            ret[(i-1)*tlen+1:i*tlen] .= zero(eltype(ret))
+        end
+    end
+    return ret
+end
 
 """
     DynamicEntry{V,T} <: AbstractEntry{V,T}
@@ -134,10 +168,10 @@ del!(e::DynamicEntry, ::Real) = e
 getts(e::DynamicEntry) = e.ts
 getvs(e::DynamicEntry) = e.vs
 
-function gettime(::LinearSearch, e::DynamicEntry{V}, t::Real) where {V}
+function gettime(::LinearSearch, e::DynamicEntry, t::Real)
     ts = getts(e)
     vs = getvs(e)
-    @inbounds ts[1] > t && return zero(V)
+    @inbounds ts[1] > t && return zero(valtype(e))
     @inbounds for i in eachindex(ts)
         ts[i] > t && return vs[i-1]
     end
@@ -232,6 +266,7 @@ getvs(e::StaticEntry) = e.delete ? [e.v, e.v] : [e.v]
 
 gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V} =
     t < e.s  ? zero(V) :
+    !e.delete ? e.v :
     t <= e.e ? e.v : zero(V)
 
 _initstate(::StaticEntry) = true
@@ -244,6 +279,7 @@ function _gettime_itr(
     state::Bool,
 ) where {V}
     state && e.s > t && return zero(V), true
+    e.delete || return e.v, nothing
     if e.e >= t
         return e.v, false
     else

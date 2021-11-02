@@ -14,7 +14,7 @@ function Base.setindex!(r::AbstractRecord{E,N,C}, v, I::Vararg{Int,N}) where {E,
     Base.@_propagate_inbounds_meta
     I′ = to_entryind(r, I...)
     e = getentry!(r, I′...)
-    store!(e, v, r.c)
+    store!(e, v, getclock(r))
     return r
 end
 

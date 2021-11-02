@@ -9,6 +9,7 @@ using RecordedArrays: getentries
         @test s[] == t
     end
     e1 = getentries(s)
+    @test e1 == RecordedArrays.getrecord(s)[]
     @test getts(e1) == 0:10
     @test getvs(e1) == 0:10
 end
@@ -47,6 +48,28 @@ end
         @test getts(es[6]) == [6, 9]
         @test getts(es[7]) == [7, 9]
         @test getts(es[8]) == [8, 10]
+        @test gettime(es, 0) == [1, 0, 0, 0, 0, 0, 0, 0]
+        @test gettime(es, 1) == [1, 2, 0, 0, 0, 0, 0, 0]
+        @test gettime(es, 2) == [1, 2, 3, 0, 0, 0, 0, 0]
+        @test gettime(es, 3) == [1, 2, 3, 0, 0, 0, 0, 0]
+        @test gettime(es, 4) == [0, 0, 3, 4, 5, 0, 0, 0]
+        @test gettime(es, 5) == [0, 0, 3, 4, 5, 0, 0, 0]
+        @test gettime(es, 6) == [0, 0, 3, 0, 5, 6, 0, 0]
+        @test gettime(es, 7) == [0, 0, 3, 0, 5, 6, 7, 0]
+        @test gettime(es, 8) == [0, 0, 3, 0, 5, 6, 7, 8]
+        @test gettime(es, 9) == [0, 0, 3, 0, 5, 6, 7, 8]
+        @test gettime(es, 10) == [0, 0, 3, 0, 0, 0, 0, 8]
+        @test gettime(es, 11) == [0, 0, 3, 0, 0, 0, 0, 0]
+        @test gettime(es, -0.5) == [0, 0, 0, 0, 0, 0, 0, 0]
+        @test gettime(es, 1.5) == [1, 2, 0, 0, 0, 0, 0, 0]
+        @test gettime(es, 3.5) == [0, 0, 3, 0, 0, 0, 0, 0]
+        @test gettime(es, 9.5) == [0, 0, 3, 0, 0, 0, 0, 8]
+        ts = -0.5:0.5:10.5
+        m = gettime(es, ts)
+        for (i, t) in enumerate(ts)
+            @test m[i, :] == gettime(es, t) ==
+                map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
+        end
     end
     @testset "Dynamic" begin
         c = ContinuousClock(10)
@@ -73,6 +96,24 @@ end
         @test getvs(es[2]) == [3, 4]
         @test getvs(es[3]) == [6]
         @test getvs(es[4]) == [7]
+
+        @test gettime(es, 0) == [1, 0, 0, 0]
+        @test gettime(es, 1) == [2, 3, 0, 0]
+        @test gettime(es, 2) == [2, 4, 0, 0]
+        @test gettime(es, 3) == [2, 4, 0, 0]
+        @test gettime(es, 4) == [5, 4, 0, 0]
+        @test gettime(es, 5) == [5, 4, 6, 7]
+        @test gettime(es, -0.5) == [0, 0, 0, 0]
+        @test gettime(es, 1.5) == [2, 3, 0, 0]
+        @test gettime(es, 2.5) == [2, 4, 0, 0]
+        @test gettime(es, 3.5) == [2, 4, 0, 0]
+        @test gettime(es, 0:2:4) == [1 0 0 0; 2 4 0 0; 5 4 0 0]
+        @test gettime(es, -1:2:5) == [0 0 0 0; 2 3 0 0; 2 4 0 0; 5 4 6 7]
+        ts = 0:0.5:5.5
+        a = gettime(es, ts)
+        for (i, t) in enumerate(ts)
+            @test a[i, :] == gettime(es, t) == gettime(es, round(t, RoundDown))
+        end
     end
 end
 
@@ -112,6 +153,27 @@ end
         @test getts(es[1, 4]) == [6]    # 11
         @test getts(es[3, 4]) == [6, 7] # 12
         @test getts(es[4, 4]) == [6]    # 13
+        @test gettime(es, 0) == [1 0 0 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 1) == [1 3 0 0; 2 4 0 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 2) == [1 3 5 0; 2 4 6 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 3) == [1 3 5 0; 2 4 6 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 4) == [0 3 5 0; 0 4 6 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 5) == [0 3 5 0; 0 0 0 0; 0 7 9 0; 0 8 10 0]
+        @test gettime(es, 6) == [0 3 5 11; 0 0 0 0; 0 7 9 12; 0 8 10 13]
+        @test gettime(es, 7) == [0 3 5 11; 0 0 0 0; 0 7 9 12; 0 8 10 13]
+        @test gettime(es, 8) == [0 3 0 11; 0 0 0 0; 0 0 0 0; 0 8 0 13]
+        @test gettime(es, -0.5) == [0 0 0 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 0.5) == gettime(es, 0)
+        @test gettime(es, 1.5) == gettime(es, 1)
+        @test gettime(es, 3.5) == gettime(es, 4)
+        @test gettime(es, 4.5) == [0 3 5 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+        @test gettime(es, 6.5) == gettime(es, 6)
+        ts = 0:0.5:7.5
+        a = gettime(es, ts)
+        for (i, t) in enumerate(ts)
+            @test a[i, :, :] == gettime(es, t) ==
+                map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
+        end
     end
     @testset "DynamicEntry" begin
         c = ContinuousClock(10)
@@ -131,6 +193,11 @@ end
         increase!(c, 1) # t = 7
         m[3] = 10
         @test m[:] == [5, 9, 10, 8]
+        increase!(c, 1) # t = 8
+        resize!(m, (3, :))[3, :] = 11:12
+        increase!(c, 1) # t = 9
+        m[3, 1] = 13
+        @test m == [5  10; 9  8; 13 12]
         es = getentries(m)
         @test getts(es[1, 1]) == [0, 2]
         @test getts(es[2, 1]) == [1, 6]
@@ -138,11 +205,32 @@ end
         @test getts(es[2, 2]) == [1]
         @test getts(es[1, 3]) == [3, 7]
         @test getts(es[2, 3]) == [3, 4]
+        @test getts(es[3, 1]) == [8, 9]
+        @test getts(es[3, 3]) == [8]
+
         @test getvs(es[1, 1]) == [1, 5]
         @test getvs(es[2, 1]) == [2, 9]
         @test getvs(es[1, 2]) == [3]
         @test getvs(es[2, 2]) == [4]
         @test getvs(es[1, 3]) == [6, 10]
         @test getvs(es[2, 3]) == [7, 8]
+        @test getvs(es[3, 1]) == [11, 13]
+        @test getvs(es[3, 3]) == [12]
+
+        @test gettime(es, 0) == [1 0 0; 0 0 0; 0 0 0]
+        @test gettime(es, 1) == [1 3 0; 2 4 0; 0 0 0]
+        @test gettime(es, 2) == [5 3 0; 2 4 0; 0 0 0]
+        @test gettime(es, 3) == [5 3 6; 2 4 7; 0 0 0]
+        @test gettime(es, 4) == [5 3 6; 2 4 8; 0 0 0]
+        @test gettime(es, 5) == [5 3 6; 2 4 8; 0 0 0]
+        @test gettime(es, 6) == [5 3 6; 9 4 8; 0 0 0]
+        @test gettime(es, 7) == [5 3 10; 9 4 8; 0 0 0]
+        @test gettime(es, 8) == [5 3 10; 9 4 8; 11 0 12]
+        @test gettime(es, 9) == [5 3 10; 9 4 8; 13 0 12]
+        ts = 0:0.5:9.5
+        a = gettime(es, ts)
+        for (i, t) in enumerate(ts)
+            @test a[i, :, :] == gettime(es, t) == gettime(es, round(t, RoundDown))
+        end
     end
 end

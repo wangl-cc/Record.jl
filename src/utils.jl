@@ -40,6 +40,8 @@ struct DOKSparseArray{T,N} <: ResizingTools.AbstractRNArray{T,N}
 end
 
 Base.parent(A::DOKSparseArray) = A.dok
+Base.isassigned(A::DOKSparseArray, i::Integer...) =
+    haskey(A.dok, Base._to_subscript_indices(A, i...))
 ArrayInterface.parent_type(::Type{<:DOKSparseArray{T,N}}) where {T,N} = DOK{T,N}
 ResizingTools.isresizable(::Type{<:DOKSparseArray}) = true
 ResizingTools.has_resize_buffer(::Type{<:DOKSparseArray}) = true
@@ -53,7 +55,7 @@ end
 # this methods not used in this package
 function Base.setindex!(A::DOKSparseArray{T,N}, v, I::Vararg{Int,N}) where {T,N}
     @boundscheck checkbounds(A, I...)
-    return A.dok[()] = v
+    return A.dok[I] = v
 end
 
 # Tools
