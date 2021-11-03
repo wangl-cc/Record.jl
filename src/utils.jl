@@ -1,23 +1,22 @@
 """
-    MCIndices(sz::Dims{N}) -> R
-    MCIndices(sz::Size{N}) -> R
     MCIndices(sz::NTuple{N,AbstractVector{Int}}) -> R
+    MCIndices(A::AbstractArray) -> R
 
 A `CartesianIndices` like type defines mutable and disconnected region `R`.
 
 # Examples
 
 ```jldoctest
-julia> im = MCIndices((2, 2))
+julia> im = MCIndices(([1, 3], [2, 4]))
 2×2 MCIndices{2}:
- (1, 1)  (1, 2)
- (2, 1)  (2, 2)
+ (1, 2)  (1, 4)
+ (3, 2)  (3, 4)
 
-julia> foreach(println, im)
-(1, 1)
-(2, 1)
+julia> im[1]
 (1, 2)
-(2, 2)
+
+julia> im[1, 2]
+(1, 4)
 ```
 """
 struct MCIndices{N} <: AbstractArray{Dims{N},N}
