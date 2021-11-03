@@ -13,29 +13,36 @@ init!
 increase!
 ```
 
-## Recorded Arrays
+## Entries
+
+```@docs
+RecordedArrays.AbstractEntry
+StaticEntry
+DynamicEntry
+getts
+getvs
+tspan
+gettime
+RecordedArrays.store!
+RecordedArrays.del!
+```
+
+## Recorded Types
 
 ```@docs
 RecordedArrays.AbstractRecArray
-RecordedArrays.StaticRArray
-RecordedArrays.DynamicRArray
+RecordedArrays.RArray
+RecordedArrays.RecordedNumber
+recorded
 state
-setclock
+getentries
+issubtype
+isnum
 ```
 
-## View AbstractRecord
+## Utilities
 
 ```@docs
-RecordedArrays.AbstractRecord
-record
-RecordedArrays.AbstractEntry
-RecordedArrays.SingleEntry
-RecordedArrays.UnionEntry
-gettime
-unione
-getts
-getvs
-toseries
-tspan
-selectrecs
+RecordedArrays.MCIndices
+RecordedArrays.DOKSparseArray
 ```

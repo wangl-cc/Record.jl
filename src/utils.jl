@@ -34,6 +34,12 @@ Base.@propagate_inbounds Base.getindex(im::MCIndices{N}, I::Vararg{Int,N}) where
 # DOKArray
 const DOK{T,N} = Dict{Dims{N},T}
 
+"""
+    DOKSparseArray{T,N}
+
+A simple sparse array type storing as
+[`DOK` format](https://en.wikipedia.org/wiki/Sparse_matrix#Dictionary_of_keys_(DOK)).
+"""
 struct DOKSparseArray{T,N} <: ResizingTools.AbstractRNArray{T,N}
     dok::DOK{T,N}
     sz::Size{N}

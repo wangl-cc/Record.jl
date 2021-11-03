@@ -79,21 +79,20 @@ struct BinarySearch <: AbstractSearch end
 """
     gettime([alg::AbstractSearch], e::AbstractEntry, t::Real)
     gettime([alg::AbstractSearch], e::AbstractEntry, ts)
+    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, t::Real)
+    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, ts)
 
 Get the value of `e` at `t::Real` or values at each time `t` in an iterate `ts`.
 If `t` is not a timestamp  in `getts(e)`, return value at time `getts(e)[i]` where
 `getts(e)[i] < t < getts(e)[i+1]`. The `alg` is a search algorithm that finds
 the index `i` of a target time `t`, which can be `LinearSearch` or `BinarySearch`
 (by default).
+For `es`, an array of entries, return values at `t` as a similar array.
 
 !!! note
 
     `ts` must be monotonically increasing.
 
-# Examples
-
-```jldoctest
-```
 """
 gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t) # t or ts
 gettime(alg::AbstractSearch, e::AbstractEntry{V}, ts) where {V} =
@@ -111,8 +110,6 @@ end
 _gettime_itr(::AbstractSearch, ::AbstractEntry, ::Real, v, ::Nothing) = v, nothing
 
 """
-    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, t::Real)
-    gettime([alg::AbstractSearch], es::AbstractArray{<:AbstractEntry}, ts)
 """
 gettime(es::AbstractArray{<:AbstractEntry}, t) = gettime(BinarySearch(), es, t) # t or ts
 function gettime(alg::AbstractSearch, es::AbstractArray{<:AbstractEntry}, t::Real)
