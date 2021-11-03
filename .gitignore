@@ -28,6 +28,20 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# ============================ vscode ============================== #
+# ======= github/gitignore/Global/VisualStudioCode.gitignore ======= #
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Coverage file for Visual Studio Code
+lcov.info
 
 # ============================== vim =============================== #
 # ============= github/gitignore/Global/Vim.gitignore ============== #

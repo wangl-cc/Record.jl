@@ -8,7 +8,6 @@ on:
     paths:
       - "src/**"
       - "test/**"
-      - "docs/src/**" # doctest
       - "Project.toml"
       - ".github/workflows/ci.yml"
   pull_request:
@@ -22,11 +21,11 @@ jobs:
   build:
     name: Build and Test
     runs-on: ${{ matrix.os }}
-    
+
     strategy:
       matrix:
         version:
-          - "1.0"
+          - "1.2"
           - "1" # latest stable 1.x release of Julia
           - nightly
         os:
@@ -50,8 +49,6 @@ jobs:
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
           file: ./lcov.info
-
-# vim:ts=2:sw=2

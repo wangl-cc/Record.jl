@@ -13,14 +13,14 @@ using Random
 Random.seed!(1)
 
 c = DiscreteClock(10000) # define a clock, the particle will walk 10000 epoch
-pos = DynamicRArray(c, [0.0, 0.0]) # create a pos vector of the particle
+pos = recorded(DynamicEntry, c, [0.0, 0.0]) # create a position vector of the particle
 
-for t in c
+for _ in c
     pos .+= randn(2) # walk randomly at each epoch
 end
 
 # plot path of particle
-plot(record(pos); frame=:none, grid=false, legend=false)
+phaseportrait(pos; frame=:none, grid=false, legend=false)
 ```
 
 ## Logistic growth
@@ -38,7 +38,7 @@ using Random
 Random.seed!(1)
 
 c = ContinuousClock(100.0) # define a clock, the population will growth for 100 time unit
-n = DynamicRArray(c, 10)   # define a scalar to record population size
+n = recorded(DynamicEntry, c, 10)   # define a scalar to record population size
 
 const r = 0.5
 const K = 100
@@ -64,7 +64,8 @@ for _ in c
     state(n) <= 0 && break # break if population extinct
 end
 
-plot(record(n)...; vars=T0, frame=:box, grid=false, legend=false) # plot population dynamics
+# plot population dynamics
+timeseries(n; frame=:box, grid=false, legend=false)
 ```
 
 ## Stochastic Predator–prey Dynamics
@@ -81,12 +82,12 @@ using Random
 Random.seed!(1)
 
 c = ContinuousClock(100.0) # define a clock, the population will growth for 100 time unit
-n = DynamicRArray(c, [100, 100])  # define a vector to record population size (n[1] for prey, n[2] for predator)
+n = recorded(DynamicEntry, c, [100, 100])  # define a vector to record population size (n[1] for prey, n[2] for predator)
 
-α = 0.5
-β = 0.001
-δ = 0.001
-γ = 0.5
+const α = 0.5
+const β = 0.001
+const δ = 0.001
+const γ = 0.5
 
 for _ in c
     n[2] == 0 && break
@@ -100,7 +101,7 @@ for _ in c
     summed = grow + predation_prey + predation_pred + death
 
     summed <= 0 && break
-    
+
     τ = -log(rand()) / summed # compute time interval
 
     increase!(c, τ) # update current time
@@ -119,9 +120,9 @@ for _ in c
     end
 end
 
-plot(record(n)...; vars=T0, frame=:box, grid=false, legend=false) # plot population dynamics
+ts = timeseries(n; frame=:box, grid=false, legend=false)
+pp = phaseportrait(n; frame=:box, grid=false, legend=false)
+plot(ts, pp; titles=["Population dynamics" "Phase portrait"], size=(800, 400))
 ```
 
-```@example predator_prey
-plot(record(n); frame=:box, grid=false, legend=false) # plot phase space
-```
+More examples is hard to implement simply.

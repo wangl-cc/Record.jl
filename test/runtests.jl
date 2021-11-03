@@ -1,44 +1,66 @@
+using Aqua
 using Test
 using RecordedArrays
-using Documenter
-using BenchmarkTools
+using RecipesBase: apply_recipe
+using ArrayInterface
 
-# don't work now
-filters = Regex[
-    r"Int32|Int64",                 # Int64 <-> Int32
-    r"Array{\w+,\s?1}|Vector{\w+}", # Array{X,1} <-> Vector{X} 
-    r"Array{\w+,\s?2}|Matrix{\w+}", # Array{X,2} <-> Matrix{X}
-]
+function test_recipe(recipe, args)
+    # this hack into the RecipesBase, may break future
+    rds = apply_recipe(Dict{Symbol, Any}(), recipe)
+    @test length(rds) == length(args)
+    for rd in rds
+        @test rd.args in args
+    end
+    return nothing
+end
 
-DocMeta.setdocmeta!(RecordedArrays, :DocTestSetup, :(using RecordedArrays); recursive=true)
+function test_show(x, str)
+    @test repr("text/plain", x) == str
+end
 
 @testset "RecordedArrays" begin
-    if VERSION >= v"1.6" && Int64 == Int # run doctest only for v1.6+ and x64
-        doctest(RecordedArrays; testset="Doctests", doctestfilters=filters)
-
-        @testset "show" begin
-            include("show.jl")
+    @testset "QA" begin
+        _params(T::UnionAll) = _params(T.body)
+        _params(T::DataType) = T.parameters
+        @testset "Ambiguity" begin
+            ambiguities = Test.detect_ambiguities(RecordedArrays)
+            filter!(ambiguities) do (m1, m2)
+                p1 = _params(m1.sig)
+                p2 = _params(m2.sig)
+                for (t1, t2) in zip(p1, p2)
+                    typeintersect(t1, t2) === Union{} && return false
+                end
+                return true
+            end
+            if !isempty(ambiguities)
+                for amb in ambiguities
+                    println(amb[1])
+                    println(amb[2])
+                end
+            end
+            @test isempty(ambiguities)
         end
+        Aqua.test_all(RecordedArrays; ambiguities=false, deps_compat=false)
+    end
+
+    @testset "Utilities" begin
+        include("utils.jl")
     end
 
     @testset "Clock" begin
         include("clock.jl")
     end
 
-    @testset "Base" begin
-        include("base.jl")
+    @testset "Entry" begin
+        include("entry.jl")
     end
 
-    @testset "Math" begin
-        include("math.jl")
+    @testset "RArray" begin
+        include("rarray.jl")
     end
 
-    @testset "Changes" begin
-        include("change.jl")
-    end
-
-    @testset "Interfaces" begin
-        include("interface.jl")
+    @testset "RNumber" begin
+        include("rnumber.jl")
     end
 end
 

@@ -70,7 +70,7 @@ julia> (currenttime(c), collect(c))
 (0, [1, 2, 3])
 ```
 """
-struct DiscreteClock{T,I<:AbstractVector{T}} <: AbstractClock{T}
+struct DiscreteClock{T<:Real,I<:AbstractVector{T}} <: AbstractClock{T}
     current::Array{T,0}
     start::T
     timelist::I
@@ -144,7 +144,7 @@ julia> for epoch in c
 2.0	2
 ```
 """
-struct ContinuousClock{T,I<:Union{Nothing,Integer}} <: AbstractClock{T}
+struct ContinuousClock{T<:Real,I<:Union{Nothing,Integer}} <: AbstractClock{T}
     current::Array{T,0}
     start::T
     stop::T

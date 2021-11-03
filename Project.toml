@@ -1,20 +1,26 @@
 name = "RecordedArrays"
 uuid = "1040807a-3a2f-4266-b2c1-805b33c7034a"
 authors = ["Long Wang <wangl.cc@outlook.com>"]
-version = "0.3.0"
+version = "0.4.0-DEV"
 
 [deps]
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+ArrayInterface = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
+FunctionIndices = "43668171-7344-4272-8ca6-106380bd294d"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
+ResizingTools = "112dcb92-135b-4fff-bdeb-bacebdb79ec0"
+Static = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
 
 [compat]
-julia = "1.0"
+ArrayInterface = "3.1.2"
+FunctionIndices = "0.1"
 RecipesBase = "1.1"
+ResizingTools = "0.3.4"
+Static = "0.3, 0.4"
+julia = "1.2"
 
 [extras]
-Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Documenter", "BenchmarkTools"]
+test = ["Test", "Aqua"]

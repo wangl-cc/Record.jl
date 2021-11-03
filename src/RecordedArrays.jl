@@ -1,30 +1,45 @@
 module RecordedArrays
 
 using RecipesBase
+using ResizingTools
+using ResizingTools: AbstractRDArray, to_parentinds
+using FunctionIndices
+using ArrayInterface
+using Static
 
-export DiscreteClock, ContinuousClock, currenttime, limit, start, init!, increase! # clock
-export DynamicRArray, StaticRArray, state, setclock # rarray
-export DynamicRScalar, DynamicRVector 
-export StaticRVector
-export record, rarray, gettime, selectrecs, T0 # record and common
-export tspan, getts, getvs, toseries, unione, gettime! # entry
-export LinearSearch, BinarySearch # search methods
+# Clock
+export DiscreteClock, ContinuousClock
+export currenttime, limit, start, init!, increase!
+
+# Entry
+export StaticEntry, DynamicEntry
+export store!, del!, getts, getvs, tspan
+export LinearSearch, BinarySearch, gettime, gettime!
+
+# utils
+export MCIndices, DOKSparseArray
+
+# extra (Size from ResizingTools, not from FunctionIndices)
+export Size, not
+
+# Record
+export Record, ScalarRecord, VectorRecord, DOKRecord, getrecord
+
+# RNumber, RArray
+export RArray, RNumber, RReal
+export recorded, getentries, state
+export isnum, issubtype
 
 include("clock.jl")
 
-include("abstract.jl")
+include("utils.jl")
 
-include("record/record.jl")
+include("entry.jl")
 
-include("record/interface.jl")
+include("record.jl")
 
-include("math.jl")
+include("rnumber.jl")
 
-include("dynamic/scalar.jl")
-
-include("dynamic/vector.jl")
-
-include("static/vector.jl")
+include("rarray.jl")
 
 end
-# vim:tw=92:ts=4:sw=4:et

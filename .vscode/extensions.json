@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "julialang.language-julia",
+    "singularitti.vscode-julia-formatter"
+  ]
+}

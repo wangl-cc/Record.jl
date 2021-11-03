@@ -6,7 +6,4 @@ makedocs(;
     pages=["index.md", "manual.md", "example.md", "references.md"],
 )
 
-deploydocs(;
-    repo="github.com/wangl-cc/RecordedArrays.jl.git",
-    push_preview=true
-)
+deploydocs(; repo="github.com/wangl-cc/RecordedArrays.jl.git", push_preview=true)
