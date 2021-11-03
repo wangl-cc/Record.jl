@@ -1,6 +1,6 @@
 # Example
 
-## Gaussian random walk without
+## Gaussian random walk
 
 This is a simple implementation to simulate a 2-D
 [Gaussian random walk](https://en.wikipedia.org/wiki/Random_walk).

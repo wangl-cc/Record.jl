@@ -18,7 +18,7 @@ pkg> add RecordedArrays
 ```@repl
 using RecordedArrays # load this package
 c = ContinuousClock(3); # define a clock
-v = recorded(c, [0, 1]) # create a recorded array with the clock
+v = recorded(DynamicEntry, c, [0, 1]) # create a recorded array with the clock
 v + v # math operations work as normal array
 v .* v # broadcast works as normal array as well
 increase!(c, 1) # when time goes and array changes, increase the define clock firstly
