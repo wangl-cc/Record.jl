@@ -257,7 +257,7 @@ end
     end
     @testset "Show" begin
         v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
-        test_show(v, "2-element recorded(::$(Vector{Int}):\n 1\n 2")
+        test_show(v, "2-element recorded(::$(Vector{Int})):\n 1\n 2")
         r = getrecord(v)
         test_show(r, "2-element $(typeof(r))")
         e = getentries(v)[1]
