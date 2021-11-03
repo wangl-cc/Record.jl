@@ -79,6 +79,8 @@ Base.promote_rule(::Type{<:RN{S}}, ::Type{T}) where {S<:Number,T<:Number} =
 
 Base.show(io::IO, ::MIME"text/plain", x::RecordedNumber) = show(io, state(x))
 
+_unpack(x::RecordedNumber) = _unpack(getentries(x))
+
 @inline state(n::RecordedNumber{T}) where {T} = parent(n)::T
 
 @inline Base.getindex(x::RecordedNumber) = state(x)

@@ -19,12 +19,8 @@ for _ in c
     pos .+= randn(2) # walk randomly at each epoch
 end
 
-es = getentries(pos) # get the recorded entries
-ts = 0:10000 # define the time step
-
 # plot path of particle
-plot(gettime(es[1], ts), gettime(es[2], ts);
-    frame=:none, grid=false, legend=false)
+phaseportrait(pos; frame=:none, grid=false, legend=false)
 ```
 
 ## Logistic growth
@@ -69,7 +65,7 @@ for _ in c
 end
 
 # plot population dynamics
-plot(getentries(n)...; frame=:box, grid=false, legend=false)
+timeseries(n; frame=:box, grid=false, legend=false)
 ```
 
 ## Stochastic Predator–prey Dynamics
@@ -124,16 +120,9 @@ for _ in c
     end
 end
 
-# plot population dynamics
-plot(getentries(n)...; frame=:box, grid=false, legend=false)
-```
-
-```@example predator_prey
-ts = 0:100 # define the time step
-es = getentries(n) # get the recorded entries
-# plot phase space
-plot(gettime(es[1], ts), gettime(es[2], ts);
-    frame=:box, grid=false, legend=false)
+ts = timeseries(n; frame=:box, grid=false, legend=false)
+pp = phaseportrait(n; frame=:box, grid=false, legend=false)
+plot(ts, pp; titles=["Population dynamics" "Phase portrait"], size=(800, 400))
 ```
 
 More examples is hard to implement simply.

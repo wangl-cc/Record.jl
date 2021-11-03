@@ -137,5 +137,15 @@ There are some methods to access the changes stored in entries:
 
 ## Plotting
 
-There is a type recipes of entries for `Plots.jl`,
-thus you can plot a entry`e`  of a recorded variable by `plot(e)`.
+There is a two user recipes for `Plots.jl`:
+
+- `timeseries` plots time series of given recorded variables,
+- `phaseportrait` plots phase portrait of given recorded variables.
+
+Both of them accept arguments with there types:
+
+- a recorded variable, like `timeseries(v)` where `v` is a recorded variable;
+- a collection of entries, like `timeseries(es)`, where `es` is a collection of entries;
+- multiple entries, like `timeseries(e1, e2)`, where `e1` and `e2` are entries.
+
+See example for more information.

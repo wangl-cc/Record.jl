@@ -31,7 +31,6 @@ RecordedArrays.del!
 
 ```@docs
 RecordedArrays.AbstractRecArray
-RecordedArrays.RArray
 RecordedArrays.RecordedNumber
 recorded
 state

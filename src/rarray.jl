@@ -46,6 +46,8 @@ function Base.showarg(io::IO, ::A, toplevel) where {T,N,A<:AbstractRecArray{T,N}
     return nothing
 end
 
+_unpack(A::AbstractRecArray) = _unpack(getentries(A))
+
 """
     state(A::AbstractRecArray{T,N}) -> Array{T,N}
     state(x::RecordedNumber{T}) -> T

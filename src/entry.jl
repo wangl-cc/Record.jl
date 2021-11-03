@@ -32,8 +32,37 @@ function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
 end
 
 # Recipes
-@recipe f(::Type{E}, e::E) where {E<:AbstractEntry} = getts(e), getvs(e)
+@userplot struct TimeSeries{T}
+    es::T
+end
+@userplot struct PhasePortrait{T}
+    es::T
+end
 
+@recipe function f(args::TimeSeries)
+    es = _unpack(args.es...)
+    for e in es
+        @series begin
+            getts(e), getvs(e)
+        end
+    end
+    return nothing
+end
+@recipe function f(args::PhasePortrait)
+    es = _unpack(args.es...)
+    length(es) < 2 && error("Must have at least two entries")
+    length(es) > 3 && error("Must have at most three entries")
+    ts = copy(getts(es[1]))
+    for e in es[2:end]
+        append!(ts, getts(e))
+    end
+    sort!(unique!(ts))
+    return Tuple(map(ei -> gettime(ei, ts), es)) # this is not type stable for array arguments
+end
+
+_unpack(es::AbstractArray{<:AbstractEntry}) = vec(es)
+_unpack(A::DOKSparseArray{<:AbstractEntry}) = values(A.dok)
+_unpack(es::AbstractEntry...) = es
 # Tools
 """
     store!(e::AbstractEntry, v, t::Union{Real,AbstractClock})
@@ -109,8 +138,6 @@ function gettime!(alg::AbstractSearch, dst, e::AbstractEntry{V}, ts) where {V}
 end
 _gettime_itr(::AbstractSearch, ::AbstractEntry, ::Real, v, ::Nothing) = v, nothing
 
-"""
-"""
 gettime(es::AbstractArray{<:AbstractEntry}, t) = gettime(BinarySearch(), es, t) # t or ts
 function gettime(alg::AbstractSearch, es::AbstractArray{<:AbstractEntry}, t::Real)
     ret = similar(es, valtype(eltype(es)))
