@@ -65,7 +65,7 @@ end
 end
 
 _unpack(es::AbstractArray{<:AbstractEntry}) = vec(es)
-_unpack(A::DOKSparseArray{<:AbstractEntry}) = values(A.dok)
+_unpack(A::DOKSparseArray{<:AbstractEntry}) = collect(values(A.dok))
 _unpack(es::AbstractEntry...) = es
 # Tools
 """
