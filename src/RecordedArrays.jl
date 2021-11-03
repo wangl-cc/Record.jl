@@ -23,7 +23,7 @@ export MCIndices, DOKSparseArray
 export Size, not
 
 # Record
-export Record, ScalarRecord, VectorRecord, DOKRecord
+export Record, ScalarRecord, VectorRecord, DOKRecord, getrecord
 
 # RNumber, RArray
 export RArray, RNumber, RReal
