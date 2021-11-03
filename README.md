@@ -12,7 +12,7 @@ recording and processing the changing values of state.
 This package provides "recorded" types,
 changes of which will be recorded automatically.
 
-**Note:** This are huge changes between `v0.3` and `v0.4`.
+**Note:** There are huge changes between `v0.3` and `v0.4`.
 You can not load and process data of `v0.3` with `v0.4`.
 
 ## Installation
