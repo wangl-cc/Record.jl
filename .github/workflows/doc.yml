@@ -10,7 +10,13 @@ on:
       - "src/**"
       - "docs/**"
       - "Project.toml"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/doc.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "docs/**"
+      - "Project.toml"
+      - ".github/workflows/doc.yml"
 
 jobs:
   docs:
@@ -23,5 +29,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-
-# vim:ts=2:sw=2
+          GKSwstype: "100" # https://discourse.julialang.org/t/generation-of-documentation-fails-qt-qpa-xcb-could-not-connect-to-display/60988
