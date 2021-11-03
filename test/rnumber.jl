@@ -4,6 +4,11 @@ c = ContinuousClock(10)
 x = recorded(DynamicEntry, c, 1.0)
 y = recorded(DynamicEntry, c, 1.0 + 1.0im)
 
+test_show(x, "1.0")
+test_show(y, "1.0 + 1.0im")
+test_recipe(TimeSeries((x,)), [([0], [1.0])])
+test_recipe(TimeSeries((y,)), [([0], [1.0 + 1.0im])])
+
 @test isnum(Real, x)
 @test isnum(Complex, y)
 @test isnum(Complex, x + y)

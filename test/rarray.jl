@@ -1,4 +1,4 @@
-using RecordedArrays: getentries
+using RecordedArrays: TimeSeries, PhasePortrait
 
 @testset "Scalar" begin
     c = DiscreteClock(10)
@@ -12,6 +12,7 @@ using RecordedArrays: getentries
     @test e1 == RecordedArrays.getrecord(s)[]
     @test getts(e1) == 0:10
     @test getvs(e1) == 0:10
+    @test ArrayInterface.parent_type(getrecord(s)) == DynamicEntry{Int,Int}
 end
 
 @testset "Vector" begin
@@ -235,6 +236,53 @@ end
         a = gettime(es, ts)
         for (i, t) in enumerate(ts)
             @test a[i, :, :] == gettime(es, t) == gettime(es, round(t, RoundDown))
+        end
+    end
+end
+
+@testset "MISC" begin
+    @testset "Recipes" begin
+        v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+        test_recipe(TimeSeries((v,)), [([0], [1]), ([0], [2])])
+        test_recipe(TimeSeries((getentries(v),)), [([0], [1]), ([0], [2])])
+        test_recipe(TimeSeries((getentries(v)...,)), [([0], [1]), ([0], [2])])
+        test_recipe(PhasePortrait((v,)), [([1], [2])])
+        test_recipe(PhasePortrait((getentries(v),)), [([1], [2])])
+        test_recipe(PhasePortrait((getentries(v)...,)), [([1], [2])])
+        m = recorded(DynamicEntry, ContinuousClock(10), [1 2])
+        # the order may be different, thus only test TimeSeries
+        test_recipe(TimeSeries((m,)), [([0], [1]), ([0], [2])])
+        test_recipe(TimeSeries((getentries(m),)), [([0], [1]), ([0], [2])])
+        test_recipe(TimeSeries((getentries(m)...,)), [([0], [1]), ([0], [2])])
+    end
+    @testset "Show" begin
+        v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+        test_show(v, "2-element recorded(::Vector{Int64}):\n 1\n 2")
+        r = getrecord(v)
+        test_show(r, "2-element $(typeof(r))")
+        e = getentries(v)[1]
+        test_show(e, "$(typeof(e)) with timestamps:\n 0")
+    end
+    @testset "sizehint!" begin
+        # run one time for compile
+        v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+        sizehint!(v, 3)
+        sizehint!(getrecord(v), 3)
+        @test begin
+            v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+            sizehint!(v, 3)
+            @allocated resize!(v, 3)
+        end < begin
+            v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+            @allocated resize!(v, 3)
+        end
+        @test begin
+            v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+            sizehint!(getrecord(v), 3)
+            @allocated resize!(v, 3)
+        end < begin
+            v = recorded(DynamicEntry, ContinuousClock(10), [1, 2])
+            @allocated resize!(v, 3)
         end
     end
 end

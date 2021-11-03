@@ -19,6 +19,7 @@ end
 
 @testset "DOKSparseArray" begin
     s = DOKSparseArray(Dict{Tuple{},Int}(() => 1), Size())
+    @test ArrayInterface.parent_type(s) == Dict{Tuple{},Int}
     @test s[] == 1
     s[] = 2
     @test get(s, (), 1) == 2

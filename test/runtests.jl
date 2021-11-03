@@ -1,6 +1,22 @@
 using Aqua
 using Test
 using RecordedArrays
+using RecipesBase: apply_recipe
+using ArrayInterface
+
+function test_recipe(recipe, args)
+    # this hack into the RecipesBase, may break future
+    rds = apply_recipe(Dict{Symbol, Any}(), recipe)
+    @test length(rds) == length(args)
+    for rd in rds
+        @test rd.args in args
+    end
+    return nothing
+end
+
+function test_show(x, str)
+    @test repr("text/plain", x) == str
+end
 
 @testset "RecordedArrays" begin
     @testset "QA" begin
