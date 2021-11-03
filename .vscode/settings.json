@@ -13,6 +13,5 @@
   "juliaFormatter.alwaysForIn": true,
   "juliaFormatter.removeExtraNewlines": true,
   "juliaFormatter.whitespaceInKwargs": false,
-  "juliaFormatter.formatDocstrings": true,
   "juliaFormatter.alignConditional": true
 }
