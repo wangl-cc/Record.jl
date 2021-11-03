@@ -2,14 +2,14 @@
 c = ContinuousClock(10)
 
 x = recorded(DynamicEntry, c, 1.0)
-y = recorded(DynamicEntry, c, 1.0+1.0im)
+y = recorded(DynamicEntry, c, 1.0 + 1.0im)
 
 @test isnum(Real, x)
 @test isnum(Complex, y)
-@test isnum(Complex, x+y)
+@test isnum(Complex, x + y)
 @test issubtype(typeof(x), Real)
 @test issubtype(typeof(y), Complex)
-@test issubtype(typeof(x+y), Complex)
+@test issubtype(typeof(x + y), Complex)
 
 @test promote_type(RReal{Int}, Int) == Int
 @test promote_type(RNumber{Int}, Int) == Int
@@ -30,8 +30,8 @@ y = recorded(DynamicEntry, c, 1.0+1.0im)
 @test y / y == 1
 @test x \ x == 1
 @test y \ y == 1
-@test x ^ x == 1
-@test y ^ y == (1 + im) ^ (1 + im)
+@test x^x == 1
+@test y^y == (1 + im)^(1 + im)
 
 @test convert(Int, x) == 1
 @test convert(RNumber{Int}, x) == 1
@@ -44,7 +44,7 @@ x[] = x + x
 y[] += 1
 
 @test x == 2
-@test y == 2+1im
+@test y == 2 + 1im
 push!(xs, x)
 push!(ys, y)
 
@@ -53,7 +53,7 @@ x[] += UInt(1)
 y[] = y + 2im
 
 @test x == 3
-@test y == 2+3im
+@test y == 2 + 3im
 push!(xs, x)
 push!(ys, y)
 
@@ -63,7 +63,7 @@ x[] = x - UInt(1)
 y[] = y' - 1
 
 @test x == 2
-@test y == 1-3im
+@test y == 1 - 3im
 push!(xs, x)
 push!(ys, y)
 
@@ -77,8 +77,8 @@ push!(xs, x)
 push!(ys, y)
 
 increase!(c, 1) # t = 5
-x[] = x ^ 2
-y[] = (y ^ 2) * im
+x[] = x^2
+y[] = (y^2) * im
 
 @test x == 16
 @test y == 1im
@@ -90,16 +90,16 @@ x[] += real(y)
 y[] += imag(y)
 
 @test x == 16
-@test y == 1+1im
+@test y == 1 + 1im
 push!(xs, x)
 push!(ys, y)
 
 increase!(c, 1) # t = 7
 x[] = 2 \ x
-y[] = y ^ y
+y[] = y^y
 
 @test x == 8
-@test y == (1+im) ^ (1+im)
+@test y == (1 + im)^(1 + im)
 push!(xs, x)
 push!(ys, y)
 
@@ -109,7 +109,7 @@ x[] = exp(x)
 y[] = float(y)
 
 @test x == exp(8)
-@test y == (1+1im) ^ (1+1im)
+@test y == (1 + 1im)^(1 + 1im)
 push!(xs, x)
 push!(ys, y)
 
@@ -119,7 +119,7 @@ x[] = x / x
 y[] = y[1]' + y[1, 1]
 
 @test x == 1
-@test y == 2 * real((1+1im) ^ (1+1im))
+@test y == 2 * real((1 + 1im)^(1 + 1im))
 push!(xs, x)
 push!(ys, y)
 

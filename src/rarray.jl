@@ -5,7 +5,7 @@ Supertype of recorded `N`-dimensional arrays with elements of type `T`,
 whose changes will be recorded automatically.
 
 !!! note
-
+    
     Avoid to mutate recorded arrays out of loop, because clocks will initial
     automatically during loop.
 """
@@ -30,8 +30,7 @@ ResizingTools.getsize(A::AbstractRecArray) = getsize(getrecord(A))
 # so overriding setsize! also avoids changing size twice
 ResizingTools.setsize!(A::AbstractRecArray{T,N}, sz::NTuple{N,Any}) where {T,N} =
     resize!(getrecord(A), sz)
-ResizingTools.setsize!(A::AbstractRecArray, d::Integer, n) =
-    resize!(getrecord(A), d, n)
+ResizingTools.setsize!(A::AbstractRecArray, d::Integer, n) = resize!(getrecord(A), d, n)
 
 # this methods may be unsafe because of the state
 ResizingTools.copyto_parent!(dst::AbstractRecArray, src::AbstractArray, dinds...) =
@@ -55,7 +54,7 @@ _unpack(A::AbstractRecArray) = _unpack(getentries(A))
 Get current state of a recorded array `A` or a recorded number `x`.
 
 !!! note
-
+    
     `state` for `AbstractRecArray{V,T,N}` where `N >= 2` may be unsafe because of
     `unsafe_wrap` and `unsafe_convert`.
 """

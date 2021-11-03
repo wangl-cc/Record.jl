@@ -18,7 +18,7 @@ using RecordedArrays: getdim
 end
 
 @testset "DOKSparseArray" begin
-    s = DOKSparseArray(Dict{Tuple{},Int}(()=>1), Size())
+    s = DOKSparseArray(Dict{Tuple{},Int}(() => 1), Size())
     @test s[] == 1
     s[] = 2
     @test get(s, (), 1) == 2

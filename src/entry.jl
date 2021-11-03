@@ -19,7 +19,11 @@ _typeof(::AbstractClock{T}) where {T} = T
 
 _return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,E<:AbstractEntry} = E{V,T}
 _return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,E<:AbstractEntry{VE}} = E{T}
-_return_type(::Type{E}, ::Type{V}, ::Type{T}) where {V,T,VE,TE<:Real,E<:AbstractEntry{VE,TE}} = E
+_return_type(
+    ::Type{E},
+    ::Type{V},
+    ::Type{T},
+) where {V,T,VE,TE<:Real,E<:AbstractEntry{VE,TE}} = E
 
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
@@ -121,7 +125,6 @@ For `es`, an array of entries, return values at `t` as a similar array.
 !!! note
 
     `ts` must be monotonically increasing.
-
 """
 gettime(e::AbstractEntry, t) = gettime(BinarySearch(), e, t) # t or ts
 gettime(alg::AbstractSearch, e::AbstractEntry{V}, ts) where {V} =
@@ -289,9 +292,7 @@ getts(e::StaticEntry) = e.delete ? [e.s, e.e] : [e.s]
 getvs(e::StaticEntry) = e.delete ? [e.v, e.v] : [e.v]
 
 gettime(::AbstractSearch, e::StaticEntry{V}, t::Real) where {V} =
-    t < e.s  ? zero(V) :
-    !e.delete ? e.v :
-    t <= e.e ? e.v : zero(V)
+    t < e.s ? zero(V) : !e.delete ? e.v : t <= e.e ? e.v : zero(V)
 
 _initstate(::StaticEntry) = true
 

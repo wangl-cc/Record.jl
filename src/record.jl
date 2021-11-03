@@ -76,7 +76,7 @@ function ResizingTools.resize_buffer!(A::VectorRecord{E}, I) where {E<:AbstractE
     diff = nl - len
     if diff > 0
         append!(A.im, pl+1:pl+diff)
-        append!(A.es, map(_-> E(), 1:diff))
+        append!(A.es, map(_ -> E(), 1:diff))
     elseif diff < 0
         delat!(A, _del_ind(len, I))
         resize!(A.im, (I,))
@@ -135,7 +135,7 @@ struct DOKRecord{E<:AbstractEntry,N,C<:AbstractClock} <: AbstractRecord{E,N,C}
 end
 function Record{E}(c::AbstractClock, A::AbstractArray) where {E<:AbstractEntry}
     sz = Size(A)
-    dok = Dict{NTuple{ndims(A),Int},return_type(E,A,c)}()
+    dok = Dict{NTuple{ndims(A),Int},return_type(E, A, c)}()
     sizehint!(dok, prod(size(A)))
     for (i, ind) in enumerate(MCIndices(A))
         dok[ind] = E(A[i], c)
@@ -146,7 +146,7 @@ function Record{E}(c::AbstractClock, A::AbstractArray) where {E<:AbstractEntry}
 end
 Base.parent(r::DOKRecord) = r.dok
 ArrayInterface.parent_type(::Type{R}) where {E,N,R<:DOKRecord{E,N}} = DOKSparseArray{E,N}
- ResizingTools.getsize(r::DOKRecord) = r.sz
+ResizingTools.getsize(r::DOKRecord) = r.sz
 ResizingTools.size_type(::Type{T}) where {T<:DOKRecord} = Size{ndims(T)}
 
 to_entryind(r::DOKRecord{E,N}, I::Vararg{Int,N}) where {E,N} =

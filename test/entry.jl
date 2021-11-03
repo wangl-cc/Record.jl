@@ -1,9 +1,13 @@
 using RecordedArrays: return_type
 
 @testset "$E" for E in (
-        StaticEntry, StaticEntry{Int}, StaticEntry{Int, Float64},
-        DynamicEntry, DynamicEntry{Int}, DynamicEntry{Int, Float64},
-    )
+    StaticEntry,
+    StaticEntry{Int},
+    StaticEntry{Int,Float64},
+    DynamicEntry,
+    DynamicEntry{Int},
+    DynamicEntry{Int,Float64},
+)
     c = DiscreteClock(3)
     e1 = E(1, c)
     e2 = E(0x2, currenttime(c))
@@ -15,7 +19,7 @@ using RecordedArrays: return_type
     for t in c
         if E <: DynamicEntry
             store!(e1, t, c)
-            t != 3 && store!(e2, t+1, c)
+            t != 3 && store!(e2, t + 1, c)
         end
         t == 2 && del!(e1, c)
         t == 3 && del!(e2, c)

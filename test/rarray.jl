@@ -23,7 +23,7 @@ end
         increase!(c, 1) # t = 2
         @test push!(v, 3) == 1:3
         increase!(c, 1) # t = 3
-        @test resize!(v, (Bool[0,0,1],)) == [3]
+        @test resize!(v, (Bool[0, 0, 1],)) == [3]
         increase!(c, 1) # t = 4
         resize!(v, (3,))
         v[2:3] = 4:5 # this a setindex!
@@ -36,7 +36,7 @@ end
         increase!(c, 1) # t = 8
         @test append!(v, 8) == [3, 6, 5, 7, 8]
         increase!(c, 1) # t = 9
-        @test resize!(v, 1, Bool[1,0,0,0,1]) == [3, 8]
+        @test resize!(v, 1, Bool[1, 0, 0, 0, 1]) == [3, 8]
         increase!(c, 1) # t = 10
         @test resize!(v, 1) == [3]
         es = getentries(v)
@@ -67,8 +67,9 @@ end
         ts = -0.5:0.5:10.5
         m = gettime(es, ts)
         for (i, t) in enumerate(ts)
-            @test m[i, :] == gettime(es, t) ==
-                map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
+            @test m[i, :] ==
+                  gettime(es, t) ==
+                  map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
         end
     end
     @testset "Dynamic" begin
@@ -134,9 +135,11 @@ end
         resize!(m, 1, 3)[not(1), :] = reshape(7:10, 2, 2)
         increase!(c, 1) # t = 6
         resize!(m, 2, 3)[:, 3] = reshape(11:13, 1, 3)
-        @test m == [3  5 11
-                    7  9 12
-                    8 10 13]
+        @test m == [
+            3 5 11
+            7 9 12
+            8 10 13
+        ]
         increase!(c, 1) # t = 7
         @test resize!(m, (not(2), not(2))) |> vec == [3, 8, 11, 13]
         es = getentries(m)
@@ -171,8 +174,9 @@ end
         ts = 0:0.5:7.5
         a = gettime(es, ts)
         for (i, t) in enumerate(ts)
-            @test a[i, :, :] == gettime(es, t) ==
-                map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
+            @test a[i, :, :] ==
+                  gettime(es, t) ==
+                  map(&, gettime(es, round(t, RoundUp)), gettime(es, round(t, RoundDown)))
         end
     end
     @testset "DynamicEntry" begin
@@ -197,7 +201,7 @@ end
         resize!(m, (3, :))[3, :] = 11:12
         increase!(c, 1) # t = 9
         m[3, 1] = 13
-        @test m == [5  10; 9  8; 13 12]
+        @test m == [5 10; 9 8; 13 12]
         es = getentries(m)
         @test getts(es[1, 1]) == [0, 2]
         @test getts(es[2, 1]) == [1, 6]

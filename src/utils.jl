@@ -6,6 +6,7 @@
 A `CartesianIndices` like type defines mutable and disconnected region `R`.
 
 # Examples
+
 ```jldoctest
 julia> im = MCIndices((2, 2))
 2×2 MCIndices{2}:
@@ -22,7 +23,8 @@ julia> foreach(println, im)
 struct MCIndices{N} <: AbstractArray{Dims{N},N}
     indices::NTuple{N,Vector{Int}}
 end
-MCIndices(indices::NTuple{N,AbstractVector{Int}}) where {N} = MCIndices(map(collect, indices))
+MCIndices(indices::NTuple{N,AbstractVector{Int}}) where {N} =
+    MCIndices(map(collect, indices))
 MCIndices(A::AbstractArray) = MCIndices(axes(A))
 
 Base.size(im::MCIndices) = map(length, im.indices)
@@ -71,19 +73,20 @@ function Base.get!(A::DOKSparseArray{T,N}, I::Dims{N}, v::T) where {T,N}
 end
 Base.get(A::DOKSparseArray{T,N}, I::Dims{N}, default) where {T,N} =
     get(parent(A), I, default)
-Base.get(A::DOKSparseArray{T,0}, I::Tuple{}, default) where {T} =
-    get(parent(A), I, default) # to avoid ambiguities
+Base.get(A::DOKSparseArray{T,0}, I::Tuple{}, default) where {T} = get(parent(A), I, default) # to avoid ambiguities
 
 # these two methods don't create elements, the elements are created by setindex!
 function ResizingTools.resize_buffer!(A::DOKSparseArray{T,N}, sz::Vararg{Any,N}) where {T,N}
     sz′ = to_dims(sz)
-    @boundscheck all(map(<=, size(A), sz′)) || throw(ArgumentError("new size must large than the old one"))
+    @boundscheck all(map(<=, size(A), sz′)) ||
+                 throw(ArgumentError("new size must large than the old one"))
     setsize!(A, sz′)
     return A
 end
 function ResizingTools.resize_buffer_dim!(A::DOKSparseArray, d::Int, n)
     n′ = to_dims(n)
-    @boundscheck size(A, d) <= n′ || throw(ArgumentError("new size must large than the old one"))
+    @boundscheck size(A, d) <= n′ ||
+                 throw(ArgumentError("new size must large than the old one"))
     setsize!(A, d, n′)
     return A
 end
