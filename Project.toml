@@ -12,7 +12,7 @@ Static = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
 
 [compat]
 ArrayInterface = "3.1.2"
-FunctionIndices = "0.1"
+FunctionIndices = "0.1, 0.2"
 RecipesBase = "1.1"
 ResizingTools = "0.3.4"
 Static = "0.3, 0.4"
