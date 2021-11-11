@@ -144,6 +144,11 @@ end
         increase!(c, 1) # t = 7
         @test resize!(m, (not(2), not(2))) |> vec == [3, 8, 11, 13]
         es = getentries(m)
+        ks = keys(es)
+        vs = values(es)
+        for (k, v) in zip(ks, vs)
+            @test es[k] == v
+        end
         @test getts(es[1, 1]) == [0, 3] # 1
         @test getts(es[2, 1]) == [1, 3] # 2
         @test getts(es[1, 2]) == [1]    # 3
