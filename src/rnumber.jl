@@ -97,7 +97,7 @@ for op in (:+, :-, :conj, :real, :imag, :float)
     @eval @inline Base.$op(x::RecordedNumber) = $op(parent(x))
 end
 
-for op in (:+, :-, :*, :/, :\, :^)
+for op in (:+, :-, :*, :/, :\, :^, :(==))
     @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}) where {T} =
         $op(parent(x), parent(y))
 end
