@@ -25,6 +25,10 @@ using RecordedArrays: return_type
         t == 3 && del!(e2, c)
     end
 
+    @test e1 == deepcopy(e1)
+    @test e2 == deepcopy(e2)
+    @test e1 != e2
+
     @test gettime(e1, -1) == 0
     @test gettime(e2, -1) == 0
     if E <: StaticEntry

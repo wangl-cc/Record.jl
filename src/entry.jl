@@ -25,6 +25,9 @@ _return_type(
     ::Type{T},
 ) where {V,T,VE,TE<:Real,E<:AbstractEntry{VE,TE}} = E
 
+Base.:(==)(e1::AbstractEntry, e2::AbstractEntry) =
+    getts(e1) == getts(e2) && getvs(e1) == getvs(e2)
+
 # Show methods
 function Base.show(io::IO, ::MIME"text/plain", e::AbstractEntry)
     summary(io, e)
