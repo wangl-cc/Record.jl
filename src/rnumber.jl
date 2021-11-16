@@ -101,3 +101,5 @@ for op in (:+, :-, :*, :/, :\, :^, :(==))
     @eval @inline Base.$op(x::RecordedNumber{T}, y::RecordedNumber{T}) where {T} =
         $op(parent(x), parent(y))
 end
+
+Base.hash(x::RecordedNumber, h::UInt) = hash(state(x), h)

@@ -4,7 +4,12 @@ c = ContinuousClock(10)
 x = recorded(DynamicEntry, c, 1.0)
 y = recorded(DynamicEntry, c, 1.0 + 1.0im)
 
-@test x == recorded(DynamicEntry, c, 1.0)
+@test x == recorded(DynamicEntry, c, 1.0) == 1.0
+@test y == recorded(DynamicEntry, c, 1.0 + 1.0im) == 1.0 + 1.0im
+@test hash(x) == hash(1.0)
+@test hash(x, UInt(1)) == hash(1.0, UInt(1))
+@test hash(y) == hash(1.0 + 1.0im)
+@test hash(y, UInt(1)) == hash(1.0 + 1.0im, UInt(1))
 
 test_show(x, "1.0")
 test_show(y, "1.0 + 1.0im")
