@@ -20,8 +20,6 @@ recorded(::Type{E}, c::AbstractClock, n::Real) where {E<:AbstractEntry} =
 Base.parent(x::RReal) = x.v
 getrecord(x::RReal) = x.record
 
-Base.setindex!(x::RReal, v, I...) = (getrecord(x)[I...] = v; x.v = v; v)
-
 """
     RecordedNumber{T}
 
@@ -85,12 +83,26 @@ _unpack(x::RecordedNumber) = _unpack(getentries(x))
 
 @inline Base.getindex(x::RecordedNumber) = state(x)
 @inline function Base.getindex(x::RecordedNumber, i::Integer)
-    @boundscheck isone(i) || throw(BoundsError())
+    @boundscheck isone(i) || throw(BoundsError(x, i))
     return parent(x)
 end
 @inline function Base.getindex(x::RecordedNumber, I::Integer...)
-    @boundscheck all(isone, I) || throw(BoundsError())
+    @boundscheck all(isone, I) || throw(BoundsError(x, I))
     return parent(x)
+end
+
+@inline Base.setindex!(x::RReal, v) = (getrecord(x)[] = v; x.v = v; x)
+@inline function Base.setindex!(x::RecordedNumber, v, i::Integer)
+    @boundscheck isone(i) || throw(BoundsError(x, i))
+    getrecord(x)[] = v
+    x.v = v
+    return x
+end
+@inline function Base.getindex(x::RecordedNumber, v, I::Integer...)
+    @boundscheck all(isone, I) || throw(BoundsError(x, I))
+    getrecord(x)[] = v
+    x.v = v
+    return x
 end
 
 for op in (:+, :-, :conj, :real, :imag, :float)

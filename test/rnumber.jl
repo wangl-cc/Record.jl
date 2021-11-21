@@ -53,7 +53,7 @@ ys = [y[1]]
 
 increase!(c, 1) # t = 1
 x[] = x + x
-y[] += 1
+y[1] += 1
 
 @test x == 2
 @test y == 2 + 1im
@@ -62,7 +62,7 @@ push!(ys, y)
 
 increase!(c, 1) # t = 2
 x[] += UInt(1)
-y[] = y + 2im
+y[1, 1] = y + 2im
 
 @test x == 3
 @test y == 2 + 3im
