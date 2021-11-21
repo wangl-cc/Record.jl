@@ -8,8 +8,6 @@ recorded(::Type{E}, c::AbstractClock, n::Number) where {E<:AbstractEntry} =
 Base.parent(x::RNumber) = x.v
 getrecord(x::RNumber) = x.record
 
-Base.setindex!(x::RNumber, v, I...) = (getrecord(x)[I...] = v; x.v = v; v)
-
 mutable struct RReal{T<:Real,R} <: Real
     v::T
     record::R
