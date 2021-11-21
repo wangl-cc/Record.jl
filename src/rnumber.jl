@@ -91,14 +91,14 @@ end
     return parent(x)
 end
 
-@inline Base.setindex!(x::RReal, v) = (getrecord(x)[] = v; x.v = v; x)
+@inline Base.setindex!(x::RecordedNumber, v) = (getrecord(x)[] = v; x.v = v; x)
 @inline function Base.setindex!(x::RecordedNumber, v, i::Integer)
     @boundscheck isone(i) || throw(BoundsError(x, i))
     getrecord(x)[] = v
     x.v = v
     return x
 end
-@inline function Base.getindex(x::RecordedNumber, v, I::Integer...)
+@inline function Base.setindex!(x::RecordedNumber, v, I::Integer...)
     @boundscheck all(isone, I) || throw(BoundsError(x, I))
     getrecord(x)[] = v
     x.v = v
