@@ -52,7 +52,7 @@ xs = [x[1]]
 ys = [y[1]]
 
 increase!(c, 1) # t = 1
-x[] = x + x
+x[CartesianIndex(1)] = x + x
 y[1] += 1
 
 @test x == 2
@@ -61,7 +61,7 @@ push!(xs, x)
 push!(ys, y)
 
 increase!(c, 1) # t = 2
-x[] += UInt(1)
+x[CartesianIndex()] += UInt(1)
 y[1, 1] = y + 2im
 
 @test x == 3
@@ -71,8 +71,8 @@ push!(ys, y)
 
 increase!(c, 1) # t = 3
 
-x[] = x - UInt(1)
-y[] = y' - 1
+x[CartesianIndex(1)] = x - UInt(1)
+y[CartesianIndex(1, 1)] = y' - 1
 
 @test x == 2
 @test y == 1 - 3im

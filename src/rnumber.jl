@@ -88,6 +88,8 @@ end
     @boundscheck all(isone, I) || throw(BoundsError(x, I))
     return parent(x)
 end
+@inline Base.getindex(x::RecordedNumber, ::CartesianIndex{0}) = state(x) # to fix ambiguity
+Base.@propagate_inbounds Base.getindex(x::RecordedNumber, I::CartesianIndex) = x[I.I...]
 
 @inline Base.setindex!(x::RecordedNumber, v) = (getrecord(x)[] = v; x.v = v; x)
 @inline function Base.setindex!(x::RecordedNumber, v, i::Integer)
@@ -102,6 +104,8 @@ end
     x.v = v
     return x
 end
+Base.@propagate_inbounds Base.setindex!(x::RecordedNumber, v, I::CartesianIndex) =
+    setindex!(x, v, I.I...)
 
 for op in (:+, :-, :conj, :real, :imag, :float)
     @eval @inline Base.$op(x::RecordedNumber) = $op(parent(x))
