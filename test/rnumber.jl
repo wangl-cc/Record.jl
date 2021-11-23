@@ -101,7 +101,7 @@ push!(ys, y)
 
 increase!(c, 1) # t = 6
 x[] += real(y)
-y[] += imag(y)
+y[CartesianIndex(1, 1)] += imag(y)
 
 @test x == 16
 @test y == 1 + 1im
