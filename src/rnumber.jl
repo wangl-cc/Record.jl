@@ -73,6 +73,7 @@ Base.promote_rule(::Type{<:RN{S}}, ::Type{<:RN{T}}) where {S<:Number,T<:Number} 
 Base.promote_rule(::Type{<:RN{S}}, ::Type{T}) where {S<:Number,T<:Number} =
     promote_type(S, T)
 
+Base.show(io::IO, x::RecordedNumber) = show(io, state(x))
 Base.show(io::IO, ::MIME"text/plain", x::RecordedNumber) = show(io, state(x))
 
 _unpack(x::RecordedNumber) = _unpack(getentries(x))

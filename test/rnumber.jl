@@ -13,6 +13,8 @@ y = recorded(DynamicEntry, c, 1.0 + 1.0im)
 
 test_show(x, "1.0")
 test_show(y, "1.0 + 1.0im")
+@test repr(x) == "1.0"
+@test repr(y) == "1.0 + 1.0im"
 test_recipe(TimeSeries((x,)), [([0], [1.0])])
 test_recipe(TimeSeries((y,)), [([0], [1.0 + 1.0im])])
 
