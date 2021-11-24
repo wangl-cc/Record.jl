@@ -188,6 +188,7 @@ init!(c::ContinuousClock) = c.current[] = start(c)
 
 Update current time of clock `c` to `currenttime(c) + t`.
 """
-increase!(c::ContinuousClock, t::Real) = c.current[] += t
+increase!(c::ContinuousClock{T}, t::Real) where {T<:Real} = increase!(c, convert(T, t))::T
+increase!(c::ContinuousClock{T}, t::T) where {T<:Real} = c.current[] += t
 
 # vim:tw=92:ts=4:sw=4:et
